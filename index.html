@@ -1,0 +1,1556 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#05060a">
+<meta name="description" content="Acompanhamento offline de posições de liquidez: ROI, APR e gráficos.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pool Monitor">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>Pool Monitor</title>
+<style>
+:root{
+  --bg:#05060a; --bg2:#080a10; --panel:#0c0f18; --card:#111520; --card2:#161b28; --elev:#1a2030;
+  --border:#1e2536; --border2:#2a3348;
+  --text:#eef0f6; --muted:#8b93a7; --dim:#5c6478;
+  --blue:#4f7cff; --blue2:#6b93ff; --green:#22c55e; --green2:#4ade80; --red:#f04352; --yellow:#f5c518;
+  --purple:#a78bfa; --cyan:#38bdf8; --inv:#60a5fa; --orange:#fb923c;
+  --glow-blue:rgba(79,124,255,.18); --glow-green:rgba(34,197,94,.14); --glow-red:rgba(240,67,82,.12);
+  --radius:14px; --radius-sm:10px; --shadow:0 8px 32px rgba(0,0,0,.45);
+  --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{color-scheme:dark;scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(1200px 600px at 10% -10%,rgba(79,124,255,.07),transparent 50%),radial-gradient(900px 500px at 90% 0%,rgba(167,139,250,.05),transparent 45%),var(--bg);color:var(--text);font:14px/1.45 var(--font);min-height:100vh}
+button{font:inherit}
+.wrap{max-width:1320px;margin:0 auto;padding:16px 16px 60px}
+
+/* —— Top bar —— */
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:4px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#4f7cff 0%,#a78bfa 100%);display:grid;place-items:center;font-weight:800;font-size:15px;color:#fff;box-shadow:0 4px 16px rgba(79,124,255,.35);flex:none}
+h1{font-size:22px;margin:0;font-weight:750;letter-spacing:-.02em}
+.subt{color:var(--muted);margin-top:1px;font-size:12.5px}
+.top-r{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--card2);color:var(--text);padding:8px 13px;border-radius:11px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s ease}
+.btn:hover{border-color:var(--border2);background:var(--elev);transform:translateY(-1px)}
+.btn.primary{background:linear-gradient(135deg,#4f7cff,#3b6dff);border-color:transparent;color:#fff;box-shadow:0 4px 14px rgba(79,124,255,.3)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.green{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.32);color:var(--green2)}
+.btn.red{background:rgba(240,67,82,.12);border-color:rgba(240,67,82,.35);color:#ff8a94}
+.btn.sm{padding:5px 10px;font-size:12.5px;border-radius:9px}
+.status{font-size:11.5px;color:var(--muted);display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.02);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--yellow);flex:none;box-shadow:0 0 0 3px rgba(245,197,24,.15)}
+.dot.ok{background:var(--green);box-shadow:0 0 0 3px rgba(34,197,94,.15)}
+.dot.err{background:var(--red);box-shadow:0 0 0 3px rgba(240,67,82,.15)}
+.menu-wrap{position:relative}
+.menu{position:absolute;right:0;top:calc(100% + 6px);background:#0e121c;border:1px solid var(--border);border-radius:14px;padding:6px;min-width:300px;z-index:40;box-shadow:var(--shadow)}
+.menu button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--text);padding:9px 12px;border-radius:9px;cursor:pointer;transition:background .12s}
+.menu button:hover{background:var(--card2)}
+.menu button.danger{color:#ff8a94}
+.menu hr{border:0;border-top:1px solid var(--border);margin:6px 0}
+.menu .cap{color:var(--dim);font-size:11px;padding:4px 12px;text-transform:uppercase;letter-spacing:.06em;font-weight:650}
+.banner{border:1px solid var(--border);background:var(--card);border-radius:12px;padding:11px 14px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:13px}
+.banner.warn{border-color:rgba(245,197,24,.35);color:#fde68a;background:rgba(245,197,24,.05)}
+.banner .bb{display:flex;gap:8px}
+
+/* —— KPI cards —— */
+.cards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-top:12px}
+@media (max-width:1200px){.cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:560px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.card .val{font-size:18px}}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.03),transparent 40%),var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 15px;position:relative;overflow:hidden;transition:border-color .15s,transform .15s}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent,var(--blue));opacity:.85}
+.card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.card .lbl{color:var(--muted);font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.card .val{font-size:22px;font-weight:750;margin-top:6px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.card .s{color:var(--dim);font-size:11.5px;margin-top:3px}
+
+/* —— Dashboard sections —— */
+.dash-section{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-top:10px;transition:border-color .15s}
+.dash-section:hover{border-color:var(--border2)}
+.dash-title{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.dash-title h2{font-size:15px;margin:0;font-weight:700;letter-spacing:-.01em}
+.dash-title p{margin:3px 0 0;color:var(--muted);font-size:12px}
+.dash-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.insight-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;min-width:0;cursor:default;transition:border-color .15s,background .15s}
+.insight-card.clickable{cursor:pointer}
+.insight-card.clickable:hover{border-color:rgba(79,124,255,.4);background:rgba(79,124,255,.06)}
+.insight-card .ilabel{color:var(--muted);font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.insight-card .ivalue{font-size:20px;font-weight:750;margin-top:4px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.insight-card .idetail{color:var(--dim);font-size:12px;margin-top:3px;overflow-wrap:anywhere}
+.insight-card .iname{color:var(--text);font-weight:650}
+
+/* Cross data grid */
+.cross{display:grid;grid-template-columns:1.15fr 1fr;gap:10px;margin-top:10px}
+@media (max-width:900px){.cross{grid-template-columns:1fr}}
+.cross-panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:12px 14px}
+.cross-panel h2{font-size:15px;margin:0 0 4px;font-weight:700}
+.cross-panel .sub{color:var(--muted);font-size:12px;margin-bottom:12px}
+
+/* Network bars */
+.bar-row{display:grid;grid-template-columns:minmax(110px,130px) 1fr 68px;gap:8px;align-items:center;padding:5px 6px;border-radius:8px;cursor:pointer;transition:background .12s;margin-bottom:1px}
+.bar-row:hover,.bar-row.on{background:rgba(79,124,255,.08)}
+.bar-row .bn{font-weight:650;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{height:8px;background:rgba(255,255,255,.04);border-radius:999px;overflow:hidden}
+.bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#4f7cff,#a78bfa);min-width:2px;transition:width .35s ease}
+.bar-val{font-size:12px;font-weight:650;text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+
+/* Mini rank list */
+.rank-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;transition:background .12s;border:1px solid transparent}
+.rank-item:hover{background:rgba(255,255,255,.03);border-color:var(--border)}
+.rank-num{width:22px;height:22px;border-radius:7px;background:var(--elev);display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--muted);flex:none}
+.rank-num.t1{background:rgba(245,197,24,.15);color:var(--yellow)}
+.rank-num.t2{background:rgba(148,163,184,.12);color:#cbd5e1}
+.rank-num.t3{background:rgba(180,120,60,.15);color:#d4a574}
+.rank-body{flex:1;min-width:0}
+.rank-body b{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-body span{font-size:11.5px;color:var(--dim)}
+.rank-metric{text-align:right;font-weight:700;font-size:13.5px;font-variant-numeric:tabular-nums;flex:none}
+
+.dash-table-wrap{overflow-x:auto;margin-top:8px;border-radius:10px}
+.dash-table{width:100%;border-collapse:collapse;font-size:12.5px;white-space:nowrap}
+.dash-table th,.dash-table td{padding:9px 11px;border-bottom:1px solid var(--border);text-align:right}
+.dash-table th{color:var(--muted);font-weight:650;background:rgba(255,255,255,.02);font-size:11px;text-transform:uppercase;letter-spacing:.03em}
+.dash-table th:first-child,.dash-table td:first-child,.dash-table th:nth-child(2),.dash-table td:nth-child(2){text-align:left}
+.dash-table tbody tr{transition:background .12s;cursor:default}
+.dash-table tbody tr:hover{background:rgba(255,255,255,.02)}
+.dash-table tbody tr.on{background:rgba(79,124,255,.08)}
+.dash-table tfoot td{font-weight:750;border-top:1px solid var(--border2);color:var(--text)}
+.text-link{border:0;background:none;color:var(--blue2);font:inherit;font-weight:650;cursor:pointer;padding:0;text-align:left;transition:color .12s}
+.text-link:hover{color:#a5c0ff;text-decoration:underline}
+.net{display:inline-flex;align-items:center;gap:6px;vertical-align:middle}
+.net-ico{display:inline-grid;place-items:center;width:1.35em;height:1.35em;font-size:13px;line-height:1;flex:none;opacity:.95}
+.net-img{width:18px;height:18px;border-radius:5px;object-fit:contain;flex:none;background:rgba(255,255,255,.04);box-shadow:0 0 0 1px rgba(255,255,255,.06)}
+.bar-row .net-img,.dash-table .net-img{width:18px;height:18px}
+.bar-row .net-ico,.dash-table .net-ico{font-size:14px}
+.pname .net{margin-left:2px}
+.chip .net-img{width:16px;height:16px;border-radius:4px}
+.state-tag{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:2px 8px;font-size:10.5px;color:var(--muted);font-weight:600}
+.state-tag.good{color:var(--green2);border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.08)}
+.state-tag.warn{color:var(--yellow);border-color:rgba(245,197,24,.3);background:rgba(245,197,24,.08)}
+.state-tag.bad{color:#ff8a94;border-color:rgba(240,67,82,.3);background:rgba(240,67,82,.08)}
+.alert-list{display:grid;gap:5px;margin-top:6px}
+.alert-item{display:flex;align-items:flex-start;gap:9px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--muted);font-size:12.5px;transition:border-color .12s}
+.alert-item:hover{border-color:var(--border2)}
+.alert-item b{color:var(--text)}
+.alert-icon{font-size:13px;line-height:1.3;flex:none;opacity:.9}
+.dash-footnote{color:var(--dim);font-size:11.5px;line-height:1.5;margin:10px 0 0}
+.practices-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.practice{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 12px}
+.practice b{display:block;color:var(--text);margin-bottom:3px;font-size:13px}
+.practice span{display:block;color:var(--muted);font-size:12px}
+@media(max-width:800px){.dash-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.dash-grid,.practices-grid{grid-template-columns:1fr}.dash-section,.cross-panel{padding:14px}}
+
+.pos{color:var(--green)} .neg{color:var(--red)} .neu{color:var(--text)} .apr{color:var(--purple)} .fee{color:var(--yellow)} .inv{color:var(--inv)} .roi{color:var(--cyan)}
+
+/* —— Sections & pools —— */
+.section{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-top:10px}
+.sec-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.sec-head h2{font-size:15px;margin:0;font-weight:700}
+.sec-head .hs{color:var(--dim);font-size:12px;margin-left:6px;font-weight:400}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--border);background:var(--card2);color:var(--muted);padding:5px 12px;border-radius:999px;cursor:pointer;font-weight:600;font-size:12.5px;transition:all .12s}
+.chip:hover{border-color:var(--border2);color:var(--text)}
+.chip.on{color:var(--text);border-color:#3a4660;background:rgba(255,255,255,.05)}
+.chip.g.on{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.35);color:var(--green2)}
+
+.pool{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-top:8px;overflow:hidden;transition:border-color .15s,box-shadow .15s}
+.pool:hover{border-color:var(--border2)}
+.pool.open{border-color:rgba(79,124,255,.35);box-shadow:0 0 0 1px rgba(79,124,255,.12)}
+.pool.closed{opacity:.88}
+.pool-head{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;flex-wrap:wrap;transition:background .12s}
+.pool-head:hover{background:rgba(255,255,255,.02)}
+.avatar{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#1a2342,#243056);color:#9bb4ff;display:grid;place-items:center;font-weight:700;font-size:12px;flex:none}
+.pname{flex:1;min-width:150px}
+.pname b{font-size:14.5px}
+.pname .ps{color:var(--muted);font-size:12px;margin-top:1px}
+.badge{display:inline-block;font-size:10.5px;padding:2px 7px;border-radius:999px;font-weight:650;margin-left:5px;vertical-align:2px}
+.badge.ativa{background:rgba(34,197,94,.12);color:var(--green2)}
+.badge.fechada{background:#262b3a;color:#c3c8d4}
+.badge.warn{background:rgba(245,197,24,.1);color:var(--yellow)}
+.metrics{display:flex;gap:16px;flex-wrap:wrap;justify-content:flex-end}
+.m{text-align:right;min-width:72px}
+.m span{display:block;color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;font-weight:600}
+.m b{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.m i{display:block;font-style:normal;font-size:11px;color:var(--dim)}
+.chev{width:32px;height:32px;border-radius:9px;border:0;background:var(--elev);color:var(--inv);cursor:pointer;flex:none;display:grid;place-items:center;transition:transform .2s,background .12s}
+.pool.open .chev{background:rgba(79,124,255,.15)}
+.pool.open .chev svg{transform:rotate(180deg)}
+.pool-body{border-top:1px solid var(--border);padding:14px}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--card2);border-radius:10px;padding:9px 11px;border:1px solid transparent}
+.tile span{color:var(--muted);font-size:11px;display:block;font-weight:600}
+.tile b{font-size:14.5px;font-variant-numeric:tabular-nums}
+.tile i{display:block;font-style:normal;color:var(--dim);font-size:11px;margin-top:1px}
+.obs{color:var(--muted);font-size:12.5px;margin-top:10px;padding:8px 10px;background:rgba(255,255,255,.02);border-radius:8px}
+.actions{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 4px}
+.hist-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;border-top:1px solid var(--border);padding-top:12px}
+.hist-head .ht{color:var(--muted);font-weight:600;font-size:13px}
+.seg{display:inline-flex;background:var(--card2);border-radius:10px;padding:3px;flex-wrap:wrap}
+.seg button{background:none;border:0;color:var(--muted);padding:5px 11px;border-radius:8px;font-weight:600;font-size:12.5px;cursor:pointer;transition:all .12s}
+.seg button.on{background:rgba(34,197,94,.14);color:var(--green2)}
+.chart{position:relative;margin-top:8px;min-height:100px}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart .gl{stroke:#1e2536;stroke-dasharray:3 4}
+.chart .zl{stroke:#2a3348}
+.chart .ax{fill:#6b7289;font-size:10.5px}
+.chart .guide{stroke:#4a5568;stroke-dasharray:3 3}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-bottom:4px}
+.legend i,.tip i{display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.tip{position:absolute;pointer-events:none;background:#0a0d14;border:1px solid var(--border);border-radius:9px;padding:7px 10px;font-size:12px;white-space:nowrap;display:none;z-index:3;box-shadow:var(--shadow)}
+.tip .tt{color:var(--muted);margin-bottom:3px}
+.nochart{color:var(--dim);font-size:13px;padding:28px 10px;text-align:center;border:1px dashed var(--border);border-radius:10px}
+details.ev{margin-top:12px}
+details.ev summary{cursor:pointer;color:var(--muted);font-weight:600;font-size:13px}
+.tw{overflow-x:auto;margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+th,td{padding:6px 8px;border-bottom:1px solid var(--border);text-align:right}
+th{color:var(--muted);font-weight:600;font-size:11px}
+th:nth-child(-n+3),td:nth-child(-n+3){text-align:left}
+td .del{background:none;border:0;color:#ff8a94;cursor:pointer;padding:2px 6px;border-radius:6px}
+td .del:hover{background:rgba(240,67,82,.12)}
+.empty{text-align:center;padding:48px 16px}
+.empty h2{margin:0 0 6px;font-size:18px}
+.empty p{color:var(--muted);margin:0 0 16px}
+.empty .bb{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+details.method{color:var(--muted);font-size:13px}
+details.method summary{cursor:pointer;font-weight:650;color:var(--text);font-size:13.5px}
+details.method li{margin:5px 0}
+details.method b{color:var(--text)}
+
+/* —— Modal —— */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);display:grid;place-items:center;z-index:60;padding:16px}
+.modal{background:#0e121c;border:1px solid var(--border);border-radius:16px;width:min(560px,100%);max-height:calc(100vh - 32px);display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.mh{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border)}
+.mh h3{margin:0;font-size:18px}
+.mh .x{background:none;border:0;color:var(--muted);font-size:22px;cursor:pointer;line-height:1}
+.mb{padding:16px 20px;overflow:auto}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f{grid-column:span 2}
+.f.half{grid-column:span 1}
+@media (max-width:520px){.f.half{grid-column:span 2}}
+.f label{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:12.5px;margin-bottom:5px}
+.f label .prev{font-weight:500;color:var(--dim)}
+.f label .prev.bad{color:#ff8a94}
+.f input,.f select,.f textarea{width:100%;background:#121722;border:1px solid var(--border);border-radius:10px;color:var(--text);padding:10px 11px;font:inherit;transition:border-color .12s}
+.f textarea{min-height:60px;resize:vertical}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,124,255,.2)}
+.f .hint{color:var(--dim);font-size:11.5px;margin-top:4px}
+.note{color:var(--muted);font-size:12.5px;margin:12px 0 0}
+.err{background:rgba(240,67,82,.1);color:#ff8a94;border-radius:8px;padding:8px 10px;margin-top:12px}
+.mf{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+
+/* Sparkline */
+.spark{display:inline-block;vertical-align:middle;margin-left:6px}
+.spark path{fill:none;stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round}
+
+@media (max-width:760px){
+  .metrics{width:100%;justify-content:flex-start;gap:12px}
+  .m{text-align:left}
+  .chev{position:absolute;right:12px}
+  .pool-head{position:relative;padding-right:52px}
+  h1{font-size:20px}
+  .logo{width:34px;height:34px;font-size:13px}
+}
+
+/* v2 cross layout */
+.breadcrumb{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}
+.bc{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:999px;border:1px solid var(--border);background:var(--card);font-size:12px;color:var(--muted);font-weight:600}
+.bc.on{border-color:rgba(79,124,255,.4);background:rgba(79,124,255,.1);color:var(--text)}
+.bc button{border:0;background:none;color:inherit;cursor:pointer;padding:0;font:inherit;font-weight:700}
+.bc .x{opacity:.6;margin-left:2px}
+.bc .x:hover{opacity:1;color:var(--red)}
+.quick-nav{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.qn{border:1px solid var(--border);background:var(--card2);color:var(--muted);padding:6px 11px;border-radius:9px;font-size:12px;font-weight:650;cursor:pointer;transition:all .12s}
+.qn:hover{border-color:var(--border2);color:var(--text);background:var(--elev)}
+.cross3{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;align-items:start}
+@media(max-width:1000px){.cross3{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.cross3{grid-template-columns:1fr}}
+
+.cross3 > .cross-panel{min-height:0}
+.cross-wide{grid-column:1 / -1}
+.rank-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media(max-width:800px){.rank-grid{grid-template-columns:1fr}}
+.pair-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pair-chip{margin:0}
+.matrix-split{display:grid;grid-template-columns:1.2fr 1fr;gap:10px;margin-top:10px;align-items:start}
+@media(max-width:900px){.matrix-split{grid-template-columns:1fr}}
+
+.pair-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:10px;border:1px solid var(--border);background:var(--card);cursor:pointer;transition:all .12s;font-size:12.5px;margin:0 6px 6px 0}
+.pair-chip:hover{border-color:rgba(79,124,255,.4);background:rgba(79,124,255,.06)}
+.pair-chip b{font-weight:700}
+.pair-chip span{color:var(--dim);font-size:11px}
+.stat-pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pill{padding:6px 10px;border-radius:9px;border:1px solid var(--border);background:var(--card);font-size:12px;cursor:pointer;transition:all .12s}
+.pill:hover{border-color:var(--border2);transform:translateY(-1px)}
+.pill b{display:block;font-size:15px;font-weight:750;margin-top:2px;font-variant-numeric:tabular-nums}
+.pill .pl{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;font-weight:650}
+.pool-link{border:0;background:none;color:var(--blue2);font:inherit;font-weight:650;cursor:pointer;padding:0;text-align:left}
+.pool-link:hover{text-decoration:underline;color:#a5c0ff}
+.ex-row{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:8px;cursor:pointer;transition:background .12s}
+.ex-row:hover,.ex-row.on{background:rgba(79,124,255,.08)}
+.ex-row .ex-name{flex:1;font-weight:650;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ex-row .ex-bar{flex:1.2;height:6px;background:rgba(255,255,255,.04);border-radius:999px;overflow:hidden}
+.ex-row .ex-fill{height:100%;background:linear-gradient(90deg,#38bdf8,#4f7cff);border-radius:999px}
+.ex-row .ex-val{font-size:11.5px;font-weight:650;color:var(--muted);min-width:64px;text-align:right;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<noscript><p style="padding:20px">Ative o JavaScript para usar o Pool Monitor.</p></noscript>
+<script>
+'use strict';
+/* ============================================================
+   Pool Monitor — modelo offline de acompanhamento de pools de liquidez
+   Dados: localStorage (sempre) + ficheiro .json associado (opcional, Edge/Chrome)
+   ============================================================ */
+const LS_KEY = 'poolMonitor.v1';
+const DAY = 86400000;
+const MIN_APR_DAYS = 1;   // janela mínima (dias) para exibir APR / ROI anualizado
+const UI = { filter: 'todas', rede: null, exchange: null, sort: 'recent', open: {}, tab: {}, ptab: 'patrimonio', demo: false };
+const FILE = { supported: typeof window.showSaveFilePicker === 'function', handle: null, state: 'none', name: '', last: null };
+let DB = emptyDB();
+let CACHE = {};
+let PSERIES = [];
+let SEQ = 0;
+const nextSeq = () => Date.now() * 100 + (SEQ++ % 100);
+
+/* ---------- utilidades ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const pad = n => String(n).padStart(2, '0');
+const nf2 = new Intl.NumberFormat('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmt = (n, d) => n.toLocaleString('pt-PT', { maximumFractionDigits: d });
+const ok = n => n != null && isFinite(n);
+const money = n => ok(n) ? (n < -0.004 ? '-' : '') + '$' + nf2.format(Math.abs(n)) : '—';
+const smoney = n => ok(n) ? (n < -0.004 ? '-' : '+') + '$' + nf2.format(Math.abs(n)) : '—';
+const pct = x => ok(x) ? nf2.format(x * 100) + '%' : '—';
+const spct = x => ok(x) ? (x >= -0.00005 ? '+' : '') + nf2.format(Math.abs(x) < 0.00005 ? 0 : x * 100) + '%' : '—';
+const sgn = x => !ok(x) ? 'neu' : x > 0.00005 ? 'pos' : x < -0.00005 ? 'neg' : 'neu';
+const fmtNum = n => ok(n) ? n.toLocaleString('pt-PT', { maximumFractionDigits: 8 }) : '';
+const numToInput = n => ok(n) ? String(Math.round(n * 1e8) / 1e8).replace('.', ',') : '';
+const parseT = s => new Date(s).getTime();               // 'AAAA-MM-DDTHH:mm' em hora local
+function nowInput() { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+const splitDT = s => [s.slice(0, 10), s.slice(11, 16)];
+function fmtDT(t) { const d = new Date(t); return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+function fmtD(t) { const d = new Date(t); return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`; }
+function fmtAxisT(t, span) { const d = new Date(t); return span < 2 * DAY ? `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}` : `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${String(d.getFullYear()).slice(2)}`; }
+function fAxisMoney(v) { const a = Math.abs(v), s = v < 0 ? '-' : ''; if (a >= 1e6) return s + '$' + fmt(a / 1e6, 2) + 'M'; if (a >= 1e3) return s + '$' + fmt(a / 1e3, a >= 1e5 ? 0 : 1) + 'k'; return s + '$' + fmt(a, a < 10 ? 2 : 0); }
+const fAxisPct = v => fmt(v, Math.abs(v) < 10 ? 1 : 0) + '%';
+const fTipPct = v => nf2.format(v) + '%';
+
+function parseNum(str, money = false) {
+  let s = String(str ?? '').trim().replace(/\s|\$|US/gi, '');
+  if (!s) return null;
+  const c = s.includes(','), d = s.includes('.');
+  if (c && d) { s = s.lastIndexOf(',') > s.lastIndexOf('.') ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, ''); }
+  else if (c) { s = (s.match(/,/g).length > 1) ? s.replace(/,/g, '') : s.replace(',', '.'); }
+  else if (d && s.match(/\./g).length > 1) { s = s.replace(/\./g, ''); }
+  else if (d && money && /^-?[1-9]\d{0,2}\.\d{3}$/.test(s)) { s = s.replace('.', ''); }   // 1.500 = mil e quinhentos (pt-BR)
+  const n = Number(s);
+  return isFinite(n) ? n : NaN;
+}
+
+const poolName = p => (p.nome && p.nome.trim()) || `${p.token1 || '?'}/${p.token2 || '?'}`;
+const initials = p => ((p.token1 || '?').replace(/[^A-Za-z0-9]/g, '').slice(0, 2) || '?').toUpperCase();
+const TYPE_LABEL = { abertura: 'Abertura', atualizacao: 'Atualização', coleta: 'Recolha de fees', aporte: 'Reforço', retirada: 'Retirada', rebalance: 'Mover range', fechamento: 'Fecho' };
+const NETWORK_IMG = {
+  'arbitrum': 'data:image/png;base64,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',
+  'base': 'data:image/png;base64,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',
+  'bnb': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAGAUExURQAAAPS5LvO5LvO6LvO6LvO5LvO5LvO5LvO6LvO6L/O5LvO5LvW6L/O6LvO6LvO5LvO6LvO6LvO6LvO5LvO5LvO6L/O6LvO5LvO5LvO6LvO6LvO6L/O6LvO6LvO5LvO5LvO5LvO5LvO5LvO6LvO5LvO5LvO6LvO6L/O5LfO5LvO5LvO5LvO5LvO5LvO6LvO5LvO6LvO5LvO6L/O6LvO6LvO5Lv+xGvm0IfO5LvO6L/O5LvO6LvO5LvO6LvO6LvO6L/O6L/O6LvO6Lv+uD/O6L/K6L/O6LvK5LvO7MvK5LfO8Nvnem/jblfO7NPnfnv79+v78+Pjclv////7+/Pnclvngo/nfoPO8NfO9OPnfn/ncmPTETf3z3fzw0vTBRPbMZ/314/zy2fXIW/O5LvK5LPbMZvXIWvbNavO9Of79+/XJX/XHV/zy2v779fjakfO8N/325Pzz2vjYjPXJXP779Pncl/O7M/nenPnenvXKYfXGVf79+fjblPO6MfbObAAAAOHriwoAAABEdFJOUwABDjNol77b7fm/mAEPP4Hn+wIld8XyASSD3f7ehBFu2dpwEgI5t7gCCGfkEov2jBei/agHBwEB47Zv/Ngl3BDEgWcBk80/jwAAAAFiS0dEAIgFHUgAAAAHdElNRQfqChcWJQAMLermAAACvUlEQVRYw62X+VsSQRjHR5AFRJEVRNBSK7FEIEEz76vZXYcOShPoRDNLysIus/Nvb3aWY1lmhsXpfeCHZfh8n/eYnXlfAKjW5XB2uyS3xwuh1+Pu8XU7HV3AtvX2+fulgAyxKeQDoRyQ+v19vbbwgWBoMFzlGoYfw4Oh4EBbfCgSHR6BDBu5dDk4xOdHx8ZVBTJNUa9cvcbBJ2KTMgcnEvL12A0WPxWfhjZsOj5F5xPJlB0ewtTNBI2fSWfs8RBm0jMUfla1y0OozrYoJNJ0XtPoCmlLFHNJuv/a9jZdIZO8Zebn4/T8oezde/fpCqn4bZNAbIHBP8g9fERXUBZipv23yOR3drACoi4vjtYFlpbZPFtheanGR1YUDk8UaFEoK5GqQFTl8kwf1KjBr64pfJ6loKytEoEQbMczowjp/PoGj9/drSo8pvmwsY4F/GEOn9vby3GiCPuxwCaPzxcKeV4tNgFwSNYfteKTOp9FKFtXeFpoUZAcwBmw1gA9e97gdX9qCi9eWoNQAk6wJbd4oJX267yq1hUOXqFD63/lLeCz0K81/D3ar/Iaqvtw8IYsWaJwgeYUoOLbY0QUygb/7j1GsEL5ROfRcSnbHIYE3Jb8fzDA0scKETr9RMDi5y+G0NdvzbVwA4+1fobr2KqhGK5rSDNCsVTTA7yNImhG/XP5ik5gN45IMrECXjuEWoUks0lB8QJT/s6+G/Uqn5/hv6jox6lRvpOfiCyfl8njr99/TD6ICwiHIJxE4TJaN9LfTjeSS2wr+1peJrXTl0n4dRY+UISPNPFDVfhYF75YxK824ctV/HoXbjDEW5yLNFnQ3GSBOxdp8+abGvXOG825/9vqijfb4u1+JwNHkjpwiI88NoeuydgEYFvbsW98bBRwjT94DkcjbQZPIDz66iY4fBPTx39fT238l1zs8f8f5juGkQsN2eYAAAAASUVORK5CYII=',
+  'eth': 'data:image/png;base64,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',
+  'hyper': 'data:image/png;base64,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',
+  'polygon': 'data:image/png;base64,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',
+  'robin_hood': 'data:image/png;base64,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',
+  'solana': 'data:image/png;base64,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',
+  'solana_etf': 'data:image/png;base64,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',
+  'solana_rwa': 'data:image/png;base64,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',
+};
+/* Mapa nome da rede → chave em NETWORK_IMG (match parcial, case-insensitive) */
+const NETWORK_IMG_MATCH = [
+  [/solana\s*etf|etf\s*solana/i, 'solana_etf'],
+  [/solana\s*rwa|rwa\s*solana/i, 'solana_rwa'],
+  [/solana|^sol$/i, 'solana'],
+  [/ethereum|^eth$|^mainnet$/i, 'eth'],
+  [/arbitrum|^arb$/i, 'arbitrum'],
+  [/^base$/i, 'base'],
+  [/polygon|^matic$/i, 'polygon'],
+  [/binance|^bsc$|^bnb$/i, 'bnb'],
+  [/hyperliquid|^hyper$|^hl$/i, 'hyper'],
+  [/robin\s*hood|^hood$|^rh$/i, 'robin_hood']
+];
+/* Fallback emoji quando não há imagem */
+const NETWORK_EMOJI = [
+  [/optimism|^op$/i, '🔴'],
+  [/avalanche|^avax$/i, '🔺'],
+  [/sui$/i, '💧'],
+  [/aptos|^apt$/i, '🅰️'],
+  [/cosmos|^atom$/i, '⚛️'],
+  [/near$/i, 'Ⓝ'],
+  [/fantom|^ftm$/i, '👻'],
+  [/tron|^trx$/i, 'Ｔ'],
+  [/ton$/i, '💎'],
+  [/bitcoin|^btc$/i, '₿'],
+  [/blast$/i, '💥'],
+  [/não informada|nao informada|n\/a|^—$|^-$/i, '❔']
+];
+function networkIconKey(name) {
+  const s = String(name || '').trim();
+  if (!s) return null;
+  for (const [re, key] of NETWORK_IMG_MATCH) if (re.test(s)) return key;
+  return null;
+}
+function networkIconHTML(name) {
+  const key = networkIconKey(name);
+  if (key && NETWORK_IMG[key]) return `<img class="net-img" src="${NETWORK_IMG[key]}" alt="" width="18" height="18" loading="lazy"/>`;
+  const s = String(name || '').trim();
+  if (!s) return '<span class="net-ico">❔</span>';
+  for (const [re, icon] of NETWORK_EMOJI) if (re.test(s)) return `<span class="net-ico">${icon}</span>`;
+  return '<span class="net-ico">🔗</span>';
+}
+function networkLabel(name) {
+  const n = String(name || '').trim() || 'Não informada';
+  return `<span class="net">${networkIconHTML(n)}<span class="net-name">${esc(n)}</span></span>`;
+}
+
+/* ---------- persistência ---------- */
+function emptyDB() { return { app: 'pool-monitor', version: 1, savedAt: null, pools: [] }; }
+const validDB = d => d && typeof d === 'object' && Array.isArray(d.pools);
+function loadLocal() { try { const s = localStorage.getItem(LS_KEY); if (s) { const d = JSON.parse(s); if (validDB(d)) return d; } } catch (e) { } return emptyDB(); }
+function storeLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(DB)); } catch (e) { } }
+function save() {
+  if (UI.demo) { render(); return; }   // dados de exemplo nunca são gravados
+  stampChanges();
+  DB.savedAt = new Date().toISOString();
+  storeLocal();
+  scheduleFileWrite();
+  render();
+}
+
+function idbOpen() { return new Promise((res, rej) => { const r = indexedDB.open('poolMonitor', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+async function idbDo(mode, fn) { const db = await idbOpen(); return new Promise((res, rej) => { const st = db.transaction('kv', mode).objectStore('kv'); const rq = fn(st); rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error); }); }
+const idbGet = k => idbDo('readonly', s => s.get(k));
+const idbSet = (k, v) => idbDo('readwrite', s => s.put(v, k));
+const idbDel = k => idbDo('readwrite', s => s.delete(k));
+
+/* ---------- sincronização com o arquivo: mescla por id (nunca sobrescreve às cegas) ---------- */
+/* SYNC-PURE-BEGIN */
+let TOMB = {}, BASE = new Map(), FORCE_NEXT = false;   // TOMB: ids excluídos (id → quando); BASE: último estado conhecido
+const cl = o => JSON.parse(JSON.stringify(o));
+const canon = o => JSON.stringify(o, (k, v) => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([x], [y]) => x < y ? -1 : x > y ? 1 : 0)) : v);
+// assinatura dos "dados cadastrais" da pool (tudo, menos os lançamentos; a abertura entra porque pode ser editada)
+const poolSig = p => JSON.stringify([Object.assign({}, p, { events: undefined, fmod: undefined }), p.events.find(e => e.type === 'abertura') || null]);
+function rebase() { BASE = new Map(DB.pools.map(p => [p.id, { sig: poolSig(p), ev: p.events.map(e => e.id) }])); }
+function adoptDB(d) { DB = d; TOMB = Object.assign({}, d.tomb); rebase(); }
+// Chamada em save(): compara com o último estado conhecido para registrar exclusões e edições.
+function stampChanges() {
+  const now = new Date().toISOString();
+  Object.assign(TOMB, DB.tomb || {});
+  const cur = new Map(DB.pools.map(p => [p.id, p]));
+  for (const [id, b] of BASE) {
+    const p = cur.get(id);
+    if (!p) { TOMB[id] = now; continue; }
+    const ids = new Set(p.events.map(e => e.id));
+    for (const eid of b.ev) if (!ids.has(eid)) TOMB[eid] = now;
+  }
+  for (const p of DB.pools) {
+    delete TOMB[p.id]; p.events.forEach(e => { delete TOMB[e.id]; });
+    const b = BASE.get(p.id);
+    if (!b || b.sig !== poolSig(p)) p.fmod = now;
+  }
+  const lim = Date.now() - 365 * DAY;
+  for (const k in TOMB) if (Date.parse(TOMB[k]) < lim) delete TOMB[k];
+  DB.tomb = TOMB;
+  rebase();
+}
+// Une dois bancos: pools e lançamentos pelo id; exclusões (TOMB) vencem; dados cadastrais vêm de quem editou por último.
+function mergeDB(a, b) {
+  const tomb = Object.assign({}, b.tomb, a.tomb);
+  const pa = new Map(a.pools.map(p => [p.id, p])), pb = new Map(b.pools.map(p => [p.id, p]));
+  const pools = [];
+  for (const id of new Set([...pa.keys(), ...pb.keys()])) {
+    if (tomb[id]) continue;
+    const x = pa.get(id), y = pb.get(id);
+    const win = !x ? y : !y ? x : ((y.fmod || '') > (x.fmod || '') ? y : x);
+    const lose = win === x ? y : x;
+    const p = cl(win);
+    if (lose) { const seen = new Set(p.events.map(e => e.id)); for (const e of lose.events) if (!seen.has(e.id)) p.events.push(cl(e)); }
+    p.events = p.events.filter(e => !tomb[e.id]);
+    pools.push(p);
+  }
+  return Object.assign({}, a, { pools, tomb, savedAt: [a.savedAt, b.savedAt].filter(Boolean).sort().pop() || null });
+}
+/* SYNC-PURE-END */
+
+let wTimer = null;
+function scheduleFileWrite() { if (FILE.handle && FILE.state === 'ok') { clearTimeout(wTimer); wTimer = setTimeout(() => writeFile(), 200); } }
+async function readFileDB() {
+  const txt = (await (await FILE.handle.getFile()).text()).trim();
+  if (!txt) return null;
+  let fd;
+  try { fd = JSON.parse(txt); } catch (e) { throw new Error('o ficheiro não contém JSON válido'); }
+  if (!validDB(fd)) throw new Error('o ficheiro não é um ficheiro de dados do Pool Monitor');
+  return fd;
+}
+async function writeRaw() {
+  const w = await FILE.handle.createWritable();
+  await w.write(JSON.stringify(DB, null, 2));
+  await w.close();
+  FILE.last = new Date(); FILE.state = 'ok';
+}
+// Lê o arquivo, mescla com os dados daqui e grava o resultado só se algo mudou.
+// Devolve true (dados locais mudaram), false (nada mudou) ou null (formulário aberto: tenta depois).
+async function syncCore(force) {
+  if (!force && document.querySelector('.overlay')) return null;
+  const ow = FORCE_NEXT;
+  let fd = null;
+  if (!ow) { try { fd = await readFileDB(); } catch (e) { if (!force) throw e; } }
+  if (!force && document.querySelector('.overlay')) return null;
+  if (ow) { await writeRaw(); FORCE_NEXT = false; FILE.state = 'ok'; return false; }
+  let changed = false;
+  if (fd) {
+    const merged = mergeDB(DB, fd);
+    if (canon(merged) !== canon(DB)) { DB = merged; TOMB = DB.tomb; rebase(); storeLocal(); changed = true; }
+  }
+  if (!fd || canon(DB) !== canon(fd)) await writeRaw(); else FILE.last = new Date();
+  FILE.state = 'ok';
+  return changed;
+}
+let SYNCQ = Promise.resolve();
+const syncFromFile = force => (SYNCQ = SYNCQ.catch(() => { }).then(() => syncCore(force)));
+async function writeFile(force = false) {
+  try {
+    const r = await syncFromFile(force);
+    if (r === null) { clearTimeout(wTimer); wTimer = setTimeout(() => writeFile(), 1000); return; }
+    if (r) render();
+  } catch (e) { console.error(e); FILE.state = 'error'; }
+  updateStatus();
+}
+let pulling = false;
+async function pullFromFile() {
+  if (!FILE.handle || FILE.state !== 'ok' || UI.demo || pulling || document.querySelector('.overlay')) return;
+  pulling = true;
+  try { if (await syncFromFile()) render(); else updateStatus(); } catch (e) { console.error(e); } finally { pulling = false; }
+}
+const JSON_TYPES = [{ description: 'Dados do Pool Monitor (JSON)', accept: { 'application/json': ['.json'] } }];
+async function linkNewFile() {
+  try {
+    const h = await window.showSaveFilePicker({ suggestedName: 'pool-monitor-dados.json', types: JSON_TYPES });
+    FILE.handle = h; FILE.name = h.name; FILE.state = 'ok';
+    await idbSet('handle', h);
+    await writeFile(true); render();
+  } catch (e) { if (e.name !== 'AbortError') alert('Não foi possível associar o ficheiro: ' + e.message); }
+}
+async function openExistingFile() {
+  try {
+    const [h] = await window.showOpenFilePicker({ types: JSON_TYPES, multiple: false });
+    const txt = (await (await h.getFile()).text()).trim();
+    let fd = null;
+    if (txt) { fd = JSON.parse(txt); if (!validDB(fd)) throw new Error('o ficheiro não é um ficheiro de dados do Pool Monitor'); }
+    if (fd && DB.pools.length && !confirm(`Carregar os dados de “${h.name}”?\n\nOs dados que estão agora neste navegador serão substituídos pelos do ficheiro.`)) return;
+    if ((await h.requestPermission({ mode: 'readwrite' })) !== 'granted') throw new Error('permissão de gravação negada');
+    if (fd) { adoptDB(fd); UI.demo = false; }
+    FILE.handle = h; FILE.name = h.name; FILE.state = 'ok';
+    await idbSet('handle', h);
+    storeLocal();
+    if (!fd) await writeFile(true); else FILE.last = new Date();
+    render();
+  } catch (e) { if (e.name !== 'AbortError') alert('Não foi possível abrir o ficheiro: ' + e.message); }
+}
+async function reconnectFile() {
+  try { if ((await FILE.handle.requestPermission({ mode: 'readwrite' })) === 'granted') { await syncFromFile(); render(); } }
+  catch (e) { FILE.state = 'error'; render(); alert('Não foi possível aceder ao ficheiro: ' + e.message); }
+}
+async function unlinkFile() { try { await idbDel('handle'); } catch (e) { } FILE.handle = null; FILE.state = 'none'; FILE.name = ''; FORCE_NEXT = false; render(); }
+
+async function download(name, content, type) {
+  const blob = new Blob([content], { type });
+  // No telemóvel abre a folha de partilha (Guardar em Ficheiros, Drive, e-mail…); no computador descarrega.
+  try {
+    if (matchMedia('(pointer: coarse)').matches && navigator.canShare) {
+      const f = new File([blob], name, { type });
+      if (navigator.canShare({ files: [f] })) { await navigator.share({ files: [f] }); return; }
+    }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+}
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+function exportBackup() { download(`pool-monitor-backup-${today()}.json`, JSON.stringify(DB, null, 2), 'application/json'); }
+function importBackup() {
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
+  inp.onchange = async () => {
+    const f = inp.files[0]; if (!f) return;
+    try {
+      const d = JSON.parse(await f.text());
+      if (!validDB(d)) throw new Error('o ficheiro não é um backup do Pool Monitor');
+      if (DB.pools.length && !confirm(`Substituir os dados atuais pelos do backup “${f.name}”?`)) return;
+      DB = d; FORCE_NEXT = !!(FILE.handle && FILE.state === 'ok'); save();
+    } catch (e) { alert('Não foi possível importar: ' + e.message); }
+  };
+  inp.click();
+}
+function csvCell(v) {
+  if (v == null) return '';
+  if (typeof v === 'number') return isFinite(v) ? String(Math.round(v * 1e6) / 1e6).replace('.', ',') : '';
+  const s = String(v); return /[";\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+const toCSV = rows => '﻿' + rows.map(r => r.map(csvCell).join(';')).join('\r\n');
+const p100 = x => ok(x) ? x * 100 : null;
+function exportEventsCSV() {
+  const rows = [['Pool', 'Rede', 'Exchange', 'Estado', 'Data/Hora', 'Tipo', 'Valor informado (USD)', 'Fees informadas (USD)', 'Valor atual após (USD)', 'Capital investido (USD)', 'Fees pendentes (USD)', 'Fees recolhidas (USD)', 'Fees totais (USD)', 'Variação do capital (USD)', 'Ganho total c/ fees (USD)', 'Capital médio (USD)', 'Dias decorridos', 'Variação (%)', 'ROI total (%)', 'APR fees (%)', 'ROI anualizado (%)', 'Referência do hash']];
+  for (const p of DB.pools) {
+    const r = compute(p);
+    for (const s of r.snaps) rows.push([poolName(p), p.rede, p.exchange, r.st.closed ? 'Fechada' : 'Ativa', fmtDT(s.t), TYPE_LABEL[s.ev.type], s.ev.valor, s.ev.fees, s.valor, s.investido, s.pend, s.col, s.feesTot, s.varCap, s.ganho, s.capBase, s.days, p100(s.varPct), p100(s.roi), p100(s.apr), p100(s.roiAnual), s.ev.hash || '']);
+  }
+  download(`pool-monitor-lancamentos-${today()}.csv`, toCSV(rows), 'text/csv;charset=utf-8');
+}
+function exportPoolsCSV() {
+  const rows = [['Pool', 'Rede', 'Exchange', 'Token 1', 'Token 2', 'Estado', 'Abertura', 'Último lançamento', 'Range mínimo', 'Range máximo', 'Capital investido (USD)', 'Valor atual (USD)', 'Variação do capital (USD)', 'Variação (%)', 'Fees pendentes (USD)', 'Fees recolhidas (USD)', 'Ganho total c/ fees (USD)', 'ROI total (%)', 'APR fees (%)', 'ROI anualizado (%)', 'Capital médio (USD)', 'Dias (até ao último lançamento)', 'Observações']];
+  for (const p of DB.pools) {
+    const r = compute(p), c = r.cur; if (!c) continue;
+    rows.push([poolName(p), p.rede, p.exchange, p.token1, p.token2, c.closed ? 'Fechada' : 'Ativa', fmtDT(c.start), fmtDT(c.last), p.rangeMin, p.rangeMax, c.investido, c.valor, c.varCap, p100(c.varPct), c.pend, c.col, c.ganho, p100(c.roi), p100(c.apr), p100(c.roiAnual), c.capBase, c.days, p.obs]);
+  }
+  download(`pool-monitor-resumo-${today()}.csv`, toCSV(rows), 'text/csv;charset=utf-8');
+}
+
+/* ---------- motor de cálculo ---------- */
+const ORDER = { abertura: 0, fechamento: 2 };
+function sortedEvents(p) {
+  return p.events.slice().sort((a, b) => parseT(a.t) - parseT(b.t) || (ORDER[a.type] ?? 1) - (ORDER[b.type] ?? 1) || (a.seq || 0) - (b.seq || 0));
+}
+// Reproduz os lançamentos em ordem e devolve um "retrato" (snapshot) após cada um.
+function compute(p, upTo = Infinity) {
+  const s = { valor: 0, cin: 0, cout: 0, K: 0, pend: 0, col: 0, integ: 0, start: null, last: null, closed: false, closeT: null, inicial: 0 };
+  const snaps = [];
+  for (const e of sortedEvents(p)) {
+    const t = parseT(e.t);
+    if (t > upTo) break;
+    if (s.last !== null) s.integ += Math.max(0, s.K) * (t - s.last) / DAY;   // capital × dias
+    if (s.start === null) s.start = t;
+    s.last = t;
+    const v = +e.valor || 0;
+    switch (e.type) {
+      case 'abertura': s.inicial += v; s.valor += v; s.cin += v; s.K += v; break;
+      case 'aporte': s.valor += v; s.cin += v; s.K += v; break;
+      case 'retirada': s.valor = Math.max(0, s.valor - v); s.cout += v; s.K -= v; break;
+      case 'atualizacao': s.valor = v; s.pend = +e.fees || 0; break;
+      case 'coleta': s.col += v; s.pend = Math.max(0, s.pend - v); break;
+      case 'rebalance': s.valor = v; s.col += (+e.fees || 0); s.pend = 0; break;
+      case 'fechamento': s.valor = v; s.col += (+e.fees || 0); s.pend = 0; s.closed = true; s.closeT = t; break;
+    }
+    snaps.push(Object.assign({ t, ev: e }, metrics(s)));
+  }
+  return { snaps, cur: snaps.length ? snaps[snaps.length - 1] : null, st: s };
+}
+function metrics(s) {
+  const days = s.start === null ? 0 : (s.last - s.start) / DAY;   // até o último lançamento
+  const investido = s.cin - s.cout;
+  const capBase = days > 1e-6 ? s.integ / days : Math.max(0, s.K);  // capital médio ponderado no tempo
+  const varCap = s.valor - investido;
+  const feesTot = s.pend + s.col;
+  const ganho = varCap + feesTot;
+  const hasCap = capBase > 0, hasT = hasCap && days >= MIN_APR_DAYS;
+  return {
+    valor: s.valor, investido, capBase, varCap, pend: s.pend, col: s.col, feesTot, ganho, days,
+    varPct: hasCap ? varCap / capBase : null,
+    roi: hasCap ? ganho / capBase : null,
+    apr: hasT ? feesTot / capBase * 365 / days : null,
+    roiAnual: hasT ? ganho / capBase * 365 / days : null,
+    closed: s.closed, start: s.start, last: s.last
+  };
+}
+function aggregate(curs) {
+  const a = { n: 0, valor: 0, investido: 0, varCap: 0, pend: 0, col: 0, feesTot: 0, ganho: 0, capBase: 0, aW: 0, aC: 0, rW: 0, rC: 0 };
+  for (const c of curs) {
+    if (!c) continue;
+    a.n++; a.valor += c.valor; a.investido += c.investido; a.varCap += c.varCap; a.pend += c.pend; a.col += c.col;
+    a.feesTot += c.feesTot; a.ganho += c.ganho; a.capBase += c.capBase;
+    if (c.apr != null) { a.aW += c.apr * c.capBase; a.aC += c.capBase; }
+    if (c.roiAnual != null) { a.rW += c.roiAnual * c.capBase; a.rC += c.capBase; }
+  }
+  a.varPct = a.capBase > 0 ? a.varCap / a.capBase : null;
+  a.roi = a.capBase > 0 ? a.ganho / a.capBase : null;
+  a.apr = a.aC > 0 ? a.aW / a.aC : null;
+  a.roiAnual = a.rC > 0 ? a.rW / a.rC : null;
+  return a;
+}
+// Usa os retratos (snapshots) já calculados de cada pool: em cada instante, o último retrato com t <= T.
+function portfolioSeries(items) {
+  const lists = items.map(x => x.r.snaps);
+  const ts = [...new Set(lists.flatMap(sn => sn.map(s => s.t)))].sort((a, b) => a - b);
+  const idx = lists.map(() => -1);
+  return ts.map(T => {
+    const curs = lists.map((sn, i) => {
+      while (idx[i] + 1 < sn.length && sn[idx[i] + 1].t <= T) idx[i]++;
+      return idx[i] >= 0 ? sn[idx[i]] : null;
+    });
+    return Object.assign({ t: T }, aggregate(curs));
+  });
+}
+
+/* ---------- gráficos (SVG, sem bibliotecas) ---------- */
+function niceNum(x) { const e = Math.floor(Math.log10(x)), f = x / Math.pow(10, e); return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * Math.pow(10, e); }
+function ticks(min, max, n = 5) {
+  const step = niceNum((max - min) / (n - 1));
+  const lo = Math.floor(min / step) * step, hi = Math.ceil(max / step) * step, out = [];
+  for (let v = lo; v <= hi + step * 1e-6; v += step) out.push(+v.toFixed(10));
+  return out;
+}
+function drawChart(el, cfg) {
+  const ts = cfg.ts, all = cfg.series.flatMap(s => s.vals).filter(ok);
+  if (!ts.length || !all.length) { el.innerHTML = `<div class="nochart">${esc(cfg.empty || 'Sem dados suficientes. Registe atualizações para formar o histórico.')}</div>`; return; }
+  const W = Math.max(280, el.clientWidth), H = cfg.h || 240, L = 64, R = 16, T = 12, B = 28;
+  let vmin = Math.min(...all), vmax = Math.max(...all);
+  if (cfg.zero) { vmin = Math.min(vmin, 0); vmax = Math.max(vmax, 0); }
+  if (vmax - vmin < 1e-9) { const padv = Math.abs(vmax) * 0.1 || 1; vmin -= padv; vmax += padv; }
+  const tk = ticks(vmin, vmax, 5); vmin = tk[0]; vmax = tk[tk.length - 1];
+  const t0 = ts[0], t1 = ts[ts.length - 1], single = t1 === t0, span = t1 - t0;
+  const X = t => single ? L + (W - L - R) / 2 : L + (t - t0) / span * (W - L - R);
+  const Y = v => T + (1 - (v - vmin) / (vmax - vmin)) * (H - T - B);
+  let g = '';
+  for (const v of tk) { const y = Y(v).toFixed(1); g += `<line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" class="gl"/><text x="${L - 8}" y="${+y + 4}" text-anchor="end" class="ax">${esc(cfg.fy(v))}</text>`; }
+  if (cfg.zero && vmin < 0 && vmax > 0) g += `<line x1="${L}" x2="${W - R}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" class="zl"/>`;
+  const nx = single ? 1 : Math.min(6, Math.max(2, Math.floor((W - L - R) / 120)));
+  for (let i = 0; i < nx; i++) {
+    const t = single ? t0 : t0 + span * i / (nx - 1);
+    const anchor = single ? 'middle' : i === 0 ? 'start' : i === nx - 1 ? 'end' : 'middle';
+    g += `<text x="${X(t).toFixed(1)}" y="${H - 8}" text-anchor="${anchor}" class="ax">${esc(single ? fmtDT(t) : fmtAxisT(t, span))}</text>`;
+  }
+  let defs = '', paths = '';
+  cfg.series.forEach(s => {
+    const id = 'g' + Math.random().toString(36).slice(2);
+    let d = '', on = false, first = null, last = null, gap = false;
+    s.vals.forEach((v, i) => {
+      if (!ok(v)) { if (first !== null) gap = true; on = false; return; }
+      d += (on ? 'L' : 'M') + X(ts[i]).toFixed(1) + ',' + Y(v).toFixed(1); on = true;
+      if (first === null) first = i; last = i;
+    });
+    if (first === null) return;
+    if (s.area && !gap && last > first) {
+      defs += `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.color}" stop-opacity=".30"/><stop offset="1" stop-color="${s.color}" stop-opacity="0"/></linearGradient>`;
+      paths += `<path d="${d}L${X(ts[last]).toFixed(1)},${H - B}L${X(ts[first]).toFixed(1)},${H - B}Z" fill="url(#${id})"/>`;
+    }
+    paths += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.2" ${s.dash ? 'stroke-dasharray="6 5" stroke-opacity=".8"' : ''} stroke-linejoin="round" stroke-linecap="round"/>`;
+    if (ts.length <= 90) s.vals.forEach((v, i) => { if (ok(v)) paths += `<circle cx="${X(ts[i]).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="${s.dash ? 2.4 : 3.6}" fill="${s.color}"/>`; });
+  });
+  const legend = cfg.series.length > 1 ? `<div class="legend">${cfg.series.map(s => `<span><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('')}</div>` : '';
+  el.innerHTML = `${legend}<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="height:${H}px"><defs>${defs}</defs>${g}${paths}<line class="guide" y1="${T}" y2="${H - B}" x1="-20" x2="-20"/><rect x="${L - 10}" y="0" width="${W - L - R + 20}" height="${H}" fill="transparent"/></svg><div class="tip"></div>`;
+  const svg = el.querySelector('svg'), tip = el.querySelector('.tip'), guide = el.querySelector('.guide');
+  svg.addEventListener('mousemove', ev => {
+    const r = svg.getBoundingClientRect(), mx = (ev.clientX - r.left) * W / r.width;
+    let bi = 0, bd = Infinity;
+    ts.forEach((t, i) => { const dd = Math.abs(X(t) - mx); if (dd < bd) { bd = dd; bi = i; } });
+    const gx = X(ts[bi]); guide.setAttribute('x1', gx); guide.setAttribute('x2', gx);
+    tip.innerHTML = `<div class="tt">${fmtDT(ts[bi])}${cfg.label ? ' · ' + esc(cfg.label(bi)) : ''}</div>` + cfg.series.map(s => `<div><i style="background:${s.color}"></i>${esc(s.name)}: <b>${ok(s.vals[bi]) ? esc(cfg.ft(s.vals[bi])) : '—'}</b></div>`).join('');
+    tip.style.display = 'block';
+    const px = gx * r.width / W + svg.offsetLeft, tw = tip.offsetWidth;
+    tip.style.left = (px + 14 + tw > el.clientWidth ? Math.max(0, px - 14 - tw) : px + 14) + 'px';
+    tip.style.top = (svg.offsetTop + 6) + 'px';
+  });
+  svg.addEventListener('mouseleave', () => { tip.style.display = 'none'; guide.setAttribute('x1', -20); guide.setAttribute('x2', -20); });
+}
+function poolChartCfg(r, tab) {
+  const sn = r.snaps, ts = sn.map(s => s.t), label = i => TYPE_LABEL[sn[i].ev.type];
+  if (tab === 'apr') return { ts, label, series: [{ name: 'APR (fees)', color: '#a78bfa', vals: sn.map(s => p100(s.apr)), area: 1 }], fy: fAxisPct, ft: fTipPct, zero: true, empty: 'O APR aparece a partir da primeira atualização (é preciso pelo menos 1 dia de histórico).' };
+  if (tab === 'roi') return { ts, label, series: [{ name: 'ROI total (c/ fees)', color: '#38bdf8', vals: sn.map(s => p100(s.roi)), area: 1 }, { name: 'Variação do capital', color: '#8b91a3', vals: sn.map(s => p100(s.varPct)), dash: 1 }], fy: fAxisPct, ft: fTipPct, zero: true };
+  if (tab === 'fees') return { ts, label, series: [{ name: 'Fees totais', color: '#facc15', vals: sn.map(s => s.feesTot), area: 1 }, { name: 'Fees recolhidas', color: '#f59e0b', vals: sn.map(s => s.col), dash: 1 }], fy: fAxisMoney, ft: money, zero: true };
+  const up = r.cur && r.cur.valor >= r.cur.investido;
+  return { ts, label, series: [{ name: 'Valor atual', color: up ? '#22c55e' : '#f04452', vals: sn.map(s => s.valor), area: 1 }, { name: 'Capital investido', color: '#8b91a3', vals: sn.map(s => s.investido), dash: 1 }], fy: fAxisMoney, ft: money };
+}
+function portCfg(ps, tab) {
+  const ts = ps.map(s => s.t);
+  if (tab === 'roi') return { ts, series: [{ name: 'ROI total (c/ fees)', color: '#38bdf8', vals: ps.map(s => p100(s.roi)), area: 1 }, { name: 'Variação do capital', color: '#8b91a3', vals: ps.map(s => p100(s.varPct)), dash: 1 }], fy: fAxisPct, ft: fTipPct, zero: true };
+  if (tab === 'apr') return { ts, series: [{ name: 'APR médio (fees)', color: '#a78bfa', vals: ps.map(s => p100(s.apr)), area: 1 }, { name: 'ROI anualizado', color: '#38bdf8', vals: ps.map(s => p100(s.roiAnual)), dash: 1 }], fy: fAxisPct, ft: fTipPct, zero: true };
+  if (tab === 'fees') return { ts, series: [{ name: 'Fees totais', color: '#facc15', vals: ps.map(s => s.feesTot), area: 1 }, { name: 'Fees recolhidas', color: '#f59e0b', vals: ps.map(s => s.col), dash: 1 }], fy: fAxisMoney, ft: money, zero: true };
+  return { ts, series: [{ name: 'Valor + fees', color: '#22c55e', vals: ps.map(s => s.valor + s.feesTot), area: 1 }, { name: 'Capital investido', color: '#8b91a3', vals: ps.map(s => s.investido), dash: 1 }], fy: fAxisMoney, ft: money };
+}
+function drawCharts() {
+  document.querySelectorAll('[data-chart]').forEach(el => {
+    if (el.dataset.chart === 'port') drawChart(el, portCfg(PSERIES, UI.ptab));
+    else { const x = CACHE[el.dataset.id]; if (x) drawChart(el, poolChartCfg(x.r, UI.tab[el.dataset.id] || 'liq')); }
+  });
+}
+
+/* ---------- interface ---------- */
+const ICON_CHEV = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+function statusHTML() {
+  if (UI.demo) return `<span class="status" id="status"><i class="dot"></i>Modo exemplo (nada é guardado)</span>`;
+  if (FILE.state === 'ok') return `<span class="status" id="status" title="Os dados são gravados automaticamente neste ficheiro a cada alteração e combinados com as alterações feitas noutros computadores"><i class="dot ok"></i>Guardado em ${esc(FILE.name)}${FILE.last ? ' · ' + pad(FILE.last.getHours()) + ':' + pad(FILE.last.getMinutes()) : ''}</span>`;
+  if (FILE.state === 'error') return `<span class="status" id="status"><i class="dot err"></i>Erro ao gravar ${esc(FILE.name)}</span>`;
+  return `<span class="status" id="status" title="Os dados ficam guardados neste navegador"><i class="dot"></i>Guardado no navegador</span>`;
+}
+function bannerHTML() {
+  if (UI.demo) return `<div class="banner warn"><span>Está a ver <b>dados de exemplo</b>. Nada é guardado até criar ou alterar alguma coisa.</span><span class="bb"><button class="btn sm" data-act="demo-exit">Sair do exemplo</button></span></div>`;
+  if (FILE.handle && FILE.state === 'needs-permission') return `<div class="banner warn"><span>O ficheiro de dados <b>${esc(FILE.name)}</b> está associado, mas o navegador pede a sua autorização para voltar a aceder-lhe.</span><span class="bb"><button class="btn sm green" data-act="reconnect">Voltar a ligar o ficheiro</button><button class="btn sm" data-act="unlink">Desassociar</button></span></div>`;
+  if (FILE.handle && FILE.state === 'error') return `<div class="banner warn"><span>Não foi possível gravar em <b>${esc(FILE.name)}</b>. Os dados continuam guardados no navegador.</span><span class="bb"><button class="btn sm green" data-act="reconnect">Tentar novamente</button><button class="btn sm" data-act="unlink">Desassociar</button></span></div>`;
+  if (!DB.pools.length) return '';
+  if (FILE.supported && !FILE.handle) return `<div class="banner"><span>Os dados estão guardados só neste navegador. Para não os perder, associe um ficheiro de dados (.json), por exemplo numa pasta do OneDrive. É regravado automaticamente a cada lançamento e combinado com as alterações de outros computadores.</span><span class="bb"><button class="btn sm green" data-act="link">Associar ficheiro</button></span></div>`;
+  if (!FILE.supported) return `<div class="banner"><span>Este navegador não grava diretamente em ficheiro. Os dados ficam guardados no navegador, por isso use <b>Dados → Exportar backup</b> com frequência. No Edge ou no Chrome, a gravação automática em ficheiro funciona.</span></div>`;
+  return '';
+}
+function updateStatus() { const s = $('#status'); if (s) s.outerHTML = statusHTML(); const b = $('#banner'); if (b) b.innerHTML = bannerHTML(); }
+function headerHTML() {
+  return `<div class="top">
+    <div class="brand"><div class="logo">PM</div><div><h1>Pool Monitor</h1><div class="subt">Liquidez · ROI · APR · offline</div></div></div>
+    <div class="top-r">${statusHTML()}
+      <div class="menu-wrap"><button class="btn" data-act="menu">Dados ▾</button>
+        <div class="menu" id="menu" hidden>
+          ${FILE.supported ? `<div class="cap">Ficheiro de dados (gravação automática)</div>
+          <button data-act="link">Associar novo ficheiro de dados…</button>
+          <button data-act="open-file">Abrir ficheiro de dados existente…</button>
+          ${FILE.handle ? `<button data-act="unlink">Desassociar “${esc(FILE.name)}”</button>` : ''}<hr>` : ''}
+          <div class="cap">Backup e folhas de cálculo</div>
+          <button data-act="export">Exportar backup (.json)</button>
+          <button data-act="import">Importar backup (.json)…</button>
+          <button data-act="csv-ev">Exportar lançamentos para Excel (.csv)</button>
+          <button data-act="csv-pools">Exportar resumo das pools para Excel (.csv)</button>
+          <hr>
+          <button data-act="demo">Ver dados de exemplo</button>
+          <button data-act="wipe" class="danger">Apagar todos os dados…</button>
+        </div>
+      </div>
+      <button class="btn primary" data-act="new">+ Nova Pool</button>
+    </div>
+  </div>`;
+}
+function cardsHTML(a) {
+  const card = (lbl, val, cls, sub, accent) => `<div class="card" style="--accent:${accent}"><div class="lbl">${lbl}</div><div class="val ${cls}">${val}</div><div class="s">${sub}</div></div>`;
+  return `<div class="cards">
+    ${card('Investido', money(a.investido), 'inv', 'Capital líquido aportado', '#60a5fa')}
+    ${card('Valor atual', money(a.valor), 'neu', 'Sem fees · último lançamento', '#94a3b8')}
+    ${card('Variação', smoney(a.varCap), sgn(a.varCap), spct(a.varPct) + ' · não é IL isolada', a.varCap >= 0 ? '#22c55e' : '#f04352')}
+    ${card('Fees acum.', money(a.pend), 'fee', 'Total c/ recolhidas: ' + money(a.feesTot), '#f5c518')}
+    ${card('ROI total', smoney(a.ganho), sgn(a.ganho), spct(a.roi) + ' s/ capital médio', a.ganho >= 0 ? '#22c55e' : '#f04352')}
+    ${card('APR médio', pct(a.apr), 'apr', 'ROI anual. ' + spct(a.roiAnual), '#a78bfa')}
+  </div>`;
+}
+function sparkline(vals, color) {
+  const v = vals.filter(ok);
+  if (v.length < 2) return '';
+  const w = 56, h = 18, min = Math.min(...v), max = Math.max(...v), span = max - min || 1;
+  let d = '';
+  v.forEach((x, i) => {
+    const px = (i / (v.length - 1)) * w;
+    const py = h - 1 - ((x - min) / span) * (h - 2);
+    d += (i ? 'L' : 'M') + px.toFixed(1) + ',' + py.toFixed(1);
+  });
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><path d="${d}" stroke="${color}"/></svg>`;
+}
+function latestValuation(x) {
+  const vals = x.r.snaps.filter(s => s.ev.type === 'atualizacao');
+  return vals.length ? vals[vals.length - 1] : null;
+}
+function updateCount(x) { return x.r.snaps.filter(s => s.ev.type === 'atualizacao').length; }
+function freshnessDays(x) {
+  const last = latestValuation(x);
+  const base = last ? last.t : x.r.cur?.start;
+  return base == null ? Infinity : Math.max(0, (Date.now() - base) / DAY);
+}
+function currentStatus(x) {
+  const c = x.r.cur;
+  if (!c) return { label: 'Sem dados', cls: '' };
+  if (c.closed) return { label: 'Fechada', cls: '' };
+  if (updateCount(x) === 0) return { label: 'Sem atualização', cls: 'warn' };
+  if (freshnessDays(x) >= 7) return { label: 'Dados antigos', cls: 'bad' };
+  if (c.days < 7 || updateCount(x) < 2) return { label: 'Histórico curto', cls: 'warn' };
+  return { label: 'Dados recentes', cls: 'good' };
+}
+function networkSummaryHTML(list) {
+  if (!list.length) return '';
+  const groups = new Map();
+  for (const x of list) {
+    const name = String(x.p.rede || '').trim() || 'Não informada';
+    const key = name.toLocaleLowerCase();
+    if (!groups.has(key)) groups.set(key, { name, xs: [] });
+    groups.get(key).xs.push(x);
+  }
+  const rows = [...groups.values()].map(g => {
+    const a = aggregate(g.xs.map(x => x.r.cur));
+    const active = g.xs.filter(x => x.r.cur && !x.r.cur.closed).length;
+    return { ...g, a, active };
+  }).sort((a,b) => b.a.valor - a.a.valor);
+  const total = aggregate(list.map(x => x.r.cur));
+  const maxVal = Math.max(...rows.map(g => g.a.valor), 1e-9);
+
+  const exMap = new Map();
+  for (const x of list) {
+    const name = String(x.p.exchange || '').trim() || 'Não informada';
+    const key = name.toLocaleLowerCase();
+    if (!exMap.has(key)) exMap.set(key, { name, xs: [] });
+    exMap.get(key).xs.push(x);
+  }
+  const exRows = [...exMap.values()].map(g => {
+    const a = aggregate(g.xs.map(x => x.r.cur));
+    return { ...g, a, active: g.xs.filter(x => x.r.cur && !x.r.cur.closed).length };
+  }).sort((a,b) => b.a.valor - a.a.valor);
+  const maxEx = Math.max(...exRows.map(g => g.a.valor), 1e-9);
+
+  const pairMap = new Map();
+  for (const x of list) {
+    const name = poolName(x.p);
+    const key = name.toLocaleLowerCase();
+    if (!pairMap.has(key)) pairMap.set(key, { name, xs: [], id: x.p.id });
+    pairMap.get(key).xs.push(x);
+  }
+  const pairRows = [...pairMap.values()].map(g => {
+    const a = aggregate(g.xs.map(x => x.r.cur));
+    return { ...g, a };
+  }).sort((a,b) => b.a.valor - a.a.valor).slice(0, 10);
+
+  const rankedAPR = list.filter(x => x.r.cur && x.r.cur.apr != null).sort((a,b) => b.r.cur.apr - a.r.cur.apr);
+  const rankedGain = list.filter(x => x.r.cur && !x.r.cur.closed).sort((a,b) => b.r.cur.ganho - a.r.cur.ganho);
+  const rankedFees = list.filter(x => x.r.cur && !x.r.cur.closed).sort((a,b) => b.r.cur.feesTot - a.r.cur.feesTot);
+
+  const rankList = (items, getMetric, cls) => items.slice(0, 5).map((x, i) => {
+    const c = x.r.cur;
+    return `<div class="rank-item" data-act="toggle" data-id="${esc(x.p.id)}" title="Abrir pool">
+      <div class="rank-num${i < 3 ? ' t' + (i + 1) : ''}">${i + 1}</div>
+      <div class="rank-body"><b>${esc(poolName(x.p))}</b><span>${networkLabel(x.p.rede || '—')}${x.p.exchange ? ' · ' + esc(x.p.exchange) : ''} · ${fmt(c.days, 1)}d</span></div>
+      <div class="rank-metric ${typeof cls === 'function' ? cls(c) : cls}">${getMetric(c)}</div>
+    </div>`;
+  }).join('') || '<div class="nochart" style="padding:10px">Sem dados</div>';
+
+  const bars = rows.map(g => {
+    const on = UI.rede && UI.rede.toLocaleLowerCase() === g.name.toLocaleLowerCase();
+    const pctW = Math.max(2, (g.a.valor / maxVal) * 100);
+    return `<div class="bar-row${on ? ' on' : ''}" data-act="filter-rede" data-k="${esc(g.name)}" title="${esc(on ? 'Remover filtro' : 'Filtrar por ' + g.name)}">
+      <div class="bn">${networkLabel(g.name)}${on ? ' ✓' : ''}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pctW.toFixed(1)}%"></div></div>
+      <div class="bar-val">${money(g.a.valor)}</div>
+    </div>`;
+  }).join('');
+
+  const exBars = exRows.map(g => {
+    const on = UI.exchange && UI.exchange.toLocaleLowerCase() === g.name.toLocaleLowerCase();
+    const pctW = Math.max(2, (g.a.valor / maxEx) * 100);
+    return `<div class="ex-row${on ? ' on' : ''}" data-act="filter-ex" data-k="${esc(g.name)}" title="${esc(on ? 'Remover filtro' : 'Filtrar por ' + g.name)}">
+      <div class="ex-name">${esc(g.name)}${on ? ' ✓' : ''}</div>
+      <div class="ex-bar"><div class="ex-fill" style="width:${pctW.toFixed(1)}%"></div></div>
+      <div class="ex-val">${money(g.a.valor)}</div>
+    </div>`;
+  }).join('');
+
+  const pairs = pairRows.map(g => {
+    const first = g.xs[0];
+    return `<button class="pair-chip" data-act="toggle" data-id="${esc(first.p.id)}" title="Abrir pool">
+      <b>${esc(g.name)}</b>
+      <span>${money(g.a.valor)}</span>
+      <span class="${sgn(g.a.ganho)}">${smoney(g.a.ganho)}</span>
+    </button>`;
+  }).join('');
+
+  const activeN = list.filter(x => x.r.cur && !x.r.cur.closed).length;
+  const pills = `<div class="stat-pills">
+      <div class="pill" data-act="scroll" data-k="pools"><div class="pl">Pools</div><b>${list.length}</b></div>
+      <div class="pill" data-act="filter" data-k="ativas"><div class="pl">Ativas</div><b class="pos">${activeN}</b></div>
+      <div class="pill" data-act="scroll" data-k="cross"><div class="pl">Redes</div><b>${rows.length}</b></div>
+      <div class="pill" data-act="scroll" data-k="matrix"><div class="pl">Exchanges</div><b>${exRows.length}</b></div>
+      <div class="pill" data-act="scroll" data-k="ranks"><div class="pl">Fees</div><b class="fee">${money(total.feesTot)}</b></div>
+      <div class="pill" data-act="scroll" data-k="ranks"><div class="pl">Resultado</div><b class="${sgn(total.ganho)}">${smoney(total.ganho)}</b></div>
+    </div>`;
+
+  const crumbs = [];
+  crumbs.push(`<span class="bc${UI.filter==='todas'?' on':''}"><button data-act="filter" data-k="todas">Todas</button></span>`);
+  crumbs.push(`<span class="bc${UI.filter==='ativas'?' on':''}"><button data-act="filter" data-k="ativas">Ativas</button></span>`);
+  crumbs.push(`<span class="bc${UI.filter==='fechadas'?' on':''}"><button data-act="filter" data-k="fechadas">Fechadas</button></span>`);
+  if (UI.rede) crumbs.push(`<span class="bc on">${networkLabel(UI.rede)} <button class="x" data-act="filter-rede" data-k="" title="Limpar rede">×</button></span>`);
+  if (UI.exchange) crumbs.push(`<span class="bc on">${esc(UI.exchange)} <button class="x" data-act="filter-ex" data-k="" title="Limpar exchange">×</button></span>`);
+
+  return `<div class="breadcrumb">${crumbs.join('')}</div>
+  ${pills}
+  <div class="cross3" id="sec-cross">
+    <div class="cross-panel">
+      <h2>Por rede</h2>
+      <div class="sub">Clique para filtrar · ${rows.length}</div>
+      ${bars || '<div class="nochart">Sem dados</div>'}
+    </div>
+    <div class="cross-panel">
+      <h2>Por exchange</h2>
+      <div class="sub">Clique para filtrar · ${exRows.length}</div>
+      ${exBars || '<div class="nochart">Sem dados</div>'}
+    </div>
+    <div class="cross-panel cross-wide" id="sec-ranks">
+      <h2>Ranking cruzado</h2>
+      <div class="sub">Clique no nome para abrir a pool</div>
+      <div class="rank-grid">
+        <div><div style="font-size:10.5px;color:var(--muted);font-weight:650;margin:0 0 4px;text-transform:uppercase;letter-spacing:.04em">Por APR</div>${rankList(rankedAPR, c => pct(c.apr), 'apr')}</div>
+        <div><div style="font-size:10.5px;color:var(--muted);font-weight:650;margin:0 0 4px;text-transform:uppercase;letter-spacing:.04em">Por resultado</div>${rankList(rankedGain, c => smoney(c.ganho), c => sgn(c.ganho))}</div>
+        <div><div style="font-size:10.5px;color:var(--muted);font-weight:650;margin:0 0 4px;text-transform:uppercase;letter-spacing:.04em">Por fees</div>${rankList(rankedFees, c => money(c.feesTot), 'fee')}</div>
+      </div>
+    </div>
+  </div>
+  ${pairRows.length ? `<section class="dash-section" id="sec-pairs">
+    <div class="dash-title"><div><h2>Pares</h2><p>Clique para abrir a pool</p></div></div>
+    <div class="pair-row">${pairs}</div>
+  </section>` : ''}
+  <div class="matrix-split" id="sec-matrix">
+    <section class="dash-section" style="margin-top:0">
+      <div class="dash-title"><div><h2>Matriz por rede</h2><p>Nome = filtrar</p></div><span class="state-tag">${rows.length}</span></div>
+      <div class="dash-table-wrap"><table class="dash-table"><thead><tr><th>Rede</th><th>N</th><th>Valor</th><th>%</th><th>Fees</th><th>Resultado</th><th>APR</th></tr></thead>
+      <tbody>${rows.map(g => {
+        const on = UI.rede && UI.rede.toLocaleLowerCase() === g.name.toLocaleLowerCase();
+        const share = total.valor > 0 ? g.a.valor / total.valor : null;
+        return `<tr class="${on ? 'on' : ''}"><td><button class="text-link" data-act="filter-rede" data-k="${esc(g.name)}">${networkLabel(g.name)}${on ? ' ✓' : ''}</button></td><td>${g.xs.length}/${g.active}</td><td>${money(g.a.valor)}</td><td>${pct(share)}</td><td class="fee">${money(g.a.feesTot)}</td><td class="${sgn(g.a.ganho)}">${smoney(g.a.ganho)}</td><td class="apr">${pct(g.a.apr)}</td></tr>`;
+      }).join('')}</tbody>
+      <tfoot><tr><td>Total</td><td>${list.length}/${activeN}</td><td>${money(total.valor)}</td><td>100%</td><td>${money(total.feesTot)}</td><td class="${sgn(total.ganho)}">${smoney(total.ganho)}</td><td class="apr">${pct(total.apr)}</td></tr></tfoot></table></div>
+    </section>
+    <section class="dash-section" style="margin-top:0">
+      <div class="dash-title"><div><h2>Matriz por exchange</h2><p>Nome = filtrar</p></div><span class="state-tag">${exRows.length}</span></div>
+      <div class="dash-table-wrap"><table class="dash-table"><thead><tr><th>Exchange</th><th>N</th><th>Valor</th><th>%</th><th>Fees</th><th>Resultado</th><th>APR</th></tr></thead>
+      <tbody>${exRows.map(g => {
+        const on = UI.exchange && UI.exchange.toLocaleLowerCase() === g.name.toLocaleLowerCase();
+        const share = total.valor > 0 ? g.a.valor / total.valor : null;
+        return `<tr class="${on ? 'on' : ''}"><td><button class="text-link" data-act="filter-ex" data-k="${esc(g.name)}"><b>${esc(g.name)}</b>${on ? ' ✓' : ''}</button></td><td>${g.xs.length}/${g.active}</td><td>${money(g.a.valor)}</td><td>${pct(share)}</td><td class="fee">${money(g.a.feesTot)}</td><td class="${sgn(g.a.ganho)}">${smoney(g.a.ganho)}</td><td class="apr">${pct(g.a.apr)}</td></tr>`;
+      }).join('')}</tbody>
+      <tfoot><tr><td>Total</td><td>${list.length}/${activeN}</td><td>${money(total.valor)}</td><td>100%</td><td>${money(total.feesTot)}</td><td class="${sgn(total.ganho)}">${smoney(total.ganho)}</td><td class="apr">${pct(total.apr)}</td></tr></tfoot></table></div>
+    </section>
+  </div>`;
+}
+function insightsHTML(list) {
+  const active = list.filter(x => x.r.cur && !x.r.cur.closed);
+  const rankedGain = active.filter(x => x.r.cur).sort((a,b) => b.r.cur.ganho - a.r.cur.ganho);
+  const rankedFees = active.filter(x => x.r.cur).sort((a,b) => b.r.cur.feesTot - a.r.cur.feesTot);
+  const matureAPR = active.filter(x => x.r.cur.apr != null && x.r.cur.days >= 7 && updateCount(x) >= 2 && freshnessDays(x) < 7).sort((a,b) => b.r.cur.apr - a.r.cur.apr);
+  const bestAPR = matureAPR[0] || null;
+  const bestGain = rankedGain[0] || null;
+  const mostFees = rankedFees[0] || null;
+  const worstGain = rankedGain.length ? rankedGain[rankedGain.length - 1] : null;
+  const metric = (label, value, cls, detail, status = '', id = '') => `<div class="insight-card${id ? ' clickable' : ''}"${id ? ` data-act="toggle" data-id="${esc(id)}"` : ''}><div class="ilabel">${label}</div><div class="ivalue ${cls || ''}">${value}</div><div class="idetail">${detail}</div>${status ? `<div style="margin-top:6px"><span class="state-tag ${status.cls}">${status.label}</span></div>` : ''}</div>`;
+  const descPool = x => {
+    if (!x) return 'Sem dados suficientes';
+    const rede = x.p.rede ? networkLabel(x.p.rede) : '';
+    const ex = x.p.exchange ? esc(x.p.exchange) : '';
+    const meta = [rede, ex].filter(Boolean).join(' · ') || '—';
+    return `<span class="iname">${esc(poolName(x.p))}</span><br>${meta}`;
+  };
+  const shortCount = active.filter(x => x.r.cur.apr != null && (x.r.cur.days < 7 || updateCount(x) < 2)).length;
+  const noUpdate = active.filter(x => updateCount(x) === 0);
+  const stale = active.filter(x => updateCount(x) > 0 && freshnessDays(x) >= 7).sort((a,b) => freshnessDays(b)-freshnessDays(a));
+  const losing = active.filter(x => x.r.cur.ganho < -0.01).sort((a,b) => a.r.cur.ganho-b.r.cur.ganho);
+  const alerts = [];
+  if (noUpdate.length) alerts.push({ icon: '◷', type: 'warn', html: `<b>${noUpdate.length} pool(s) sem atualização.</b> APR incompleto ou não medido.` });
+  if (stale.length) alerts.push({ icon: '!', type: 'bad', html: `<b>${stale.length} desatualizada(s):</b> ${stale.slice(0,3).map(x => `${esc(poolName(x.p))} (${Math.floor(freshnessDays(x))}d)`).join(', ')}${stale.length > 3 ? '…' : ''}` });
+  if (shortCount) alerts.push({ icon: '≈', type: 'warn', html: `<b>${shortCount} amostra(s) curta(s).</b> APR pode oscilar muito.` });
+  if (losing.length) alerts.push({ icon: '↓', type: 'bad', html: `<b>${losing.length} com resultado negativo:</b> ${losing.slice(0,3).map(x => `${esc(poolName(x.p))} (${smoney(x.r.cur.ganho)})`).join(', ')}` });
+  const valueActive = active.reduce((z,x) => z + Math.max(0, x.r.cur.valor), 0);
+  const networks = new Map();
+  active.forEach(x => { const k = (String(x.p.rede || '').trim() || 'Não informada'); networks.set(k, (networks.get(k)||0) + Math.max(0,x.r.cur.valor)); });
+  const topNetwork = [...networks.entries()].sort((a,b)=>b[1]-a[1])[0];
+  if (topNetwork && valueActive > 0 && topNetwork[1] / valueActive >= .6 && active.length > 1) alerts.push({ icon: '◎', type: 'warn', html: `<b>Concentração:</b> ${esc(topNetwork[0])} = ${pct(topNetwork[1]/valueActive)} do valor ativo.` });
+  if (active.some(x => ok(x.p.rangeMin) || ok(x.p.rangeMax))) alerts.push({ icon: '↔', type: 'warn', html: `<b>Ranges offline.</b> Confirme no protocolo se ainda está in-range.` });
+  if (!alerts.length) alerts.push({ icon: 'i', type: '', html: `<b>Sem alertas básicos.</b> O monitor não verifica contratos, depeg ou preços externos.` });
+  const feesTotActive = active.reduce((z,x) => z + x.r.cur.feesTot, 0);
+
+  return `<section class="dash-section">
+    <div class="dash-title"><div><h2>Destaques</h2><p>Clique no cartão para abrir a pool</p></div></div>
+    <div class="dash-grid">
+      ${metric('Melhor APR (dados OK)', bestAPR ? pct(bestAPR.r.cur.apr) : '—', 'apr', descPool(bestAPR), bestAPR ? currentStatus(bestAPR) : {label:'≥7 d · ≥2 atualizações',cls:'warn'}, bestAPR?.p.id)}
+      ${metric('Maior resultado', bestGain ? smoney(bestGain.r.cur.ganho) : '—', sgn(bestGain?.r.cur.ganho), descPool(bestGain), bestGain ? currentStatus(bestGain) : null, bestGain?.p.id)}
+      ${metric('Mais fees', mostFees ? money(mostFees.r.cur.feesTot) : '—', 'fee', mostFees ? descPool(mostFees) : '—', mostFees ? currentStatus(mostFees) : null, mostFees?.p.id)}
+      ${worstGain && bestGain && worstGain.p.id !== bestGain.p.id ? metric('Menor resultado', smoney(worstGain.r.cur.ganho), sgn(worstGain.r.cur.ganho), descPool(worstGain), currentStatus(worstGain), worstGain.p.id) : metric('Ativas', String(active.length), 'neu', 'no filtro atual')}
+      ${metric('Fees / valor', valueActive > 0 ? pct(feesTotActive / valueActive) : '—', 'fee', 'sobre capital em posição')}
+      ${metric('Valor ativo', money(valueActive), 'inv', active.length + ' pool(s) aberta(s)')}
+    </div>
+    <div style="margin-top:10px"><div class="dash-title"><div><h2>Alertas</h2></div><span class="state-tag ${alerts.some(a=>a.type==='bad')?'bad':alerts.some(a=>a.type==='warn')?'warn':'good'}">${alerts.length}</span></div>
+      <div class="alert-list">${alerts.map(a => `<div class="alert-item"><span class="alert-icon">${a.icon}</span><div>${a.html}</div></div>`).join('')}</div>
+    </div>
+  </section>`;
+}
+function practicesHTML() {
+  return `<section class="dash-section"><details class="method"><summary>Boas práticas para gerir as pools e melhorar o rendimento ajustado ao risco</summary>
+    <div class="practices-grid">
+      <div class="practice"><b>1. Otimize o resultado, não o APR isolado</b><span>Compare fees totais com a variação do valor da posição. O APR alto pode refletir uma janela curta ou atividade passageira; confirme também o resultado em USD e os custos de gas, slippage e bridge.</span></div>
+      <div class="practice"><b>2. Mantenha o histórico consistente</b><span>Registe valor atual e fees com regularidade, idealmente a horas comparáveis. Sem atualizações recentes, o APR fica ancorado no último lançamento e perde utilidade operacional.</span></div>
+      <div class="practice"><b>3. Defina uma regra clara para os ranges</b><span>Ranges estreitos podem aumentar a eficiência do capital, mas também podem sair mais depressa do intervalo e deixar de gerar fees. Defina antecipadamente quando rever/rebalancear e inclui custos de transação nessa decisão.</span></div>
+      <div class="practice"><b>4. Trate a perda impermanente como comparação</b><span>“Resultado registado” não é IL pura. Para estimar IL, é preciso comparar a posição LP com o valor que os mesmos tokens teriam se simplesmente mantidos fora da pool.</span></div>
+      <div class="practice"><b>5. Diversifique os riscos comuns</b><span>Distribuir entre redes não elimina risco. Avalie também a concentração por protocolo, par, stablecoin, token volátil, bridge e contrato inteligente; defina um limite de capital por exposição.</span></div>
+      <div class="practice"><b>6. Reinvista fees só se a conta compensar</b><span>Compare o ganho adicional esperado com gas, slippage, taxas de recolha/reentrada e tempo de gestão. Reinvestir automaticamente não torna uma estratégia rentável por si só.</span></div>
+    </div>
+    <p class="dash-footnote">Limitação atual: este monitor é offline e depende de dados introduzidos manualmente; não consulta preços, volume, TVL, incentivos, custos on-chain nem segurança dos protocolos.</p>
+  </details></section>`;
+}
+
+function segHTML(act, cur, opts, id) {
+  return `<div class="seg">${opts.map(([k, l]) => `<button data-act="${act}" data-k="${k}"${id ? ` data-id="${esc(id)}"` : ''} class="${cur === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
+}
+function portfolioHTML() {
+  if (!PSERIES.length) return '';
+  const fl = { todas: 'todas as pools', ativas: 'pools ativas', fechadas: 'pools fechadas' }[UI.filter];
+  const redeFl = UI.rede ? ` · ${networkIconHTML(UI.rede)} ${esc(UI.rede)}` : '';
+  const exFl = UI.exchange ? ` · ${esc(UI.exchange)}` : '';
+  return `<div class="section" id="sec-port"><div class="sec-head"><h2>Evolução da carteira<span class="hs">${fl}${redeFl}${exFl}</span></h2>${segHTML('ptab', UI.ptab, [['patrimonio', 'Património'], ['roi', 'ROI'], ['apr', 'APR'], ['fees', 'Fees']])}</div><div class="chart" data-chart="port"></div></div>`;
+}
+function poolHTML(x) {
+  const p = x.p, r = x.r, c = r.cur, st = r.st, open = !!UI.open[p.id];
+  if (!c) return '';
+  const now = Date.now();
+  let badges = c.closed ? '<span class="badge fechada">Fechada</span>' : '<span class="badge ativa">Ativa</span>';
+  if (!c.closed) {
+    const since = (now - c.last) / DAY;
+    if (r.snaps.length === 1) badges += '<span class="badge warn">sem atualizações</span>';
+    else if (since >= 7) badges += `<span class="badge warn">atualizada há ${Math.floor(since)} d</span>`;
+  }
+  const subParts = [];
+  if (p.rede) subParts.push(`<button class="text-link" data-act="filter-rede" data-k="${esc(p.rede)}" title="Filtrar por rede">${networkLabel(p.rede)}</button>`);
+  if (p.exchange) subParts.push(`<button class="text-link" data-act="filter-ex" data-k="${esc(p.exchange)}" title="Filtrar por exchange">${esc(String(p.exchange).toUpperCase())}</button>`);
+  const spark = sparkline(r.snaps.map(s => s.valor), c.valor >= c.investido ? '#22c55e' : '#f04352');
+  let html = `<div class="pool ${open ? 'open' : ''} ${c.closed ? 'closed' : ''}" id="pool-${esc(p.id)}">
+    <div class="pool-head" data-act="toggle" data-id="${esc(p.id)}">
+      <div class="avatar">${esc(initials(p))}</div>
+      <div class="pname"><b>${esc(poolName(p))}</b>${badges}${spark}<div class="ps">${subParts.length ? subParts.join(' · ') : '&nbsp;'}</div></div>
+      <div class="metrics">
+        <div class="m"><span>Valor</span><b>${money(c.valor)}</b><i>inv. ${money(c.investido)}</i></div>
+        <div class="m"><span>Variação</span><b class="${sgn(c.varCap)}">${spct(c.varPct)}</b><i>${smoney(c.varCap)}</i></div>
+        <div class="m"><span>ROI</span><b class="${sgn(c.ganho)}">${smoney(c.ganho)}</b><i>${spct(c.roi)}</i></div>
+        <div class="m"><span>APR</span><b class="apr">${pct(c.apr)}</b><i>${c.days >= 1 / 24 ? fmt(c.days, 1) + ' d' : '—'}</i></div>
+        <div class="m"><span>Fees</span><b class="fee">${money(c.pend)}</b><i>col. ${money(c.col)}</i></div>
+      </div>
+      <button class="chev" data-act="toggle" data-id="${esc(p.id)}" aria-label="Expandir">${ICON_CHEV}</button>
+    </div>`;
+  if (open) {
+    const diasAtivos = ((c.closed ? st.closeT : now) - c.start) / DAY;
+    const aportes = st.cin - st.inicial;
+    const rng = ok(p.rangeMin) || ok(p.rangeMax) ? `$${ok(p.rangeMin) ? fmtNum(p.rangeMin) : '—'} - $${ok(p.rangeMax) ? fmtNum(p.rangeMax) : '—'}` : '—';
+    const tile = (l, v, i, cls = '') => `<div class="tile"><span>${l}</span><b class="${cls}">${v}</b>${i ? `<i>${i}</i>` : ''}</div>`;
+    const tab = UI.tab[p.id] || 'liq';
+    html += `<div class="pool-body">
+      <div class="tiles">
+        ${tile('Valor Inicial', money(st.inicial), [aportes ? '+' + money(aportes) + ' reforços' : '', st.cout ? '−' + money(st.cout) + ' retiradas' : ''].filter(Boolean).join(' · ') || 'sem reforços ou retiradas')}
+        ${tile('Dias Ativos', Math.floor(diasAtivos) + ' dias', 'aberta em ' + fmtD(c.start) + (c.closed ? ' · fechada em ' + fmtD(st.closeT) : ''))}
+        ${tile('Total Fees Recolhidas', money(c.col), 'pendentes ' + money(c.pend), 'fee')}
+        ${tile('Range de Preço', rng, '')}
+        ${tile('ROI Anualizado', spct(c.roiAnual), 'simples, sem capitalização', sgn(c.roiAnual))}
+        ${tile('Último Lançamento', fmtDT(c.last), TYPE_LABEL[c.ev.type] + ' · base: capital médio ' + money(c.capBase))}
+      </div>
+      ${p.obs ? `<div class="obs">📝 ${esc(p.obs)}</div>` : ''}
+      <div class="actions">
+        ${c.closed ? `
+          <button class="btn sm" data-act="reopen" data-id="${esc(p.id)}">↺ Reabrir</button>` : `
+          <button class="btn sm green" data-act="update" data-id="${esc(p.id)}">✎ Atualizar</button>
+          ${c.pend > 0 ? `<button class="btn sm green" data-act="collect" data-id="${esc(p.id)}">$ Recolher Fees</button>` : ''}
+          <button class="btn sm" data-act="rebalance" data-id="${esc(p.id)}">↔ Mover range</button>
+          <button class="btn sm" data-act="flow" data-id="${esc(p.id)}">⇅ Reforço / Retirada</button>
+          <button class="btn sm" data-act="close" data-id="${esc(p.id)}">✕ Fechar Pool</button>`}
+        <button class="btn sm" data-act="edit" data-id="${esc(p.id)}">Editar dados</button>
+        <button class="btn sm red" data-act="delpool" data-id="${esc(p.id)}">🗑 Eliminar</button>
+      </div>
+      <div class="hist-head"><span class="ht">↗ Histórico</span>${segHTML('tab', tab, [['liq', 'Liquidez'], ['apr', 'APR'], ['roi', 'ROI'], ['fees', 'Fees']], p.id)}</div>
+      <div class="chart" data-chart="pool" data-id="${esc(p.id)}"></div>
+      <details class="ev"${UI.open[p.id + ':ev'] ? ' open' : ''} data-evid="${esc(p.id)}"><summary>Lançamentos (${r.snaps.length})</summary>
+        <div class="tw"><table><thead><tr><th>Data</th><th>Tipo</th><th>Lançamento</th><th>Valor atual</th><th>Fees pend.</th><th>Fees recol.</th><th>Variação</th><th>ROI</th><th>APR</th><th></th></tr></thead><tbody>
+        ${r.snaps.slice().reverse().map(s => {
+          const e = s.ev; let det = '';
+          if (e.type === 'atualizacao') det = `valor ${money(e.valor)} · fees ${money(e.fees)}`;
+          else if (e.type === 'rebalance') {
+            const rmin = ok(e.rangeMin) ? fmtNum(e.rangeMin) : '—';
+            const rmax = ok(e.rangeMax) ? fmtNum(e.rangeMax) : '—';
+            det = `valor ${money(e.valor)} · fees ${money(e.fees)} · range $${rmin}–$${rmax}`;
+          }
+          else if (e.type === 'fechamento') det = `final ${money(e.valor)} · fees ${money(e.fees)}`;
+          else if (e.type === 'retirada') det = '−' + money(e.valor);
+          else if (e.type === 'aporte' || e.type === 'coleta') det = '+' + money(e.valor);
+          else det = money(e.valor);
+          if (e.hash) det += ' · hash ' + esc(e.hash);
+          return `<tr><td>${fmtDT(s.t)}</td><td>${esc(TYPE_LABEL[e.type] || e.type)}</td><td>${det}</td><td>${money(s.valor)}</td><td class="fee">${money(s.pend)}</td><td>${money(s.col)}</td><td class="${sgn(s.varCap)}">${spct(s.varPct)}</td><td class="${sgn(s.ganho)}">${spct(s.roi)}</td><td class="apr">${pct(s.apr)}</td><td>${e.type === 'abertura' ? '' : `<button class="del" title="Eliminar lançamento" data-act="delev" data-id="${esc(p.id)}" data-ev="${esc(e.id)}">✕</button>`}</td></tr>`;
+        }).join('')}
+        </tbody></table></div>
+      </details>
+    </div>`;
+  }
+  return html + '</div>';
+}
+function poolsHTML(list, nAll, nAt, nFe) {
+  const chip = (f, label, extra = '') => `<button class="chip ${extra} ${UI.filter === f ? 'on' : ''}" data-act="filter" data-k="${f}">${label}</button>`;
+  const sortChip = (k, label) => `<button class="chip ${UI.sort === k ? 'on' : ''}" data-act="sort" data-k="${k}">${label}</button>`;
+  const redeChip = UI.rede ? `<button class="chip on" data-act="filter-rede" data-k="" title="Remover filtro de rede">${networkLabel(UI.rede)} ×</button>` : '';
+  const exChip = UI.exchange ? `<button class="chip on" data-act="filter-ex" data-k="" title="Remover filtro de exchange">${esc(UI.exchange)} ×</button>` : '';
+  const titulo = list.length !== nAll ? `Suas Pools (${list.length} de ${nAll})` : `Suas Pools (${nAll})`;
+  const emptyHint = [UI.rede && (networkIconHTML(UI.rede) + ' ' + esc(UI.rede)), UI.exchange && esc(UI.exchange)].filter(Boolean).join(' · ');
+  return `<div class="section" id="sec-pools"><div class="sec-head"><h2>${titulo}</h2><div class="chips">${chip('todas', 'Todas')}${chip('ativas', nAt + ' Ativas', 'g')}${chip('fechadas', nFe + ' Fechadas')}${redeChip}${exChip}</div></div>
+    <div class="chips" style="margin-top:8px"><span style="color:var(--dim);font-size:12px;align-self:center;margin-right:4px">Ordenar:</span>${sortChip('recent', 'Recentes')}${sortChip('valor', 'Valor')}${sortChip('roi', 'ROI')}${sortChip('apr', 'APR')}${sortChip('fees', 'Fees')}</div>
+    ${list.length ? list.map(poolHTML).join('') : `<div class="nochart" style="margin-top:12px">Nenhuma pool neste filtro${emptyHint ? ' (' + emptyHint + ')' : ''}.</div>`}</div>`;
+}
+function emptyHTML() {
+  return `<div class="section empty"><h2>Nenhuma pool registada</h2><p>Registe a sua primeira posição. Depois, cada atualização (valor e fees) fica registada com data e hora e forma o histórico de ROI e APR.</p>
+    <div class="bb"><button class="btn primary" data-act="new">+ Nova Pool</button><button class="btn" data-act="demo">Ver dados de exemplo</button>${FILE.supported ? '<button class="btn" data-act="open-file">Abrir ficheiro de dados…</button>' : '<button class="btn" data-act="import">Importar backup…</button>'}</div></div>`;
+}
+function methodHTML() {
+  return `<details class="section method"><summary>Como os indicadores são calculados</summary><ul>
+    <li><b>Valor Atual</b>: último valor da posição informado em “Atualizar” (sem as fees pendentes). Reforços e retiradas ajustam esse valor de imediato.</li>
+    <li><b>Capital investido</b> = liquidez inicial + reforços − retiradas.</li>
+    <li><b>Variação da posição</b> = Valor atual − Capital investido. Mostra a diferença em USD face ao capital líquido aportado, mas <b>não mede a impermanent loss isoladamente</b>: para isso seria necessário comparar com o valor de manter os mesmos tokens fora da pool.</li>
+    <li><b>Fees Acumuladas</b> = fees ainda não recolhidas, informadas a cada atualização. <b>Recolher Fees</b> passa esse valor para “recolhidas”.</li>
+    <li><b>Mover range (rebalance)</b>: regista o novo intervalo de preço, o valor da posição depois da operação e as fees recolhidas no processo. O capital investido não muda; as fees pendentes passam a zero e o valor/fees entram no histórico como nos outros lançamentos. Gas e slippage não são descontados automaticamente.</li>
+    <li><b>Resultado registado</b> = Variação + fees recolhidas + fees pendentes. <b>ROI total</b> = resultado registado ÷ capital médio. Não desconta gas, slippage, bridge, impostos ou custo de oportunidade.</li>
+    <li><b>Capital médio</b> = capital investido ponderado pelo tempo em que ficou aplicado. Sem reforços ou retiradas, é igual à liquidez inicial.</li>
+    <li><b>APR (fees)</b> = fees totais reportadas ÷ capital médio × 365 ÷ dias, sem capitalização. O cálculo usa o período registado até ao último lançamento e não é uma previsão; só é exibido com pelo menos 1 dia de histórico, pois janelas curtas produzem percentagens muito elevadas. A data do último lançamento nem sempre substitui a necessidade de atualizar regularmente o valor e as fees.</li>
+    <li><b>ROI anualizado</b> = ROI × 365 ÷ dias (anualização simples, sem capitalização).</li>
+    <li><b>APR Médio</b> da carteira = média dos APRs ponderada pelo capital médio de cada pool. Pools que ainda não têm nenhuma atualização ficam fora dessa média. Os cartões e o gráfico da carteira seguem o filtro selecionado (Todas, Ativas ou Fechadas) e o filtro por rede (clique no nome da rede no resumo).</li>
+    <li>Cada lançamento fica gravado com data e hora. Para corrigir um lançamento, elimine-o na tabela “Lançamentos” e registe-o de novo. Pode lançar datas passadas, e o histórico é reordenado automaticamente.</li>
+  </ul></details>`;
+}
+function render() {
+  const app = $('#app');
+  const all = DB.pools.map(p => ({ p, r: compute(p) }));
+  CACHE = {}; all.forEach(x => CACHE[x.p.id] = x);
+  const nAt = all.filter(x => x.r.cur && !x.r.st.closed).length, nFe = all.filter(x => x.r.st.closed).length;
+  const statusList = all.filter(x => x.r.cur && (UI.filter === 'todas' || (UI.filter === 'ativas' ? !x.r.st.closed : x.r.st.closed)));
+  let list = statusList.filter(x => {
+    if (UI.rede && String(x.p.rede || '').trim().toLocaleLowerCase() !== UI.rede.toLocaleLowerCase()) return false;
+    if (UI.exchange && String(x.p.exchange || '').trim().toLocaleLowerCase() !== UI.exchange.toLocaleLowerCase()) return false;
+    return true;
+  });
+  const sortFn = {
+    recent: (a, b) => (a.r.st.closed - b.r.st.closed) || (b.r.st.start - a.r.st.start),
+    valor: (a, b) => (b.r.cur?.valor || 0) - (a.r.cur?.valor || 0),
+    roi: (a, b) => (b.r.cur?.ganho || 0) - (a.r.cur?.ganho || 0),
+    apr: (a, b) => { const x = a.r.cur?.apr, y = b.r.cur?.apr; if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1; return y - x; },
+    fees: (a, b) => (b.r.cur?.feesTot || 0) - (a.r.cur?.feesTot || 0)
+  };
+  list = list.sort(sortFn[UI.sort] || sortFn.recent);
+  PSERIES = portfolioSeries(list);
+  app.innerHTML = headerHTML() + `<div id="banner">${bannerHTML()}</div>` +
+    (DB.pools.length ? cardsHTML(aggregate(list.map(x => x.r.cur))) + networkSummaryHTML(statusList) + insightsHTML(list) + portfolioHTML() + poolsHTML(list, all.length, nAt, nFe) : emptyHTML()) +
+    methodHTML() + (DB.pools.length ? practicesHTML() : '');
+  drawCharts();
+}
+
+/* ---------- formulários ---------- */
+function fieldHTML(f) {
+  const v = f.type === 'num' ? numToInput(f.value) : (f.value ?? '');
+  let inp;
+  if (f.type === 'select') inp = `<select name="${f.name}">${f.options.map(([k, l]) => `<option value="${k}"${k === v ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
+  else if (f.type === 'textarea') inp = `<textarea name="${f.name}" placeholder="${esc(f.ph || '')}">${esc(v)}</textarea>`;
+  else inp = `<input name="${f.name}" ${f.type === 'num' ? 'type="text" inputmode="decimal" autocomplete="off"' : `type="${f.type || 'text'}"`} value="${esc(v)}" placeholder="${esc(f.ph || '')}"${f.maxlen ? ` maxlength="${+f.maxlen}" autocomplete="off" spellcheck="false"` : ''}>`;
+  return `<div class="f ${f.half ? 'half' : ''}"><label>${esc(f.label)}${f.type === 'num' ? '<span class="prev"></span>' : ''}</label>${inp}${f.hint ? `<div class="hint">${esc(f.hint)}</div>` : ''}</div>`;
+}
+function openForm(cfg) {
+  const ov = document.createElement('div'); ov.className = 'overlay';
+  ov.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><div class="mh"><h3>${esc(cfg.title)}</h3><button class="x" type="button" data-x aria-label="Fechar">×</button></div>
+    <form class="mb" novalidate><div class="grid2">${cfg.fields.map(fieldHTML).join('')}</div>${cfg.note ? `<p class="note">${esc(cfg.note)}</p>` : ''}<div class="err" hidden></div>
+    <div class="mf"><button type="button" class="btn" data-x>Cancelar</button><button type="submit" class="btn primary">${esc(cfg.submit || 'Guardar')}</button></div></form></div>`;
+  document.body.appendChild(ov);
+  const form = ov.querySelector('form'), err = ov.querySelector('.err');
+  const close = () => { ov.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = e => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  ov.querySelectorAll('[data-x]').forEach(b => b.addEventListener('click', close));
+  cfg.fields.filter(f => f.type === 'num').forEach(f => {
+    const inp = form.elements[f.name], prev = inp.closest('.f').querySelector('.prev');
+    const upd = () => { const n = parseNum(inp.value, f.money !== false); prev.className = 'prev' + (Number.isNaN(n) ? ' bad' : ''); prev.textContent = n === null ? '' : Number.isNaN(n) ? 'valor inválido' : '= ' + (f.money === false ? fmtNum(n) : money(n)); };
+    inp.addEventListener('input', upd); upd();
+  });
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const vals = {};
+    for (const f of cfg.fields) {
+      const raw = form.elements[f.name].value;
+      if (f.type === 'num') {
+        const n = parseNum(raw, f.money !== false);
+        if (Number.isNaN(n)) return showErr(`Valor inválido em “${f.label}”.`);
+        if (n === null && f.req) return showErr(`Preencha “${f.label}”.`);
+        vals[f.name] = n;
+      } else {
+        const s = raw.trim();
+        if (!s && f.req) return showErr(`Preencha “${f.label}”.`);
+        if (f.maxlen && s.length > f.maxlen) return showErr(`“${f.label}”: no máximo ${f.maxlen} caracteres.`);
+        vals[f.name] = s;
+      }
+    }
+    const res = cfg.onSubmit(vals);
+    if (typeof res === 'string') return showErr(res);
+    close();
+  });
+  function showErr(m) { err.textContent = m; err.hidden = false; }
+  const first = form.querySelector('input,select,textarea'); if (first) setTimeout(() => first.focus(), 30);
+  return ov;
+}
+const hashField = () => ({ name: 'hash', label: 'Referência do hash (4 caracteres)', ph: 'ex.: a3f9', maxlen: 4, hint: 'Opcional. 4 caracteres do hash da transação (por exemplo, os últimos 4), apenas para sua referência.' });
+const dtFields = () => { const [d, t] = splitDT(nowInput()); return [{ name: 'data', label: 'Data', type: 'date', half: 1, value: d, req: 1 }, { name: 'hora', label: 'Hora', type: 'time', half: 1, value: t, req: 1 }]; };
+function checkDate(P, tt) {
+  const t = parseT(tt), st = CACHE[P.id].r.st;
+  if (!isFinite(t)) return 'Data ou hora inválida.';
+  if (t < st.start) return `A data não pode ser anterior à abertura da pool (${fmtDT(st.start)}).`;
+  if (t > Date.now() + 5 * 60000) return 'A data não pode estar no futuro.';
+}
+function poolForm(P) {
+  const ab = P ? P.events.find(e => e.type === 'abertura') : null;
+  const [d, t] = splitDT(ab ? ab.t : nowInput());
+  const ov = openForm({
+    title: P ? 'Editar Pool - ' + poolName(P) : 'Nova Pool', submit: P ? 'Guardar' : 'Criar Pool',
+    fields: [
+      { name: 'rede', label: 'Rede', ph: 'Arbitrum', half: 1, value: P?.rede },
+      { name: 'exchange', label: 'Exchange', ph: 'Uniswap V3', half: 1, value: P?.exchange },
+      { name: 'token1', label: 'Token 1', ph: 'ETH', half: 1, value: P?.token1, req: 1 },
+      { name: 'token2', label: 'Token 2', ph: 'USDC', half: 1, value: P?.token2, req: 1 },
+      { name: 'nome', label: 'Nome da Pool', ph: 'Ex: ETH/USDC', value: P?.nome, hint: 'Deixe em branco para usar Token1/Token2' },
+      { name: 'valor', label: 'Liquidez Inicial (USD)', type: 'num', ph: '10000', value: ab?.valor, req: 1 },
+      { name: 'data', label: 'Data de Criação', type: 'date', half: 1, value: d, req: 1 },
+      { name: 'hora', label: 'Hora', type: 'time', half: 1, value: t, req: 1 },
+      { name: 'rangeMin', label: 'Range Mínimo', type: 'num', money: false, ph: '3000', half: 1, value: P?.rangeMin, hint: 'Opcional' },
+      { name: 'rangeMax', label: 'Range Máximo', type: 'num', money: false, ph: '4000', half: 1, value: P?.rangeMax, hint: 'Opcional' },
+      { name: 'obs', label: 'Observações', type: 'textarea', ph: 'Opcional (ex.: fee tier 0,05%, carteira usada…)', value: P?.obs }
+    ],
+    onSubmit: v => {
+      if (!(v.valor > 0)) return 'A liquidez inicial deve ser maior que zero.';
+      if (ok(v.rangeMin) && ok(v.rangeMax) && v.rangeMin >= v.rangeMax) return 'O range mínimo deve ser menor que o máximo.';
+      const tt = v.data + 'T' + v.hora;
+      if (!isFinite(parseT(tt))) return 'Data ou hora inválida.';
+      if (parseT(tt) > Date.now() + 5 * 60000) return 'A data de criação não pode estar no futuro.';
+      const data = { rede: v.rede, exchange: v.exchange, token1: v.token1, token2: v.token2, nome: v.nome, rangeMin: v.rangeMin, rangeMax: v.rangeMax, obs: v.obs };
+      if (P) {
+        if (P.events.some(e => e.type !== 'abertura' && parseT(e.t) < parseT(tt))) return 'Existem lançamentos anteriores a essa data de criação. Ajuste a data ou elimine esses lançamentos.';
+        Object.assign(P, data); ab.valor = v.valor; ab.t = tt;
+      } else {
+        const id = uid();
+        if (UI.demo) { adoptDB(REAL || loadLocal()); REAL = null; UI.demo = false; UI.open = {}; }
+        DB.pools.push(Object.assign({ id }, data, { events: [{ id: uid(), type: 'abertura', t: tt, valor: v.valor, fees: null, seq: nextSeq() }] }));
+        UI.open[id] = true;
+      }
+      save();
+    }
+  });
+  const f = ov.querySelector('form').elements;
+  const ph = () => { f.nome.placeholder = (f.token1.value.trim() || f.token2.value.trim()) ? `${f.token1.value.trim() || 'Token1'}/${f.token2.value.trim() || 'Token2'}` : 'Ex: ETH/USDC'; };
+  f.token1.addEventListener('input', ph); f.token2.addEventListener('input', ph); ph();
+}
+function updateForm(P) {
+  const c = CACHE[P.id].r.cur;
+  openForm({
+    title: 'Atualizar Pool - ' + poolName(P), submit: 'Guardar',
+    fields: [
+      hashField(),
+      { name: 'valor', label: 'Valor Atual (USD)', type: 'num', value: c.valor, req: 1, hint: 'Valor da posição agora, sem as fees pendentes.' },
+      { name: 'fees', label: 'Fees Acumuladas (USD)', type: 'num', value: c.pend, req: 1, hint: 'Fees ainda não recolhidas, como o protocolo mostra agora.' },
+      ...dtFields()
+    ],
+    onSubmit: v => {
+      const tt = v.data + 'T' + v.hora, er = checkDate(P, tt); if (er) return er;
+      if (v.valor < 0 || v.fees < 0) return 'Os valores não podem ser negativos.';
+      P.events.push({ id: uid(), type: 'atualizacao', t: tt, valor: v.valor, fees: v.fees, hash: v.hash || null, seq: nextSeq() }); save();
+    }
+  });
+}
+function rebalanceForm(P) {
+  const c = CACHE[P.id].r.cur;
+  openForm({
+    title: 'Mover range - ' + poolName(P), submit: 'Registar rebalance',
+    fields: [
+      hashField(),
+      { name: 'valor', label: 'Valor da posição após o rebalance (USD)', type: 'num', value: c.valor, req: 1, hint: 'Valor da liquidez já no novo range, sem fees pendentes.' },
+      { name: 'fees', label: 'Fees recolhidas no rebalance (USD)', type: 'num', value: c.pend, req: 1, hint: 'Fees que saíram com a operação. Passam para “recolhidas” e as pendentes ficam a zero.' },
+      { name: 'rangeMin', label: 'Novo range mínimo', type: 'num', money: false, ph: '3000', half: 1, value: P.rangeMin, req: 1 },
+      { name: 'rangeMax', label: 'Novo range máximo', type: 'num', money: false, ph: '4000', half: 1, value: P.rangeMax, req: 1 },
+      ...dtFields()
+    ],
+    note: 'Regista a mudança de range (rebalance). O capital investido não muda — só o valor da posição e as fees recolhidas. Gas, slippage e bridge não são descontados automaticamente. O range atual da pool passa a ser o novo.',
+    onSubmit: v => {
+      const tt = v.data + 'T' + v.hora, er = checkDate(P, tt); if (er) return er;
+      if (v.valor < 0 || v.fees < 0) return 'Os valores não podem ser negativos.';
+      if (!(v.rangeMin < v.rangeMax)) return 'O range mínimo deve ser menor que o máximo.';
+      const prevMin = P.rangeMin, prevMax = P.rangeMax;
+      P.rangeMin = v.rangeMin;
+      P.rangeMax = v.rangeMax;
+      P.events.push({ id: uid(), type: 'rebalance', t: tt, valor: v.valor, fees: v.fees, rangeMin: v.rangeMin, rangeMax: v.rangeMax, prevMin, prevMax, hash: v.hash || null, seq: nextSeq() });
+      save();
+    }
+  });
+}
+function collectForm(P) {
+  const c = CACHE[P.id].r.cur;
+  openForm({
+    title: 'Recolher Fees - ' + poolName(P), submit: 'Registar recolha',
+    fields: [hashField(), { name: 'valor', label: 'Valor recolhido (USD)', type: 'num', value: c.pend, req: 1, hint: 'Esse valor sai de “Fees Acumuladas” e passa para “Fees Recolhidas”. O ROI não muda.' }, ...dtFields()],
+    onSubmit: v => {
+      const tt = v.data + 'T' + v.hora, er = checkDate(P, tt); if (er) return er;
+      if (!(v.valor > 0)) return 'Informe um valor maior que zero.';
+      P.events.push({ id: uid(), type: 'coleta', t: tt, valor: v.valor, fees: null, hash: v.hash || null, seq: nextSeq() }); save();
+    }
+  });
+}
+function flowForm(P) {
+  const c = CACHE[P.id].r.cur;
+  openForm({
+    title: 'Reforço / Retirada - ' + poolName(P), submit: 'Registar',
+    fields: [
+      hashField(),
+      { name: 'tipo', label: 'Movimento', type: 'select', value: 'aporte', options: [['aporte', 'Reforço (adicionar liquidez)'], ['retirada', 'Retirada parcial de liquidez']] },
+      { name: 'valor', label: 'Valor (USD)', type: 'num', req: 1, hint: 'Valor em USD no momento da movimentação.' },
+      ...dtFields()
+    ],
+    note: 'O valor atual da posição é ajustado automaticamente, e o ROI e o APR passam a usar o capital médio ponderado pelo tempo. Para retirar tudo, use “Fechar Pool”.',
+    onSubmit: v => {
+      const tt = v.data + 'T' + v.hora, er = checkDate(P, tt); if (er) return er;
+      if (!(v.valor > 0)) return 'Informe um valor maior que zero.';
+      if (v.tipo === 'retirada' && v.valor >= c.valor) return `A retirada (${money(v.valor)}) não pode ser igual ou maior que o valor atual (${money(c.valor)}). Para retirar tudo, use “Fechar Pool”.`;
+      P.events.push({ id: uid(), type: v.tipo, t: tt, valor: v.valor, fees: null, hash: v.hash || null, seq: nextSeq() }); save();
+    }
+  });
+}
+function closeForm(P) {
+  const c = CACHE[P.id].r.cur;
+  openForm({
+    title: 'Fechar Pool - ' + poolName(P), submit: 'Fechar Pool',
+    fields: [
+      hashField(),
+      { name: 'valor', label: 'Valor final recebido (USD)', type: 'num', value: c.valor, req: 1, hint: 'Valor da liquidez retirada no fecho, sem as fees.' },
+      { name: 'fees', label: 'Fees recebidas no fecho (USD)', type: 'num', value: c.pend, req: 1, hint: 'Fees pendentes que foram recolhidas junto com o fecho.' },
+      ...dtFields()
+    ],
+    note: 'Depois de fechada, a pool para de contar dias: ROI e APR ficam congelados na data do fecho. Se necessário, é possível reabri-la.',
+    onSubmit: v => {
+      const tt = v.data + 'T' + v.hora, er = checkDate(P, tt); if (er) return er;
+      if (parseT(tt) < CACHE[P.id].r.st.last) return `O fecho não pode ser anterior ao último lançamento (${fmtDT(CACHE[P.id].r.st.last)}).`;
+      if (v.valor < 0 || v.fees < 0) return 'Os valores não podem ser negativos.';
+      P.events.push({ id: uid(), type: 'fechamento', t: tt, valor: v.valor, fees: v.fees, hash: v.hash || null, seq: nextSeq() }); save();
+    }
+  });
+}
+
+/* ---------- exemplo ---------- */
+function exampleDB() {
+  const mk = (o, evs) => Object.assign({ id: uid(), nome: '', obs: '' }, o, { events: evs.map(([type, t, valor, fees]) => ({ id: uid(), type, t, valor, fees: fees ?? null, seq: nextSeq() })) });
+  const d = emptyDB();
+  d.pools = [
+    mk({ rede: 'SOLANA', exchange: 'ORCA', token1: 'cbBTC', token2: 'USDC', rangeMin: 60000, rangeMax: 70000, obs: 'Exemplo ilustrativo' },
+      [['abertura', '2026-02-10T16:25', 4998], ['atualizacao', '2026-02-16T16:26', 5600, 120]]),
+    mk({ rede: 'SOLANA', exchange: 'BYREAL', token1: 'COINx', token2: 'USDC', rangeMin: 180, rangeMax: 240 },
+      [['abertura', '2026-02-07T20:20', 195]]),
+    mk({ rede: 'SOLANA', exchange: 'BYREAL', token1: 'COINx', token2: 'USDC', rangeMin: 165, rangeMax: 231 },
+      [['abertura', '2026-01-25T09:00', 24.8], ['atualizacao', '2026-02-07T20:13', 24.8, 0.31], ['atualizacao', '2026-02-07T20:14', 19.19, 0.47], ['fechamento', '2026-02-07T20:15', 19.19, 0.47]])
+  ];
+  return d;
+}
+let REAL = null;
+function enterDemo() {
+  if (UI.demo) return;
+  REAL = DB; DB = exampleDB(); UI.demo = true; UI.filter = 'todas'; UI.rede = null; UI.exchange = null; UI.sort = 'recent';
+  UI.open = { [DB.pools[0].id]: true }; render();
+}
+function exitDemo() { if (!UI.demo) return; adoptDB(REAL || loadLocal()); REAL = null; UI.demo = false; UI.open = {}; UI.rede = null; UI.exchange = null; render(); }
+
+/* ---------- eventos ---------- */
+document.addEventListener('click', ev => {
+  const menu = $('#menu');
+  const b = ev.target.closest('[data-act]');
+  if (menu && !menu.hidden && !ev.target.closest('.menu-wrap')) menu.hidden = true;
+  if (!b) return;
+  const act = b.dataset.act, id = b.dataset.id, P = id ? DB.pools.find(p => p.id === id) : null;
+  if (menu && b.closest('.menu')) menu.hidden = true;
+  if (UI.demo && ['update', 'collect', 'flow', 'close', 'reopen', 'edit', 'delpool', 'delev', 'export', 'csv-ev', 'csv-pools', 'wipe', 'link', 'rebalance'].includes(act)) {
+    alert('Isto é apenas um exemplo. Saia do modo exemplo para lançar e guardar os seus próprios dados.'); return;
+  }
+  switch (act) {
+    case 'menu': menu.hidden = !menu.hidden; break;
+    case 'new': poolForm(); break;
+    case 'toggle': {
+      UI.open[id] = !UI.open[id];
+      render();
+      if (UI.open[id]) setTimeout(() => { const el = document.getElementById('pool-' + id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 40);
+      break;
+    }
+    case 'tab': UI.tab[id] = b.dataset.k; drawCharts(); b.parentElement.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); break;
+    case 'ptab': UI.ptab = b.dataset.k; drawCharts(); b.parentElement.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); break;
+    case 'filter': UI.filter = UI.filter === b.dataset.k ? 'todas' : b.dataset.k; render(); break;
+    case 'filter-rede': {
+      const k = (b.dataset.k || '').trim();
+      UI.rede = (!k || (UI.rede && UI.rede.toLocaleLowerCase() === k.toLocaleLowerCase())) ? null : k;
+      render();
+      break;
+    }
+    case 'filter-ex': {
+      const k = (b.dataset.k || '').trim();
+      UI.exchange = (!k || (UI.exchange && UI.exchange.toLocaleLowerCase() === k.toLocaleLowerCase())) ? null : k;
+      render();
+      break;
+    }
+    case 'sort': UI.sort = b.dataset.k || 'recent'; render(); break;
+    case 'scroll': {
+      const map = { pools: 'sec-pools', cross: 'sec-cross', matrix: 'sec-matrix', ranks: 'sec-ranks', port: 'sec-port', pairs: 'sec-pairs' };
+      const el = document.getElementById(map[b.dataset.k] || b.dataset.k);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      break;
+    }
+    case 'update': updateForm(P); break;
+    case 'rebalance': rebalanceForm(P); break;
+    case 'collect': collectForm(P); break;
+    case 'flow': flowForm(P); break;
+    case 'close': closeForm(P); break;
+    case 'edit': poolForm(P); break;
+    case 'reopen':
+      if (confirm(`Reabrir “${poolName(P)}”? O lançamento de fecho será removido.`)) { P.events = P.events.filter(e => e.type !== 'fechamento'); save(); }
+      break;
+    case 'delpool':
+      if (confirm(`Eliminar a pool “${poolName(P)}” e todo o seu histórico (${P.events.length} lançamentos)?\n\nIsto não pode ser desfeito, a não ser que tenha um backup.`)) { DB.pools = DB.pools.filter(p => p !== P); save(); }
+      break;
+    case 'delev': {
+      const e = P.events.find(x => x.id === b.dataset.ev);
+      if (e && confirm(`Eliminar o lançamento “${TYPE_LABEL[e.type]}” de ${fmtDT(parseT(e.t))}?`)) {
+        P.events = P.events.filter(x => x !== e);
+        if (e.type === 'rebalance') {
+          const rebs = sortedEvents(P).filter(x => x.type === 'rebalance');
+          if (rebs.length) { P.rangeMin = rebs[rebs.length - 1].rangeMin; P.rangeMax = rebs[rebs.length - 1].rangeMax; }
+          else if ('prevMin' in e) { P.rangeMin = e.prevMin; P.rangeMax = e.prevMax; }
+        }
+        UI.open[P.id + ':ev'] = true;
+        save();
+      }
+      break;
+    }
+    case 'link': linkNewFile(); break;
+    case 'open-file': if (UI.demo) exitDemo(); openExistingFile(); break;
+    case 'unlink': unlinkFile(); break;
+    case 'reconnect': reconnectFile(); break;
+    case 'export': exportBackup(); break;
+    case 'import': if (UI.demo) exitDemo(); importBackup(); break;
+    case 'csv-ev': exportEventsCSV(); break;
+    case 'csv-pools': exportPoolsCSV(); break;
+    case 'demo': enterDemo(); break;
+    case 'demo-exit': exitDemo(); break;
+    case 'wipe':
+      if (confirm('Apagar TODAS as pools e lançamentos?\n\nRecomendo exportar um backup antes. Isto não pode ser desfeito.')) { DB = emptyDB(); FORCE_NEXT = !!(FILE.handle && FILE.state === 'ok'); UI.open = {}; UI.rede = null; UI.exchange = null; save(); }
+      break;
+  }
+});
+document.addEventListener('toggle', e => { const d = e.target; if (d.matches && d.matches('details[data-evid]')) UI.open[d.dataset.evid + ':ev'] = d.open; }, true);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { const m = $('#menu'); if (m) m.hidden = true; } });
+let rT = null;
+window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(drawCharts, 150); });
+window.addEventListener('storage', e => { if (e.key === LS_KEY && !UI.demo) { adoptDB(loadLocal()); render(); } });
+window.addEventListener('focus', pullFromFile);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) pullFromFile(); });
+
+async function init() {
+  adoptDB(loadLocal());
+  if (location.hash === '#exemplo' && !DB.pools.length) enterDemo(); else render();
+  if (!FILE.supported) return;
+  try {
+    const h = await idbGet('handle');
+    if (!h) return;
+    FILE.handle = h; FILE.name = h.name;
+    if ((await h.queryPermission({ mode: 'readwrite' })) === 'granted') { if (!UI.demo) await syncFromFile(); else FILE.state = 'ok'; }
+    else FILE.state = 'needs-permission';
+  } catch (e) { console.error(e); FILE.state = FILE.handle ? 'error' : 'none'; }
+  if (!UI.demo) render(); else updateStatus();
+}
+init();
+</script>
+<script>
+// Modo offline (PWA): só em http(s); abrindo o ficheiro diretamente não faz nada.
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => { }));
+}
+</script>
+</body>
+</html>
