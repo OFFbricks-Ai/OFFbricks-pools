@@ -214,8 +214,13 @@ table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
 th,td{padding:6px 8px;border-bottom:1px solid var(--border);text-align:right}
 th{color:var(--muted);font-weight:600;font-size:11px}
 th:nth-child(-n+3),td:nth-child(-n+3){text-align:left}
+.tw th:nth-child(4),.tw td:nth-child(4){text-align:left}
+.tw td.hs{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted)}
 td .del{background:none;border:0;color:#ff8a94;cursor:pointer;padding:2px 6px;border-radius:6px}
 td .del:hover{background:rgba(240,67,82,.12)}
+td .ed{background:none;border:0;color:var(--blue);cursor:pointer;padding:2px 6px;border-radius:6px;font-size:14px}
+td .ed:hover{background:rgba(79,124,255,.14)}
+td.act{white-space:nowrap}
 .empty{text-align:center;padding:48px 16px}
 .empty h2{margin:0 0 6px;font-size:18px}
 .empty p{color:var(--muted);margin:0 0 16px}
@@ -227,19 +232,23 @@ details.method b{color:var(--text)}
 
 /* —— Modal —— */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);display:grid;place-items:center;z-index:60;padding:16px}
-.modal{background:#0e121c;border:1px solid var(--border);border-radius:16px;width:min(560px,100%);max-height:calc(100vh - 32px);display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.modal{background:#0e121c;border:1px solid var(--border);border-radius:16px;width:min(560px,100%);min-width:0;max-height:calc(100vh - 32px);display:flex;flex-direction:column;box-shadow:var(--shadow)}
 .mh{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border)}
 .mh h3{margin:0;font-size:18px}
 .mh .x{background:none;border:0;color:var(--muted);font-size:22px;cursor:pointer;line-height:1}
 .mb{padding:16px 20px;overflow:auto}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.f{grid-column:span 2}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.f{grid-column:span 2;min-width:0}
 .f.half{grid-column:span 1}
 @media (max-width:520px){.f.half{grid-column:span 2}}
 .f label{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:12.5px;margin-bottom:5px}
 .f label .prev{font-weight:500;color:var(--dim)}
 .f label .prev.bad{color:#ff8a94}
-.f input,.f select,.f textarea{width:100%;background:#121722;border:1px solid var(--border);border-radius:10px;color:var(--text);padding:10px 11px;font:inherit;transition:border-color .12s}
+.f input,.f select,.f textarea{width:100%;max-width:100%;min-width:0;box-sizing:border-box;background:#121722;border:1px solid var(--border);border-radius:10px;color:var(--text);padding:10px 11px;font:inherit;transition:border-color .12s}
+/* Safari/iOS dão a estes campos uma largura própria que transborda a coluna: forçar o tamanho da caixa */
+.f input[type=date],.f input[type=time]{-webkit-appearance:none;appearance:none;min-height:42px;line-height:1.2;text-align:left}
+.f input[type=date]::-webkit-date-and-time-value,.f input[type=time]::-webkit-date-and-time-value{text-align:left;margin:0}
+.f input[type=date]::-webkit-calendar-picker-indicator,.f input[type=time]::-webkit-calendar-picker-indicator{margin-left:0;padding-left:4px}
 .f textarea{min-height:60px;resize:vertical}
 .f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,124,255,.2)}
 .f .hint{color:var(--dim);font-size:11.5px;margin-top:4px}
@@ -300,6 +309,23 @@ details.method b{color:var(--text)}
 .ex-row .ex-bar{flex:1.2;height:6px;background:rgba(255,255,255,.04);border-radius:999px;overflow:hidden}
 .ex-row .ex-fill{height:100%;background:linear-gradient(90deg,#38bdf8,#4f7cff);border-radius:999px}
 .ex-row .ex-val{font-size:11.5px;font-weight:650;color:var(--muted);min-width:64px;text-align:right;font-variant-numeric:tabular-nums}
+/* —— Número da versão ao lado do nome —— */
+.ver{display:inline-block;margin-left:8px;padding:1px 8px;border:1px solid var(--border2);border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--muted);vertical-align:middle;text-transform:none}
+/* —— Bolinha do range: verde alface = dentro, vermelho Ferrari = fora, cinzento = por verificar —— */
+.rdot{display:inline-block;width:15px;height:15px;border-radius:50%;margin-right:9px;vertical-align:-2px;flex:none;box-shadow:0 0 0 2px rgba(255,255,255,.22)}
+.rdot.in{background:#8ee03a;color:#8ee03a;box-shadow:0 0 0 2px rgba(255,255,255,.28),0 0 10px 1px #8ee03a}
+.rdot.out{background:#ff2800;color:#ff2800;box-shadow:0 0 0 2px rgba(255,255,255,.28),0 0 10px 1px #ff2800}
+.rdot.na{background:var(--border2)}
+/* —— Interruptor de preços (online só durante a atualização) —— */
+.sw{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--card2);color:var(--muted);padding:5px 12px 5px 6px;border-radius:999px;font-size:12px;font-weight:650;cursor:pointer;transition:all .15s}
+.sw:hover{border-color:var(--border2)}
+.sw .knob{width:30px;height:18px;border-radius:999px;background:var(--border2);position:relative;transition:background .15s;flex:none}
+.sw .knob::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .15s}
+.sw.on{color:var(--green2);border-color:rgba(34,197,94,.4)}
+.sw.on .knob{background:var(--green)}
+.sw.on .knob::after{transform:translateX(12px)}
+.sw:disabled{cursor:progress}
+.btn:disabled{opacity:.45;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -314,6 +340,8 @@ details.method b{color:var(--text)}
 const LS_KEY = 'poolMonitor.v1';
 const DAY = 86400000;
 const MIN_APR_DAYS = 1;   // janela mínima (dias) para exibir APR / ROI anualizado
+const APP_VERSION = 'V4.6';   // mostrada no cabeçalho, ao lado do nome da app
+const NET = { online: false, busy: false, msg: '', ok: null, fail: {}, at: 0, csp: '' };
 const UI = { filter: 'todas', rede: null, exchange: null, sort: 'recent', open: {}, tab: {}, ptab: 'patrimonio', demo: false };
 const FILE = { supported: typeof window.showSaveFilePicker === 'function', handle: null, state: 'none', name: '', last: null };
 let DB = emptyDB();
@@ -471,6 +499,12 @@ function stampChanges() {
   DB.tomb = TOMB;
   rebase();
 }
+// Preços dos tokens: fica a entrada mais recente de cada símbolo.
+function mergeTokens(x, y) {
+  x = x || {}; y = y || {}; const o = {};
+  for (const k of new Set([...Object.keys(x), ...Object.keys(y)])) { const a = x[k], b = y[k]; o[k] = !a ? b : !b ? a : ((b.u || 0) > (a.u || 0) ? b : a); }
+  return cl(o);
+}
 // Une dois bancos: pools e lançamentos pelo id; exclusões (TOMB) vencem; dados cadastrais vêm de quem editou por último.
 function mergeDB(a, b) {
   const tomb = Object.assign({}, b.tomb, a.tomb);
@@ -482,11 +516,21 @@ function mergeDB(a, b) {
     const win = !x ? y : !y ? x : ((y.fmod || '') > (x.fmod || '') ? y : x);
     const lose = win === x ? y : x;
     const p = cl(win);
-    if (lose) { const seen = new Set(p.events.map(e => e.id)); for (const e of lose.events) if (!seen.has(e.id)) p.events.push(cl(e)); }
+    if (lose) {
+      const idx = new Map(p.events.map((e, i) => [e.id, i]));
+      for (const e of lose.events) {
+        const i = idx.get(e.id);
+        if (i == null) p.events.push(cl(e));
+        else if ((e.m || '') > (p.events[i].m || '')) p.events[i] = cl(e);   // lançamento editado mais recentemente vence
+      }
+    }
     p.events = p.events.filter(e => !tomb[e.id]);
     pools.push(p);
   }
-  return Object.assign({}, a, { pools, tomb, savedAt: [a.savedAt, b.savedAt].filter(Boolean).sort().pop() || null });
+  const out = Object.assign({}, a, { pools, tomb, savedAt: [a.savedAt, b.savedAt].filter(Boolean).sort().pop() || null });
+  const tk = mergeTokens(a.tokens, b.tokens); if (Object.keys(tk).length) out.tokens = tk;
+  const rc = mergeTokens(a.rcheck, b.rcheck); if (Object.keys(rc).length) out.rcheck = rc;   // mesma regra: fica a verificação mais recente
+  return out;
 }
 /* SYNC-PURE-END */
 
@@ -547,7 +591,7 @@ async function linkNewFile() {
     FILE.handle = h; FILE.name = h.name; FILE.state = 'ok';
     await idbSet('handle', h);
     await writeFile(true); render();
-  } catch (e) { if (e.name !== 'AbortError') alert('Não foi possível associar o ficheiro: ' + e.message); }
+  } catch (e) { if (e.name !== 'AbortError') askNotice('Não foi possível associar o ficheiro: ' + e.message); }
 }
 async function openExistingFile() {
   try {
@@ -555,7 +599,7 @@ async function openExistingFile() {
     const txt = (await (await h.getFile()).text()).trim();
     let fd = null;
     if (txt) { fd = JSON.parse(txt); if (!validDB(fd)) throw new Error('o ficheiro não é um ficheiro de dados do Pool Monitor'); }
-    if (fd && DB.pools.length && !confirm(`Carregar os dados de “${h.name}”?\n\nOs dados que estão agora neste navegador serão substituídos pelos do ficheiro.`)) return;
+    if (fd && DB.pools.length && !(await askConfirm('Carregar dados do ficheiro', `Carregar os dados de “${h.name}”?\n\nOs dados que estão agora neste navegador serão substituídos pelos do ficheiro.`, 'Carregar'))) return;
     if ((await h.requestPermission({ mode: 'readwrite' })) !== 'granted') throw new Error('permissão de gravação negada');
     if (fd) { adoptDB(fd); UI.demo = false; }
     FILE.handle = h; FILE.name = h.name; FILE.state = 'ok';
@@ -563,11 +607,11 @@ async function openExistingFile() {
     storeLocal();
     if (!fd) await writeFile(true); else FILE.last = new Date();
     render();
-  } catch (e) { if (e.name !== 'AbortError') alert('Não foi possível abrir o ficheiro: ' + e.message); }
+  } catch (e) { if (e.name !== 'AbortError') askNotice('Não foi possível abrir o ficheiro: ' + e.message); }
 }
 async function reconnectFile() {
   try { if ((await FILE.handle.requestPermission({ mode: 'readwrite' })) === 'granted') { await syncFromFile(); render(); } }
-  catch (e) { FILE.state = 'error'; render(); alert('Não foi possível aceder ao ficheiro: ' + e.message); }
+  catch (e) { FILE.state = 'error'; render(); askNotice('Não foi possível aceder ao ficheiro: ' + e.message); }
 }
 async function unlinkFile() { try { await idbDel('handle'); } catch (e) { } FILE.handle = null; FILE.state = 'none'; FILE.name = ''; FORCE_NEXT = false; render(); }
 
@@ -594,9 +638,9 @@ function importBackup() {
     try {
       const d = JSON.parse(await f.text());
       if (!validDB(d)) throw new Error('o ficheiro não é um backup do Pool Monitor');
-      if (DB.pools.length && !confirm(`Substituir os dados atuais pelos do backup “${f.name}”?`)) return;
+      if (DB.pools.length && !(await askConfirm('Importar backup', `Substituir os dados atuais pelos do backup “${f.name}”?`, 'Substituir'))) return;
       DB = d; FORCE_NEXT = !!(FILE.handle && FILE.state === 'ok'); save();
-    } catch (e) { alert('Não foi possível importar: ' + e.message); }
+    } catch (e) { askNotice('Não foi possível importar: ' + e.message); }
   };
   inp.click();
 }
@@ -616,10 +660,10 @@ function exportEventsCSV() {
   download(`pool-monitor-lancamentos-${today()}.csv`, toCSV(rows), 'text/csv;charset=utf-8');
 }
 function exportPoolsCSV() {
-  const rows = [['Pool', 'Rede', 'Exchange', 'Token 1', 'Token 2', 'Estado', 'Abertura', 'Último lançamento', 'Range mínimo', 'Range máximo', 'Capital investido (USD)', 'Valor atual (USD)', 'Variação do capital (USD)', 'Variação (%)', 'Fees pendentes (USD)', 'Fees recolhidas (USD)', 'Ganho total c/ fees (USD)', 'ROI total (%)', 'APR fees (%)', 'ROI anualizado (%)', 'Capital médio (USD)', 'Dias (até ao último lançamento)', 'Observações']];
+  const rows = [['Pool', 'Rede', 'Exchange', 'Token 1', 'Token 2', 'Estado', 'Abertura', 'Último lançamento', 'Range mínimo', 'Range máximo', 'Capital investido (USD)', 'Valor atual (USD)', 'Variação do capital (USD)', 'Variação (%)', 'Fees pendentes (USD)', 'Fees recolhidas (USD)', 'Ganho total c/ fees (USD)', 'ROI total (%)', 'APR fees (%)', 'ROI anualizado (%)', 'Capital médio (USD)', 'Dias (até ao último lançamento)', 'Observações', 'Endereço da pool']];
   for (const p of DB.pools) {
     const r = compute(p), c = r.cur; if (!c) continue;
-    rows.push([poolName(p), p.rede, p.exchange, p.token1, p.token2, c.closed ? 'Fechada' : 'Ativa', fmtDT(c.start), fmtDT(c.last), p.rangeMin, p.rangeMax, c.investido, c.valor, c.varCap, p100(c.varPct), c.pend, c.col, c.ganho, p100(c.roi), p100(c.apr), p100(c.roiAnual), c.capBase, c.days, p.obs]);
+    rows.push([poolName(p), p.rede, p.exchange, p.token1, p.token2, c.closed ? 'Fechada' : 'Ativa', fmtDT(c.start), fmtDT(c.last), p.rangeMin, p.rangeMax, c.investido, c.valor, c.varCap, p100(c.varPct), c.pend, c.col, c.ganho, p100(c.roi), p100(c.apr), p100(c.roiAnual), c.capBase, c.days, p.obs, p.endereco || '']);
   }
   download(`pool-monitor-resumo-${today()}.csv`, toCSV(rows), 'text/csv;charset=utf-8');
 }
@@ -699,6 +743,88 @@ function portfolioSeries(items) {
   });
 }
 
+/* ---------- edição de lançamentos ---------- */
+/* EDIT-PURE-BEGIN */
+// Problemas de coerência de uma lista de lançamentos, cada um com uma chave estável (para só acusar os que a edição cria).
+function timelineIssues(P, evs) {
+  const out = [], tmp = Object.assign({}, P, { events: evs }), s = sortedEvents(tmp);
+  if (!s.length) return out;
+  if (s[0].type !== 'abertura') out.push({ key: 'order', msg: 'Nenhum lançamento pode ser anterior à abertura da pool.' });
+  const fi = s.findIndex(x => x.type === 'fechamento');
+  if (fi !== -1 && fi !== s.length - 1) out.push({ key: 'close', msg: 'O fecho tem de ser o último lançamento: há lançamentos depois dele.' });
+  const sn = compute(tmp).snaps;
+  for (let i = 1; i < sn.length; i++) {
+    const x = sn[i].ev;
+    if (x.type === 'retirada' && x.valor >= sn[i - 1].valor) out.push({ key: 'ret:' + x.id, msg: `A retirada de ${money(x.valor)} em ${fmtDT(sn[i].t)} não pode ser igual ou maior que o valor da pool nesse momento (${money(sn[i - 1].valor)}). Para retirar tudo, use “Fechar Pool”.` });
+  }
+  return out;
+}
+// Campos que o utilizador alterou (só estes são gravados). `v` são os valores do formulário.
+function editPatch(e, v) {
+  const nv = { t: v.data + 'T' + v.hora };
+  if ('tipo' in v) nv.type = v.tipo;
+  for (const k of ['valor', 'fees', 'rangeMin', 'rangeMax']) if (k in v) nv[k] = v[k];
+  if ('hash' in v) nv.hash = v.hash || null;
+  const patch = {};
+  for (const k in nv) { const a = e[k] == null ? null : e[k], b = nv[k] == null ? null : nv[k]; if (a !== b) patch[k] = nv[k]; }
+  return patch;
+}
+// Valida a edição de um lançamento (valores e coerência com todo o histórico). Devolve a mensagem de erro ou null.
+function validateEdit(P, e, patch, now) {
+  const nx = Object.assign({}, e, patch), t = parseT(nx.t), num = x => typeof x === 'number' && isFinite(x);
+  if (!isFinite(t)) return 'Data ou hora inválida.';
+  if (t > now + 5 * 60000) return 'A data não pode estar no futuro.';
+  if (['abertura', 'aporte', 'retirada', 'coleta'].includes(nx.type) && !(nx.valor > 0)) return 'Informe um valor maior que zero.';
+  if (!num(nx.valor) || nx.valor < 0 || (nx.fees != null && !(nx.fees >= 0))) return 'Os valores não podem ser negativos.';
+  if (['atualizacao', 'rebalance', 'fechamento'].includes(nx.type) && !num(nx.fees)) return 'Preencha as fees.';
+  if (nx.type === 'rebalance' && !(num(nx.rangeMin) && num(nx.rangeMax) && nx.rangeMin < nx.rangeMax)) return 'O range mínimo tem de ser menor que o máximo.';
+  if (nx.hash && String(nx.hash).length > 4) return 'A referência do hash deve ter no máximo 4 caracteres.';
+  const evs = P.events.map(x => x === e ? nx : x), before = timelineIssues(P, P.events).map(i => i.key);
+  const bad = timelineIssues(P, evs).find(i => !before.includes(i.key));
+  if (!bad) return null;
+  if (bad.key === 'order') {
+    const ab = P.events.find(x => x.type === 'abertura');
+    return e.type === 'abertura' ? 'Existem lançamentos anteriores a essa data de abertura. Ajuste a data ou elimine esses lançamentos.' : `A data não pode ser anterior à abertura da pool (${fmtDT(parseT(ab.t))}).`;
+  }
+  return bad.msg;
+}
+// Grava os campos alterados no lançamento e, se for um rebalance, atualiza o range atual da pool.
+function applyEdit(P, e, patch) {
+  Object.assign(e, patch, { m: new Date().toISOString() });
+  if (e.type === 'rebalance') {
+    const rebs = sortedEvents(P).filter(x => x.type === 'rebalance'), last = rebs[rebs.length - 1];
+    if (last) { P.rangeMin = last.rangeMin; P.rangeMax = last.rangeMax; }
+  }
+}
+/* EDIT-PURE-END */
+function editEventForm(P, e) {
+  const [d, t] = splitDT(e.t), hf = Object.assign(hashField(), { value: e.hash || '' });
+  const dt = [{ name: 'data', label: 'Data', type: 'date', half: 1, value: d, req: 1 }, { name: 'hora', label: 'Hora', type: 'time', half: 1, value: t, req: 1 }];
+  const val = label => ({ name: 'valor', label, type: 'num', value: e.valor, req: 1 });
+  const fees = label => ({ name: 'fees', label, type: 'num', value: e.fees, req: 1 });
+  const rng = (name, label) => ({ name, label, type: 'num', money: false, half: 1, value: e[name], req: 1 });
+  let fields;
+  switch (e.type) {
+    case 'abertura': fields = [val('Liquidez Inicial (USD)'), ...dt]; break;
+    case 'atualizacao': fields = [hf, val('Valor Atual (USD)'), fees('Fees Acumuladas (USD)'), ...dt]; break;
+    case 'coleta': fields = [hf, val('Valor recolhido (USD)'), ...dt]; break;
+    case 'aporte': case 'retirada': fields = [hf, { name: 'tipo', label: 'Movimento', type: 'select', value: e.type, options: [['aporte', 'Reforço (adicionar liquidez)'], ['retirada', 'Retirada parcial de liquidez']] }, val('Valor (USD)'), ...dt]; break;
+    case 'rebalance': fields = [hf, val('Valor da posição após o rebalance (USD)'), fees('Fees recolhidas no rebalance (USD)'), rng('rangeMin', 'Novo range mínimo'), rng('rangeMax', 'Novo range máximo'), ...dt]; break;
+    case 'fechamento': fields = [hf, val('Valor final recebido (USD)'), fees('Fees recebidas no fecho (USD)'), ...dt]; break;
+    default: return;
+  }
+  openForm({
+    title: `Editar lançamento - ${TYPE_LABEL[e.type] || e.type}`, submit: 'Guardar alterações', fields,
+    note: 'Os valores são validados contra todo o histórico da pool. Só os campos que alterar são gravados; ROI, APR e gráficos recalculam-se sozinhos.',
+    onSubmit: v => {
+      const patch = editPatch(e, v);
+      if (!Object.keys(patch).length) return;   // nada mudou
+      const er = validateEdit(P, e, patch, Date.now()); if (er) return er;
+      applyEdit(P, e, patch); UI.open[P.id + ':ev'] = true; save();
+    }
+  });
+}
+
 /* ---------- gráficos (SVG, sem bibliotecas) ---------- */
 function niceNum(x) { const e = Math.floor(Math.log10(x)), f = x / Math.pow(10, e); return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * Math.pow(10, e); }
 function ticks(min, max, n = 5) {
@@ -762,17 +888,17 @@ function drawChart(el, cfg) {
 }
 function poolChartCfg(r, tab) {
   const sn = r.snaps, ts = sn.map(s => s.t), label = i => TYPE_LABEL[sn[i].ev.type];
-  if (tab === 'apr') return { ts, label, series: [{ name: 'APR (fees)', color: '#a78bfa', vals: sn.map(s => p100(s.apr)), area: 1 }], fy: fAxisPct, ft: fTipPct, zero: true, empty: 'O APR aparece a partir da primeira atualização (é preciso pelo menos 1 dia de histórico).' };
-  if (tab === 'roi') return { ts, label, series: [{ name: 'ROI total (c/ fees)', color: '#38bdf8', vals: sn.map(s => p100(s.roi)), area: 1 }, { name: 'Variação do capital', color: '#8b91a3', vals: sn.map(s => p100(s.varPct)), dash: 1 }], fy: fAxisPct, ft: fTipPct, zero: true };
-  if (tab === 'fees') return { ts, label, series: [{ name: 'Fees totais', color: '#facc15', vals: sn.map(s => s.feesTot), area: 1 }, { name: 'Fees recolhidas', color: '#f59e0b', vals: sn.map(s => s.col), dash: 1 }], fy: fAxisMoney, ft: money, zero: true };
+  if (tab === 'apr') return { ts, label, series: [{ name: 'APR (fees)', color: '#B79CFF', vals: sn.map(s => p100(s.apr)), area: 1 }], fy: fAxisPct, ft: fTipPct, zero: true, empty: 'O APR aparece a partir da primeira atualização (é preciso pelo menos 1 dia de histórico).' };
+  if (tab === 'roi') return { ts, label, series: [{ name: 'ROI total (c/ fees)', color: '#E69F00', vals: sn.map(s => p100(s.roi)), area: 1 }, { name: 'Variação do capital', color: '#56B4E9', vals: sn.map(s => p100(s.varPct)), dash: 1 }], fy: fAxisPct, ft: fTipPct, zero: true };
+  if (tab === 'fees') return { ts, label, series: [{ name: 'Fees totais', color: '#F0E442', vals: sn.map(s => s.feesTot), area: 1 }, { name: 'Fees recolhidas', color: '#56B4E9', vals: sn.map(s => s.col), dash: 1 }], fy: fAxisMoney, ft: money, zero: true };
   const up = r.cur && r.cur.valor >= r.cur.investido;
   return { ts, label, series: [{ name: 'Valor atual', color: up ? '#22c55e' : '#f04452', vals: sn.map(s => s.valor), area: 1 }, { name: 'Capital investido', color: '#8b91a3', vals: sn.map(s => s.investido), dash: 1 }], fy: fAxisMoney, ft: money };
 }
 function portCfg(ps, tab) {
   const ts = ps.map(s => s.t);
-  if (tab === 'roi') return { ts, series: [{ name: 'ROI total (c/ fees)', color: '#38bdf8', vals: ps.map(s => p100(s.roi)), area: 1 }, { name: 'Variação do capital', color: '#8b91a3', vals: ps.map(s => p100(s.varPct)), dash: 1 }], fy: fAxisPct, ft: fTipPct, zero: true };
-  if (tab === 'apr') return { ts, series: [{ name: 'APR médio (fees)', color: '#a78bfa', vals: ps.map(s => p100(s.apr)), area: 1 }, { name: 'ROI anualizado', color: '#38bdf8', vals: ps.map(s => p100(s.roiAnual)), dash: 1 }], fy: fAxisPct, ft: fTipPct, zero: true };
-  if (tab === 'fees') return { ts, series: [{ name: 'Fees totais', color: '#facc15', vals: ps.map(s => s.feesTot), area: 1 }, { name: 'Fees recolhidas', color: '#f59e0b', vals: ps.map(s => s.col), dash: 1 }], fy: fAxisMoney, ft: money, zero: true };
+  if (tab === 'roi') return { ts, series: [{ name: 'ROI total (c/ fees)', color: '#E69F00', vals: ps.map(s => p100(s.roi)), area: 1 }, { name: 'Variação do capital', color: '#56B4E9', vals: ps.map(s => p100(s.varPct)), dash: 1 }], fy: fAxisPct, ft: fTipPct, zero: true };
+  if (tab === 'apr') return { ts, series: [{ name: 'APR médio (fees)', color: '#B79CFF', vals: ps.map(s => p100(s.apr)), area: 1 }, { name: 'ROI anualizado', color: '#E69F00', vals: ps.map(s => p100(s.roiAnual)), dash: 1 }], fy: fAxisPct, ft: fTipPct, zero: true };
+  if (tab === 'fees') return { ts, series: [{ name: 'Fees totais', color: '#F0E442', vals: ps.map(s => s.feesTot), area: 1 }, { name: 'Fees recolhidas', color: '#56B4E9', vals: ps.map(s => s.col), dash: 1 }], fy: fAxisMoney, ft: money, zero: true };
   return { ts, series: [{ name: 'Valor + fees', color: '#22c55e', vals: ps.map(s => s.valor + s.feesTot), area: 1 }, { name: 'Capital investido', color: '#8b91a3', vals: ps.map(s => s.investido), dash: 1 }], fy: fAxisMoney, ft: money };
 }
 function drawCharts() {
@@ -790,7 +916,8 @@ function statusHTML() {
   if (FILE.state === 'error') return `<span class="status" id="status"><i class="dot err"></i>Erro ao gravar ${esc(FILE.name)}</span>`;
   return `<span class="status" id="status" title="Os dados ficam guardados neste navegador"><i class="dot"></i>Guardado no navegador</span>`;
 }
-function bannerHTML() {
+function bannerHTML() { return updateBannerHTML() + bannerCore(); }
+function bannerCore() {
   if (UI.demo) return `<div class="banner warn"><span>Está a ver <b>dados de exemplo</b>. Nada é guardado até criar ou alterar alguma coisa.</span><span class="bb"><button class="btn sm" data-act="demo-exit">Sair do exemplo</button></span></div>`;
   if (FILE.handle && FILE.state === 'needs-permission') return `<div class="banner warn"><span>O ficheiro de dados <b>${esc(FILE.name)}</b> está associado, mas o navegador pede a sua autorização para voltar a aceder-lhe.</span><span class="bb"><button class="btn sm green" data-act="reconnect">Voltar a ligar o ficheiro</button><button class="btn sm" data-act="unlink">Desassociar</button></span></div>`;
   if (FILE.handle && FILE.state === 'error') return `<div class="banner warn"><span>Não foi possível gravar em <b>${esc(FILE.name)}</b>. Os dados continuam guardados no navegador.</span><span class="bb"><button class="btn sm green" data-act="reconnect">Tentar novamente</button><button class="btn sm" data-act="unlink">Desassociar</button></span></div>`;
@@ -800,10 +927,317 @@ function bannerHTML() {
   return '';
 }
 function updateStatus() { const s = $('#status'); if (s) s.outerHTML = statusHTML(); const b = $('#banner'); if (b) b.innerHTML = bannerHTML(); }
+/* ---------- preços dos tokens: o único ponto em que a app vai à internet (só quando o interruptor é ligado) ---------- */
+/* TOK-PURE-BEGIN */
+const CG = 'https://api.coingecko.com/api/v3/coins/markets';
+const CG_SEARCH = 'https://api.coingecko.com/api/v3/search';
+// Tokens das pools abertas com valor (mesmo residual). rOf(p) devolve o resultado de compute(p).
+function tokensInUse(pools, rOf) {
+  const m = new Map();
+  for (const p of pools) {
+    const r = rOf(p);
+    if (!r.cur || r.st.closed || !(r.cur.valor > 0)) continue;
+    for (const raw of [p.token1, p.token2]) {
+      const sym = String(raw || '').trim(); if (!sym) continue;
+      const key = sym.toUpperCase();
+      if (!m.has(key)) m.set(key, { key, sym, pools: new Set() });
+      m.get(key).pools.add(p.id);
+    }
+  }
+  return [...m.values()].sort((a, b) => b.pools.size - a.pools.size || a.sym.localeCompare(b.sym));
+}
+// O ID da CoinGecko de cada token: o fixado à mão (✎), senão o descoberto numa atualização anterior (fica guardado).
+const tokenId = (t, T) => (T[t.key] && (T[t.key].over || T[t.key].id)) || null;
+const cgKeyParam = apiKey => (apiKey ? '&x_cg_demo_api_key=' + encodeURIComponent(apiKey) : '');
+// Um único pedido de preços, por IDs (a API pública não aceita pesquisa por símbolo).
+function tokenRequests(toks, T, apiKey) {
+  const ids = [...new Set(toks.map(t => tokenId(t, T)).filter(Boolean))];
+  return ids.length ? [{ field: 'id', group: toks.filter(t => tokenId(t, T)), url: `${CG}?vs_currency=usd&ids=${ids.map(encodeURIComponent).join(',')}&per_page=250${cgKeyParam(apiKey)}` }] : [];
+}
+// Escolhe, nos resultados da pesquisa, a moeda cujo símbolo coincide e tem melhor posição de mercado.
+function pickCoin(coins, sym) {
+  const want = symNorm(sym), hit = (coins || []).filter(c => symNorm(c.symbol) === want);
+  const list = hit.length ? hit : [];
+  return list.sort((a, b) => (a.market_cap_rank || 1e9) - (b.market_cap_rank || 1e9))[0] || null;
+}
+// Aplica a resposta aos tokens do grupo. Devolve quantos preços foram atualizados.
+function applyPrices(rows, group, field, T, fail, now) {
+  const idx = new Map();
+  for (const r of rows) {
+    const k = String(r[field] || '').toLowerCase(), cur = idx.get(k);
+    if (!cur || (r.market_cap_rank || 1e9) < (cur.market_cap_rank || 1e9)) idx.set(k, r);
+  }
+  let n = 0;
+  for (const t of group) {
+    const r = idx.get(field === 'id' ? String(tokenId(t, T)).toLowerCase() : t.sym.toLowerCase());
+    if (r && typeof r.current_price === 'number' && isFinite(r.current_price)) {
+      const o = T[t.key] || {};
+      T[t.key] = Object.assign({}, o, { sym: t.sym, usd: r.current_price, prev: o.usd != null ? o.usd : null, t: now, id: r.id, name: r.name, u: now });
+      delete fail[t.key]; n++;
+    } else fail[t.key] = field === 'id' ? 'ID não encontrado' : 'símbolo não encontrado';
+  }
+  return n;
+}
+// Redes da DexScreener (chainId) a partir do nome da rede escrito na pool. Se não reconhecer, procura o endereço em todas as redes.
+const CHAIN_IDS = { ETHEREUM: 'ethereum', ETH: 'ethereum', MAINNET: 'ethereum', ARBITRUM: 'arbitrum', 'ARBITRUM ONE': 'arbitrum', ARB: 'arbitrum', BASE: 'base', OPTIMISM: 'optimism', OP: 'optimism', POLYGON: 'polygon', MATIC: 'polygon', POL: 'polygon', BSC: 'bsc', BNB: 'bsc', 'BNB CHAIN': 'bsc', 'BNB SMART CHAIN': 'bsc', BINANCE: 'bsc', AVALANCHE: 'avalanche', AVAX: 'avalanche', SOLANA: 'solana', SOL: 'solana', SUI: 'sui', LINEA: 'linea', SCROLL: 'scroll', ZKSYNC: 'zksync', 'ZKSYNC ERA': 'zksync', MANTLE: 'mantle', BLAST: 'blast', SONIC: 'sonic', UNICHAIN: 'unichain', BERACHAIN: 'berachain', HYPEREVM: 'hyperevm', HYPERLIQUID: 'hyperevm' };
+const chainId = rede => CHAIN_IDS[String(rede || '').trim().toUpperCase()] || null;
+// Endereço de contrato de uma pool: EVM (0x + 40 hex), objeto Sui (0x + 64 hex) ou Solana (base58, 32 a 44 caracteres).
+const isPoolAddr = s => /^0x[0-9a-fA-F]{40}$/.test(s || '') || /^0x[0-9a-fA-F]{64}$/.test(s || '') || /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(s || '');
+const sameAddr = (a, b) => /^0x/i.test(a || '') ? String(a).toLowerCase() === String(b || '').toLowerCase() : a === b;
+const pickPair = (rows, addr) => (rows || []).find(r => r && sameAddr(r.pairAddress, addr)) || null;
+const dexPairsUrl = (chain, addrs) => `https://api.dexscreener.com/latest/dex/pairs/${chain}/${addrs.map(encodeURIComponent).join(',')}`;
+const dexSearchUrl = addr => `https://api.dexscreener.com/latest/dex/search?q=${encodeURIComponent(addr)}`;
+
+// Símbolos "embrulhados" contam como o token nativo (WETH = ETH, WSOL = SOL, …).
+const NATIVE_W = { WETH: 'ETH', WSOL: 'SOL', WBNB: 'BNB', WAVAX: 'AVAX', WMATIC: 'MATIC', WPOL: 'POL', WS: 'S' };
+const symNorm = s => { const u = String(s || '').trim().toUpperCase(); return NATIVE_W[u] || u; };
+// Preço do Token 1 em Token 2 segundo a própria pool (priceNative = preço do token base em token cotado).
+function pairPrice(p, pair) {
+  const pn = Number(pair.priceNative); if (!(pn > 0)) return null;
+  const b = symNorm(pair.baseToken && pair.baseToken.symbol), q = symNorm(pair.quoteToken && pair.quoteToken.symbol), t1 = symNorm(p.token1), t2 = symNorm(p.token2);
+  if (b === t1 && q === t2) return { px: pn };
+  if (b === t2 && q === t1) return { px: 1 / pn };
+  return { px: pn, alt: 1 / pn };   // símbolos não coincidem: tenta nos dois sentidos
+}
+// Decide se o preço está dentro do range. Com `inv` (sentido inverso) também aceita o range escrito ao contrário.
+function judge(lo, hi, fwd, inv) {
+  const fits = x => (lo == null || x >= lo) && (hi == null || x <= hi);
+  if (fits(fwd)) return { in: true, px: fwd };
+  if (inv != null && fits(inv)) return { in: true, px: inv, inv: true };
+  if (inv == null) return { in: false, px: fwd };
+  const ref = lo != null && hi != null ? Math.sqrt(lo * hi) : (lo != null ? lo : hi);
+  const useInv = ref > 0 && Math.abs(Math.log(inv / ref)) < Math.abs(Math.log(fwd / ref));
+  return useInv ? { in: false, px: inv, inv: true } : { in: false, px: fwd };
+}
+// Verifica o range de uma pool. Com `pair` (DexScreener) usa o preço da própria pool; senão, o preço de mercado do par
+// (CoinGecko), só com preços obtidos nesta atualização (t >= since).
+function rangeStatus(p, T, since, now, pair, note) {
+  const num = x => typeof x === 'number' && isFinite(x);
+  const lo = num(p.rangeMin) ? p.rangeMin : null, hi = num(p.rangeMax) ? p.rangeMax : null;
+  if (lo == null && hi == null) return { in: null, why: 'sem range definido', u: now };
+  if (pair) {
+    const pp = pairPrice(p, pair);
+    if (pp) return Object.assign({ u: now, src: 'pool', dex: pair.dexId || '' }, judge(lo, hi, pp.px, pp.alt != null ? pp.alt : null));
+  }
+  const a = T[String(p.token1 || '').trim().toUpperCase()], b = T[String(p.token2 || '').trim().toUpperCase()];
+  const fresh = x => x && num(x.usd) && x.usd > 0 && num(x.t) && x.t >= since;
+  if (!fresh(a) || !fresh(b)) return { in: null, why: 'sem preço atualizado dos tokens' + (note ? '; ' + note : ''), u: now };
+  return Object.assign({ u: now, src: 'mercado' }, note ? { note } : {}, judge(lo, hi, a.usd / b.usd, b.usd / a.usd));
+}
+// pairs[poolId]: par encontrado (objeto), false (procurado e não encontrado) ou ausente (não foi possível consultar).
+function checkRanges(pools, rOf, T, since, now, pairs) {
+  const out = {};
+  for (const p of pools) {
+    const r = rOf(p); if (!r.cur || r.st.closed) continue;
+    const hasAddr = isPoolAddr(p.endereco), pr = pairs && hasAddr ? pairs[p.id] : undefined;
+    const note = hasAddr && !pr ? (pr === false ? 'endereço da pool não encontrado, usado o preço de mercado' : 'preço da pool indisponível, usado o preço de mercado') : '';
+    out[p.id] = rangeStatus(p, T, since, now, pr || null, note);
+  }
+  return out;
+}
+// Fonte alternativa (Binance, dados públicos de mercado): usa o par TOKEN/USDT (ou USDC, FDUSD) para os tokens que a CoinGecko não devolveu.
+const BINANCE = 'https://data-api.binance.vision/api/v3/ticker/price';
+function applyBinance(rows, group, T, fail, now) {
+  const px = new Map((rows || []).map(r => [r.symbol, Number(r.price)]));
+  let n = 0;
+  for (const t of group) {
+    const base = symNorm(t.sym).replace(/[^A-Z0-9]/g, '');
+    const key = [base + 'USDT', base + 'USDC', base + 'FDUSD'].find(k => px.get(k) > 0);
+    if (!key) continue;
+    const o = T[t.key] || {};
+    T[t.key] = Object.assign({}, o, { sym: t.sym, usd: px.get(key), prev: o.usd != null ? o.usd : null, t: now, id: 'binance:' + key, name: key + ' (Binance)', u: now });
+    delete fail[t.key]; n++;
+  }
+  return n;
+}
+/* TOK-PURE-END */
+
+/* ---------- atualização da própria app (só durante a janela online do interruptor) ---------- */
+const UPD = { latest: '', swChanged: false };
+const swOK = () => 'serviceWorker' in navigator && /^https?:$/.test(location.protocol);
+const verNum = v => (String(v).match(/\d+/g) || []).map(Number);
+function isNewer(a, b) {
+  const x = verNum(a), y = verNum(b);
+  for (let i = 0; i < Math.max(x.length, y.length); i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d > 0; }
+  return false;
+}
+// Pergunta ao próprio site qual é a versão publicada (version.json) e pede ao navegador que procure um novo service worker.
+async function checkAppUpdate() {
+  try {
+    const res = await netFetch('version.json?t=' + Date.now());
+    if (res.ok) { const j = await res.json(); if (j && typeof j.version === 'string') UPD.latest = j.version; }
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (reg) await reg.update();
+  } catch (e) { /* sem version.json ou sem ligação: ignora */ }
+}
+// Quando a versão nova fica instalada no dispositivo, o navegador avisa (controllerchange) e mostramos o botão “Atualizar agora”.
+function initUpdateWatch() {
+  if (!swOK()) return;
+  const had = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (had) { UPD.swChanged = true; render(); } });
+}
+function updateBannerHTML() {
+  const newer = UPD.latest ? isNewer(UPD.latest, APP_VERSION) : UPD.swChanged;
+  if (UI.demo || !newer) return '';
+  const nv = UPD.latest ? ` <b>${esc(UPD.latest)}</b>` : '';
+  return UPD.swChanged
+    ? `<div class="banner"><span>Nova versão${nv} pronta. Está a usar a ${esc(APP_VERSION)}.</span><span class="bb"><button class="btn sm green" data-act="reloadapp">Atualizar agora</button></span></div>`
+    : `<div class="banner"><span>Nova versão${nv} disponível. A descarregar para o dispositivo…</span></div>`;
+}
+
+const poolR = p => (CACHE[p.id] && CACHE[p.id].r) || compute(p);
+const activeTokens = () => tokensInUse(DB.pools, poolR);
+const cgKey = () => { try { return localStorage.getItem('pool-monitor-cgkey') || ''; } catch (e) { return ''; } };
+const pmErr = m => Object.assign(new Error(m), { pm: true });
+async function netFetch(url) {
+  if (!NET.online) throw pmErr('A app está offline.');   // sem interruptor ligado, nada sai daqui
+  const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 15000);
+  try { return await fetch(url, { signal: ctl.signal, cache: 'no-store' }); } finally { clearTimeout(to); }
+}
+async function cgGet(url) {
+  const res = await netFetch(url);
+  if (res.status === 429) throw pmErr('A CoinGecko limitou os pedidos. Tente daqui a um minuto (ou defina uma chave API gratuita).');
+  if (res.status === 401 || res.status === 403) throw pmErr(`A CoinGecko recusou o pedido (${res.status}). Pode ser preciso definir uma chave API gratuita.`);
+  if (!res.ok) throw pmErr(`Erro da CoinGecko (${res.status}).`);
+  const j = await res.json();
+  if (!Array.isArray(j)) throw pmErr('Resposta inesperada da CoinGecko.');
+  return j;
+}
+async function dexGet(url) {
+  const res = await netFetch(url);
+  if (res.status === 429) throw pmErr('A DexScreener limitou os pedidos. Tente daqui a um minuto.');
+  if (!res.ok) throw pmErr(`Erro da DexScreener (${res.status}).`);
+  const j = await res.json();
+  return Array.isArray(j.pairs) ? j.pairs : (j.pair ? [j.pair] : []);
+}
+// Procura cada pool pelo endereço do contrato. Devolve { idDaPool: par | false }.
+async function fetchPairs(pools) {
+  const out = {}, byChain = new Map(), search = [];
+  for (const p of pools) { const c = chainId(p.rede); if (c) { if (!byChain.has(c)) byChain.set(c, []); byChain.get(c).push(p); } else search.push(p); }
+  for (const [c, group] of byChain) {
+    for (let i = 0; i < group.length; i += 30) {
+      const part = group.slice(i, i + 30), rows = await dexGet(dexPairsUrl(c, part.map(p => p.endereco)));
+      for (const p of part) { const pr = pickPair(rows, p.endereco); if (pr) out[p.id] = pr; else search.push(p); }   // se a rede estiver errada, tenta em todas
+    }
+  }
+  for (const p of search) out[p.id] = pickPair(await dexGet(dexSearchUrl(p.endereco)), p.endereco) || false;
+  return out;
+}
+const poolsToCheck = () => DB.pools.filter(p => { const r = poolR(p); return r.cur && !r.st.closed && isPoolAddr(p.endereco) && (ok(p.rangeMin) || ok(p.rangeMax)); });
+function netMsg(e, who) {
+  if (e.pm) return e.message;
+  if (e.name === 'AbortError') return `A ${who} demorou demasiado a responder.`;
+  if (NET.csp) return `A página onde a app está aberta bloqueia os pedidos à internet (${NET.csp}). Abra o ficheiro diretamente no navegador ou use a app instalada a partir do seu endereço.`;
+  let emb = false; try { emb = window.top !== window; } catch (x) { emb = true; }
+  return `Não foi possível contactar a ${who} (sem ligação, limite de pedidos atingido ou pedido bloqueado pelo navegador).` + (emb ? ' A app parece estar aberta dentro de outra página (pré-visualização): abra-a no navegador.' : '');
+}
+// Descobre o ID da CoinGecko dos tokens que ainda não o têm (uma pesquisa por token, só da primeira vez).
+async function resolveIds(toks, T, apiKey) {
+  const retry = Date.now() - DAY;   // um símbolo não encontrado só volta a ser procurado 24 h depois
+  const todo = toks.filter(t => !tokenId(t, T) && !((T[t.key] || {}).nf > retry));
+  for (const t of todo.slice(0, 12)) {
+    const res = await netFetch(`${CG_SEARCH}?query=${encodeURIComponent(t.sym)}${cgKeyParam(apiKey)}`);
+    if (res.status === 429) throw pmErr('A CoinGecko limitou os pedidos. Tente daqui a um minuto (ou defina uma chave API gratuita).');
+    if (!res.ok) throw pmErr(`Erro da CoinGecko (${res.status}).`);
+    const j = await res.json(), c = pickCoin(j && j.coins, t.sym);
+    const o = T[t.key] || {};
+    if (c) T[t.key] = Object.assign({}, o, { sym: t.sym, id: c.id, name: c.name, nf: 0, u: Date.now() });
+    else T[t.key] = Object.assign({}, o, { sym: t.sym, nf: Date.now(), u: Date.now() });
+  }
+}
+async function binanceRows() {
+  const res = await netFetch(BINANCE);
+  if (!res.ok) throw pmErr(`Erro da Binance (${res.status}).`);
+  const j = await res.json();
+  return Array.isArray(j) ? j : [];
+}
+// Quando o navegador bloqueia um pedido por política de segurança da página (pré-visualizações), regista-o para explicar o erro.
+function initNetWatch() { document.addEventListener('securitypolicyviolation', e => { NET.csp = e.violatedDirective || 'connect-src'; }); }
+// Liga o interruptor, vai buscar os preços (CoinGecko) e os preços das pools com endereço (DexScreener), verifica os ranges e volta a pôr a app offline.
+async function updatePrices() {
+  if (NET.busy) return;
+  const toks = activeTokens(), pools = poolsToCheck(), canApp = swOK();
+  NET.fail = {};
+  if (!toks.length && !pools.length && !canApp) { NET.ok = false; NET.msg = 'Não há pools abertas com valor: não há preços a atualizar.'; render(); return; }
+  if (navigator.onLine === false) { NET.ok = false; NET.msg = 'Sem ligação à internet. A app continua a funcionar offline.'; render(); return; }
+  const t0 = Date.now(); NET.busy = true; NET.online = true; NET.msg = ''; NET.csp = ''; render();
+  const T = DB.tokens || {}, msgs = [];
+  let n = 0, pairs = {};
+  if (!toks.length && !pools.length) msgs.push('Sem pools abertas com valor: não há preços a atualizar.');
+  if (toks.length) {
+    let cgErr = '', nb = 0;
+    try {
+      await resolveIds(toks, T, cgKey());   // descobre o ID da CoinGecko dos tokens novos (fica guardado)
+      for (const rq of tokenRequests(toks, T, cgKey())) n += applyPrices(await cgGet(rq.url), rq.group, rq.field, T, NET.fail, Date.now());
+    } catch (e) { cgErr = netMsg(e, 'CoinGecko'); }
+    const missing = toks.filter(t => !(T[t.key] && T[t.key].t >= t0));
+    if (missing.length) {   // fonte alternativa para o que a CoinGecko não devolveu
+      try { nb = applyBinance(await binanceRows(), missing, T, NET.fail, Date.now()); n += nb; } catch (e) { /* a mensagem da CoinGecko já explica o problema */ }
+    }
+    for (const t of toks) if (!(T[t.key] && T[t.key].t >= t0)) NET.fail[t.key] = NET.fail[t.key] || (tokenId(t, T) ? 'sem preço' : 'símbolo não encontrado (use ✎)');
+    DB.tokens = T;
+    msgs.push(n === toks.length
+      ? `Preços atualizados (${n} ${n === 1 ? 'token' : 'tokens'})${nb ? `, ${nb} na Binance (fonte alternativa)` : ''}.` + (cgErr ? ` A CoinGecko falhou: ${cgErr}` : '')
+      : `${n} de ${toks.length} tokens atualizados${nb ? ` (${nb} na Binance, fonte alternativa)` : ''}.` + (cgErr ? ' ' + cgErr : ' Para os restantes, defina o ID da CoinGecko (✎).'));
+  }
+  if (pools.length) { try { pairs = await fetchPairs(pools); } catch (e) { msgs.push(netMsg(e, 'DexScreener')); } }
+  const nPairs = Object.values(pairs).filter(Boolean).length;
+  if (n || nPairs) {   // verifica o range de todas as pools abertas
+    DB.rcheck = checkRanges(DB.pools, poolR, T, t0, Date.now(), pairs);
+    const cs = Object.values(DB.rcheck).filter(x => x.why !== 'sem range definido'), cIn = cs.filter(x => x.in === true).length, cOut = cs.filter(x => x.in === false).length, cNa = cs.length - cIn - cOut;
+    if (cs.length) msgs.push(`Ranges: ${cIn} dentro, ${cOut} fora${cNa ? `, ${cNa} por verificar` : ''}.`);
+  }
+  if (canApp) {   // aproveita a janela online para ver se há uma versão nova da app
+    await checkAppUpdate();
+    if (UPD.latest) msgs.push(isNewer(UPD.latest, APP_VERSION) ? `Nova versão ${UPD.latest} disponível.` : `A app está atualizada (${APP_VERSION}).`);
+  }
+  NET.ok = !!(n || nPairs || UPD.latest); NET.msg = msgs.join(' ');
+  const wait = 700 - (Date.now() - t0); if (wait > 0) await new Promise(r => setTimeout(r, wait));
+  NET.online = false; NET.busy = false; NET.at = Date.now();
+  if (n || nPairs) save(); else render();
+}
+function rangeInfo(p, s) {
+  const when = ' · verificado em ' + fmtDT(s.u);
+  if (s.in == null) return 'Range não verificado (' + (s.why || '') + ')' + when;
+  const rg = `range ${ok(p.rangeMin) ? '$' + fmtNum(p.rangeMin) : '—'} a ${ok(p.rangeMax) ? '$' + fmtNum(p.rangeMax) : '—'}`;
+  const src = s.src === 'pool' ? 'preço da própria pool' + (s.dex ? ' (' + s.dex + ')' : '') : 'preço de mercado';
+  return (s.in ? 'Dentro do range' : 'Fora do range') + ` · ${src} ${fmtPrice(s.px)}${s.inv ? ' (sentido inverso)' : ''} · ${rg}` + (s.note ? ' · ' + s.note : '') + when;
+}
+function rangeDotHTML(p, closed) {
+  const s = (DB.rcheck || {})[p.id];
+  if (!s || closed) return '';
+  const cls = s.in === true ? 'in' : s.in === false ? 'out' : 'na', t = esc(rangeInfo(p, s));
+  return `<span class="rdot ${cls}" title="${t}" role="img" aria-label="${t}"></span>`;
+}
+function priceSwitchHTML() {
+  const last = Object.values(DB.tokens || {}).reduce((m, x) => Math.max(m, x.t || 0), 0);
+  const title = 'A app trabalha sempre offline. Este interruptor liga-se à internet só o tempo de atualizar os preços dos tokens e volta a desligar-se.' + (last ? ' Última atualização: ' + fmtDT(last) + '.' : '');
+  return `<button class="sw${NET.busy ? ' on' : ''}" data-act="prices" role="switch" aria-checked="${NET.busy}" title="${esc(title)}"${NET.busy ? ' disabled' : ''}><span class="knob"></span><span class="lbl">${NET.busy ? 'Online…' : 'Offline'}</span></button>`;
+}
+function fmtPrice(n) {
+  if (!ok(n)) return '—';
+  const d = n >= 100 ? 2 : n >= 1 ? 4 : n >= 0.01 ? 5 : 8;
+  return '$' + n.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: d });
+}
+function tokensHTML() {
+  const toks = activeTokens(), T = DB.tokens || {};
+  const rows = toks.map(t => {
+    const e = T[t.key] || {}, dp = ok(e.usd) && ok(e.prev) && e.prev !== 0 ? (e.usd - e.prev) / e.prev : null;
+    const nm = NET.fail[t.key] ? `<span class="neg">${esc(NET.fail[t.key])}</span>` : e.name ? esc(e.name) : '—';
+    return `<tr><td><b>${esc(t.sym)}</b></td><td>${nm}${e.over ? ' <span class="state-tag">ID fixo</span>' : ''}</td><td>${fmtPrice(e.usd)}</td><td class="${sgn(dp)}">${dp == null ? '—' : (dp > 0 ? '+' : '') + pct(dp)}</td><td>${e.t ? fmtDT(e.t) : 'nunca'}</td><td>${t.pools.size}</td><td><button class="text-link" data-act="tokid" data-k="${esc(t.key)}" title="Definir o ID deste token na CoinGecko">✎</button></td></tr>`;
+  }).join('');
+  return `<section class="dash-section" id="sec-tokens">
+    <div class="dash-title"><div><h2>Preços dos tokens</h2><p>Tokens das pools abertas com valor, mesmo que residual. Ligue o interruptor “Offline” no topo para atualizar.</p></div><span class="state-tag">${toks.length}</span></div>
+    ${toks.length ? `<div class="dash-table-wrap"><table class="dash-table"><thead><tr><th>Token</th><th>Moeda (fonte)</th><th>Preço (USD)</th><th>Var.</th><th>Atualizado</th><th>Pools</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="note">Sem pools abertas com valor.</p>'}
+    ${NET.msg ? `<p class="note ${NET.ok ? 'pos' : 'neg'}">${esc(NET.msg)}</p>` : ''}
+    <p class="note">Ao atualizar, os símbolos dos tokens são enviados à CoinGecko e, nas pools com endereço de contrato, esse endereço é enviado à DexScreener; nada mais sai da app. Se o símbolo apontar para a moeda errada, use ✎ para fixar o ID. <button class="text-link" data-act="cgkey">Chave API (opcional)…</button></p>
+  </section>`;
+}
+
 function headerHTML() {
   return `<div class="top">
-    <div class="brand"><div class="logo">PM</div><div><h1>Pool Monitor</h1><div class="subt">Liquidez · ROI · APR · offline</div></div></div>
-    <div class="top-r">${statusHTML()}
+    <div class="brand"><div class="logo">PM</div><div><h1>Pool Monitor <span class="ver">${APP_VERSION}</span></h1><div class="subt">Liquidez · ROI · APR · offline</div></div></div>
+    <div class="top-r">${priceSwitchHTML()}${statusHTML()}
       <div class="menu-wrap"><button class="btn" data-act="menu">Dados ▾</button>
         <div class="menu" id="menu" hidden>
           ${FILE.supported ? `<div class="cap">Ficheiro de dados (gravação automática)</div>
@@ -1048,7 +1482,14 @@ function insightsHTML(list) {
   active.forEach(x => { const k = (String(x.p.rede || '').trim() || 'Não informada'); networks.set(k, (networks.get(k)||0) + Math.max(0,x.r.cur.valor)); });
   const topNetwork = [...networks.entries()].sort((a,b)=>b[1]-a[1])[0];
   if (topNetwork && valueActive > 0 && topNetwork[1] / valueActive >= .6 && active.length > 1) alerts.push({ icon: '◎', type: 'warn', html: `<b>Concentração:</b> ${esc(topNetwork[0])} = ${pct(topNetwork[1]/valueActive)} do valor ativo.` });
-  if (active.some(x => ok(x.p.rangeMin) || ok(x.p.rangeMax))) alerts.push({ icon: '↔', type: 'warn', html: `<b>Ranges offline.</b> Confirme no protocolo se ainda está in-range.` });
+  const withRange = active.filter(x => ok(x.p.rangeMin) || ok(x.p.rangeMax));
+  if (withRange.length) {
+    const chk = withRange.map(x => ({ x, s: (DB.rcheck || {})[x.p.id] })).filter(o => o.s && o.s.in != null);
+    const outs = chk.filter(o => o.s.in === false), last = chk.reduce((m, o) => Math.max(m, o.s.u || 0), 0);
+    if (outs.length) alerts.push({ icon: '●', type: 'bad', html: `<b>${outs.length} pool(s) fora do range:</b> ${outs.slice(0, 4).map(o => esc(poolName(o.x.p))).join(', ')} (verificado em ${fmtDT(last)}).` });
+    else if (chk.length) alerts.push({ icon: '●', type: '', html: `<b>Dentro do range:</b> ${chk.length} de ${withRange.length} pool(s) verificadas em ${fmtDT(last)}.` });
+    if (chk.length < withRange.length) alerts.push({ icon: '↔', type: 'warn', html: `<b>Ranges por verificar:</b> ${withRange.length - chk.length} pool(s). Ligue o interruptor “Offline” para atualizar os preços e verificar.` });
+  }
   if (!alerts.length) alerts.push({ icon: 'i', type: '', html: `<b>Sem alertas básicos.</b> O monitor não verifica contratos, depeg ou preços externos.` });
   const feesTotActive = active.reduce((z,x) => z + x.r.cur.feesTot, 0);
 
@@ -1108,7 +1549,7 @@ function poolHTML(x) {
   let html = `<div class="pool ${open ? 'open' : ''} ${c.closed ? 'closed' : ''}" id="pool-${esc(p.id)}">
     <div class="pool-head" data-act="toggle" data-id="${esc(p.id)}">
       <div class="avatar">${esc(initials(p))}</div>
-      <div class="pname"><b>${esc(poolName(p))}</b>${badges}${spark}<div class="ps">${subParts.length ? subParts.join(' · ') : '&nbsp;'}</div></div>
+      <div class="pname">${rangeDotHTML(p, c.closed)}<b>${esc(poolName(p))}</b>${badges}${spark}<div class="ps">${subParts.length ? subParts.join(' · ') : '&nbsp;'}</div></div>
       <div class="metrics">
         <div class="m"><span>Valor</span><b>${money(c.valor)}</b><i>inv. ${money(c.investido)}</i></div>
         <div class="m"><span>Variação</span><b class="${sgn(c.varCap)}">${spct(c.varPct)}</b><i>${smoney(c.varCap)}</i></div>
@@ -1122,6 +1563,8 @@ function poolHTML(x) {
     const diasAtivos = ((c.closed ? st.closeT : now) - c.start) / DAY;
     const aportes = st.cin - st.inicial;
     const rng = ok(p.rangeMin) || ok(p.rangeMax) ? `$${ok(p.rangeMin) ? fmtNum(p.rangeMin) : '—'} - $${ok(p.rangeMax) ? fmtNum(p.rangeMax) : '—'}` : '—';
+    const rs = (DB.rcheck || {})[p.id];
+    const rsub = rs && !c.closed ? esc(rs.in == null ? 'não verificado (' + rs.why + ')' : (rs.in ? 'dentro do range' : 'fora do range') + ' · preço ' + fmtPrice(rs.px) + (rs.src === 'pool' ? ' (da pool)' : ' (mercado)') + (rs.note ? ' · ' + rs.note : '') + ' · ' + fmtDT(rs.u)) : '';
     const tile = (l, v, i, cls = '') => `<div class="tile"><span>${l}</span><b class="${cls}">${v}</b>${i ? `<i>${i}</i>` : ''}</div>`;
     const tab = UI.tab[p.id] || 'liq';
     html += `<div class="pool-body">
@@ -1129,11 +1572,12 @@ function poolHTML(x) {
         ${tile('Valor Inicial', money(st.inicial), [aportes ? '+' + money(aportes) + ' reforços' : '', st.cout ? '−' + money(st.cout) + ' retiradas' : ''].filter(Boolean).join(' · ') || 'sem reforços ou retiradas')}
         ${tile('Dias Ativos', Math.floor(diasAtivos) + ' dias', 'aberta em ' + fmtD(c.start) + (c.closed ? ' · fechada em ' + fmtD(st.closeT) : ''))}
         ${tile('Total Fees Recolhidas', money(c.col), 'pendentes ' + money(c.pend), 'fee')}
-        ${tile('Range de Preço', rng, '')}
+        ${tile('Range de Preço', rangeDotHTML(p, c.closed) + rng, rsub)}
         ${tile('ROI Anualizado', spct(c.roiAnual), 'simples, sem capitalização', sgn(c.roiAnual))}
         ${tile('Último Lançamento', fmtDT(c.last), TYPE_LABEL[c.ev.type] + ' · base: capital médio ' + money(c.capBase))}
       </div>
       ${p.obs ? `<div class="obs">📝 ${esc(p.obs)}</div>` : ''}
+      ${p.endereco ? `<div class="obs">🔗 Contrato da pool: <span title="${esc(p.endereco)}">${esc(p.endereco.length > 14 ? p.endereco.slice(0, 6) + '…' + p.endereco.slice(-4) : p.endereco)}</span></div>` : ''}
       <div class="actions">
         ${c.closed ? `
           <button class="btn sm" data-act="reopen" data-id="${esc(p.id)}">↺ Reabrir</button>` : `
@@ -1148,7 +1592,7 @@ function poolHTML(x) {
       <div class="hist-head"><span class="ht">↗ Histórico</span>${segHTML('tab', tab, [['liq', 'Liquidez'], ['apr', 'APR'], ['roi', 'ROI'], ['fees', 'Fees']], p.id)}</div>
       <div class="chart" data-chart="pool" data-id="${esc(p.id)}"></div>
       <details class="ev"${UI.open[p.id + ':ev'] ? ' open' : ''} data-evid="${esc(p.id)}"><summary>Lançamentos (${r.snaps.length})</summary>
-        <div class="tw"><table><thead><tr><th>Data</th><th>Tipo</th><th>Lançamento</th><th>Valor atual</th><th>Fees pend.</th><th>Fees recol.</th><th>Variação</th><th>ROI</th><th>APR</th><th></th></tr></thead><tbody>
+        <div class="tw"><table><thead><tr><th>Data</th><th>Tipo</th><th>#</th><th>Lançamento</th><th>Valor atual</th><th>Fees pend.</th><th>Fees recol.</th><th>Variação</th><th>ROI</th><th>APR</th><th></th></tr></thead><tbody>
         ${r.snaps.slice().reverse().map(s => {
           const e = s.ev; let det = '';
           if (e.type === 'atualizacao') det = `valor ${money(e.valor)} · fees ${money(e.fees)}`;
@@ -1161,8 +1605,7 @@ function poolHTML(x) {
           else if (e.type === 'retirada') det = '−' + money(e.valor);
           else if (e.type === 'aporte' || e.type === 'coleta') det = '+' + money(e.valor);
           else det = money(e.valor);
-          if (e.hash) det += ' · hash ' + esc(e.hash);
-          return `<tr><td>${fmtDT(s.t)}</td><td>${esc(TYPE_LABEL[e.type] || e.type)}</td><td>${det}</td><td>${money(s.valor)}</td><td class="fee">${money(s.pend)}</td><td>${money(s.col)}</td><td class="${sgn(s.varCap)}">${spct(s.varPct)}</td><td class="${sgn(s.ganho)}">${spct(s.roi)}</td><td class="apr">${pct(s.apr)}</td><td>${e.type === 'abertura' ? '' : `<button class="del" title="Eliminar lançamento" data-act="delev" data-id="${esc(p.id)}" data-ev="${esc(e.id)}">✕</button>`}</td></tr>`;
+          return `<tr><td>${fmtDT(s.t)}</td><td>${esc(TYPE_LABEL[e.type] || e.type)}</td><td class="hs">${e.hash ? esc(e.hash) : ''}</td><td>${det}</td><td>${money(s.valor)}</td><td class="fee">${money(s.pend)}</td><td>${money(s.col)}</td><td class="${sgn(s.varCap)}">${spct(s.varPct)}</td><td class="${sgn(s.ganho)}">${spct(s.roi)}</td><td class="apr">${pct(s.apr)}</td><td class="act"><button class="ed" title="Editar lançamento" data-act="evedit" data-id="${esc(p.id)}" data-ev="${esc(e.id)}">✎</button>${e.type === 'abertura' ? '' : `<button class="del" title="Eliminar lançamento" data-act="delev" data-id="${esc(p.id)}" data-ev="${esc(e.id)}">✕</button>`}</td></tr>`;
         }).join('')}
         </tbody></table></div>
       </details>
@@ -1221,7 +1664,7 @@ function render() {
   list = list.sort(sortFn[UI.sort] || sortFn.recent);
   PSERIES = portfolioSeries(list);
   app.innerHTML = headerHTML() + `<div id="banner">${bannerHTML()}</div>` +
-    (DB.pools.length ? cardsHTML(aggregate(list.map(x => x.r.cur))) + networkSummaryHTML(statusList) + insightsHTML(list) + portfolioHTML() + poolsHTML(list, all.length, nAt, nFe) : emptyHTML()) +
+    (DB.pools.length ? cardsHTML(aggregate(list.map(x => x.r.cur))) + networkSummaryHTML(statusList) + insightsHTML(list) + portfolioHTML() + poolsHTML(list, all.length, nAt, nFe) + tokensHTML() : emptyHTML()) +
     methodHTML() + (DB.pools.length ? practicesHTML() : '');
   drawCharts();
 }
@@ -1235,6 +1678,37 @@ function fieldHTML(f) {
   else inp = `<input name="${f.name}" ${f.type === 'num' ? 'type="text" inputmode="decimal" autocomplete="off"' : `type="${f.type || 'text'}"`} value="${esc(v)}" placeholder="${esc(f.ph || '')}"${f.maxlen ? ` maxlength="${+f.maxlen}" autocomplete="off" spellcheck="false"` : ''}>`;
   return `<div class="f ${f.half ? 'half' : ''}"><label>${esc(f.label)}${f.type === 'num' ? '<span class="prev"></span>' : ''}</label>${inp}${f.hint ? `<div class="hint">${esc(f.hint)}</div>` : ''}</div>`;
 }
+/* ---------- diálogos próprios: os do navegador (confirm, alert, prompt) podem estar bloqueados ---------- */
+function dialog({ title, message, ok = 'OK', cancel = 'Cancelar', danger = false, input = null, confirmWord = null }) {
+  return new Promise(resolve => {
+    const ov = document.createElement('div'); ov.className = 'overlay';
+    const msg = String(message || '').split('\n').map(esc).join('<br>');
+    const need = confirmWord ? String(confirmWord).toLowerCase() : null;   // segurança extra: obriga a escrever uma palavra
+    const field = input || need;
+    ov.innerHTML = `<div class="modal" role="alertdialog" aria-modal="true" aria-label="${esc(title)}" style="width:min(440px,100%)"><div class="mh"><h3>${esc(title)}</h3></div>
+      <div class="mb"><p class="dlg-msg">${msg}</p>${need ? `<p class="dlg-msg" style="margin-top:12px">Para confirmar, escreva <b>“${esc(confirmWord)}”</b> no campo abaixo.</p>` : ''}${field ? `<input class="dlg-in" type="text" value="${esc(input ? (input.value || '') : '')}" placeholder="${esc(input ? (input.ph || '') : confirmWord)}" autocomplete="off" autocapitalize="none" spellcheck="false" style="width:100%;margin-top:12px">` : ''}
+      <div class="mf" style="margin-top:16px">${cancel ? `<button type="button" class="btn" data-r="no">${esc(cancel)}</button>` : ''}<button type="button" class="btn ${danger ? 'red' : 'primary'}" data-r="yes"${need ? ' disabled' : ''}>${esc(ok)}</button></div></div></div>`;
+    document.body.appendChild(ov);
+    const inp = ov.querySelector('.dlg-in'), yesBtn = ov.querySelector('[data-r="yes"]'), nb = ov.querySelector('[data-r="no"]');
+    const okNow = () => !need || inp.value.trim().toLowerCase() === need;
+    const done = v => { ov.remove(); document.removeEventListener('keydown', onKey, true); resolve(v); };
+    const yes = () => { if (okNow()) done(input ? inp.value : true); }, no = () => done(input ? null : false);
+    const onKey = e => {
+      if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); no(); }
+      else if (e.key === 'Enter' && inp && document.activeElement === inp) { e.preventDefault(); e.stopImmediatePropagation(); yes(); }
+    };
+    document.addEventListener('keydown', onKey, true);
+    if (need) inp.addEventListener('input', () => { yesBtn.disabled = !okNow(); });
+    ov.addEventListener('click', e => { if (e.target === ov) no(); });   // clicar fora = cancelar
+    yesBtn.addEventListener('click', yes);
+    if (nb) nb.addEventListener('click', no);
+    (inp || (danger && nb) || yesBtn).focus();   // em ações destrutivas o foco inicial é “Cancelar” (ou o campo de texto)
+  });
+}
+const askConfirm = (title, message, ok = 'Confirmar', danger = true, confirmWord = null) => dialog({ title, message, ok, danger, confirmWord });
+const askNotice = (message, title = 'Aviso') => dialog({ title, message, ok: 'OK', cancel: null });
+const askInput = (title, message, value = '', ph = '') => dialog({ title, message, ok: 'Guardar', input: { value, ph } });
+
 function openForm(cfg) {
   const ov = document.createElement('div'); ov.className = 'overlay';
   ov.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><div class="mh"><h3>${esc(cfg.title)}</h3><button class="x" type="button" data-x aria-label="Fechar">×</button></div>
@@ -1276,7 +1750,7 @@ function openForm(cfg) {
   const first = form.querySelector('input,select,textarea'); if (first) setTimeout(() => first.focus(), 30);
   return ov;
 }
-const hashField = () => ({ name: 'hash', label: 'Referência do hash (4 caracteres)', ph: 'ex.: a3f9', maxlen: 4, hint: 'Opcional. 4 caracteres do hash da transação (por exemplo, os últimos 4), apenas para sua referência.' });
+const hashField = () => ({ name: 'hash', label: 'Referência #', ph: 'ex.: a3f9', maxlen: 4, hint: 'Opcional. 4 caracteres apenas para sua referência.' });
 const dtFields = () => { const [d, t] = splitDT(nowInput()); return [{ name: 'data', label: 'Data', type: 'date', half: 1, value: d, req: 1 }, { name: 'hora', label: 'Hora', type: 'time', half: 1, value: t, req: 1 }]; };
 function checkDate(P, tt) {
   const t = parseT(tt), st = CACHE[P.id].r.st;
@@ -1300,15 +1774,17 @@ function poolForm(P) {
       { name: 'hora', label: 'Hora', type: 'time', half: 1, value: t, req: 1 },
       { name: 'rangeMin', label: 'Range Mínimo', type: 'num', money: false, ph: '3000', half: 1, value: P?.rangeMin, hint: 'Opcional' },
       { name: 'rangeMax', label: 'Range Máximo', type: 'num', money: false, ph: '4000', half: 1, value: P?.rangeMax, hint: 'Opcional' },
+      { name: 'endereco', label: 'Endereço da pool (contrato)', ph: '0x… (opcional)', value: P?.endereco, hint: 'Opcional. Endereço do contrato da pool, não o hash de uma transação. Permite verificar o range com o preço da própria pool.' },
       { name: 'obs', label: 'Observações', type: 'textarea', ph: 'Opcional (ex.: fee tier 0,05%, carteira usada…)', value: P?.obs }
     ],
     onSubmit: v => {
       if (!(v.valor > 0)) return 'A liquidez inicial deve ser maior que zero.';
       if (ok(v.rangeMin) && ok(v.rangeMax) && v.rangeMin >= v.rangeMax) return 'O range mínimo deve ser menor que o máximo.';
+      if (v.endereco && !isPoolAddr(v.endereco)) return 'O endereço da pool não parece válido. Use o endereço do contrato (por exemplo 0x… ou, na Solana, o endereço da pool).';
       const tt = v.data + 'T' + v.hora;
       if (!isFinite(parseT(tt))) return 'Data ou hora inválida.';
       if (parseT(tt) > Date.now() + 5 * 60000) return 'A data de criação não pode estar no futuro.';
-      const data = { rede: v.rede, exchange: v.exchange, token1: v.token1, token2: v.token2, nome: v.nome, rangeMin: v.rangeMin, rangeMax: v.rangeMax, obs: v.obs };
+      const data = { rede: v.rede, exchange: v.exchange, token1: v.token1, token2: v.token2, nome: v.nome, rangeMin: v.rangeMin, rangeMax: v.rangeMax, endereco: v.endereco || '', obs: v.obs };
       if (P) {
         if (P.events.some(e => e.type !== 'abertura' && parseT(e.t) < parseT(tt))) return 'Existem lançamentos anteriores a essa data de criação. Ajuste a data ou elimine esses lançamentos.';
         Object.assign(P, data); ab.valor = v.valor; ab.t = tt;
@@ -1404,8 +1880,8 @@ function closeForm(P) {
     title: 'Fechar Pool - ' + poolName(P), submit: 'Fechar Pool',
     fields: [
       hashField(),
-      { name: 'valor', label: 'Valor final recebido (USD)', type: 'num', value: c.valor, req: 1, hint: 'Valor da liquidez retirada no fecho, sem as fees.' },
-      { name: 'fees', label: 'Fees recebidas no fecho (USD)', type: 'num', value: c.pend, req: 1, hint: 'Fees pendentes que foram recolhidas junto com o fecho.' },
+      { name: 'valor', label: 'Valor final recebido (USD)', type: 'num', ph: '0,00', req: 1, hint: 'Valor da liquidez retirada no fecho, sem as fees.' },
+      { name: 'fees', label: 'Fees recebidas no fecho (USD)', type: 'num', ph: '0,00', req: 1, hint: 'Fees pendentes que foram recolhidas junto com o fecho.' },
       ...dtFields()
     ],
     note: 'Depois de fechada, a pool para de contar dias: ROI e APR ficam congelados na data do fecho. Se necessário, é possível reabri-la.',
@@ -1448,8 +1924,8 @@ document.addEventListener('click', ev => {
   if (!b) return;
   const act = b.dataset.act, id = b.dataset.id, P = id ? DB.pools.find(p => p.id === id) : null;
   if (menu && b.closest('.menu')) menu.hidden = true;
-  if (UI.demo && ['update', 'collect', 'flow', 'close', 'reopen', 'edit', 'delpool', 'delev', 'export', 'csv-ev', 'csv-pools', 'wipe', 'link', 'rebalance'].includes(act)) {
-    alert('Isto é apenas um exemplo. Saia do modo exemplo para lançar e guardar os seus próprios dados.'); return;
+  if (UI.demo && ['update', 'collect', 'flow', 'close', 'reopen', 'edit', 'delpool', 'delev', 'evedit', 'export', 'csv-ev', 'csv-pools', 'wipe', 'link', 'rebalance'].includes(act)) {
+    askNotice('Isto é apenas um exemplo. Saia do modo exemplo para lançar e guardar os seus próprios dados.', 'Modo exemplo'); return;
   }
   switch (act) {
     case 'menu': menu.hidden = !menu.hidden; break;
@@ -1489,14 +1965,17 @@ document.addEventListener('click', ev => {
     case 'close': closeForm(P); break;
     case 'edit': poolForm(P); break;
     case 'reopen':
-      if (confirm(`Reabrir “${poolName(P)}”? O lançamento de fecho será removido.`)) { P.events = P.events.filter(e => e.type !== 'fechamento'); save(); }
+      askConfirm('Reabrir pool', `Reabrir “${poolName(P)}”? O lançamento de fecho será removido.`, 'Reabrir', false).then(yes => { if (yes) { P.events = P.events.filter(e => e.type !== 'fechamento'); save(); } });
       break;
     case 'delpool':
-      if (confirm(`Eliminar a pool “${poolName(P)}” e todo o seu histórico (${P.events.length} lançamentos)?\n\nIsto não pode ser desfeito, a não ser que tenha um backup.`)) { DB.pools = DB.pools.filter(p => p !== P); save(); }
+      askConfirm('Eliminar pool', `Eliminar a pool “${poolName(P)}” e todo o seu histórico (${P.events.length} lançamentos)?\n\nIsto não pode ser desfeito, a não ser que tenha um backup.`, 'Eliminar', true, 'eliminar').then(yes => { if (yes) { DB.pools = DB.pools.filter(p => p !== P); save(); } });
       break;
+    case 'evedit': { const e = P && P.events.find(x => x.id === b.dataset.ev); if (e) editEventForm(P, e); break; }
     case 'delev': {
       const e = P.events.find(x => x.id === b.dataset.ev);
-      if (e && confirm(`Eliminar o lançamento “${TYPE_LABEL[e.type]}” de ${fmtDT(parseT(e.t))}?`)) {
+      if (!e) break;
+      askConfirm('Eliminar lançamento', `Eliminar o lançamento “${TYPE_LABEL[e.type]}” de ${fmtDT(parseT(e.t))}?\n\nO ROI, o APR e os gráficos da pool recalculam-se sem ele.`, 'Eliminar').then(yes => {
+        if (!yes) return;
         P.events = P.events.filter(x => x !== e);
         if (e.type === 'rebalance') {
           const rebs = sortedEvents(P).filter(x => x.type === 'rebalance');
@@ -1505,13 +1984,32 @@ document.addEventListener('click', ev => {
         }
         UI.open[P.id + ':ev'] = true;
         save();
-      }
+      });
       break;
     }
     case 'link': linkNewFile(); break;
     case 'open-file': if (UI.demo) exitDemo(); openExistingFile(); break;
     case 'unlink': unlinkFile(); break;
     case 'reconnect': reconnectFile(); break;
+    case 'prices': updatePrices(); break;
+    case 'reloadapp': location.reload(); break;
+    case 'tokid': {
+      const k = b.dataset.k, T = (DB.tokens = DB.tokens || {}), o = T[k] || {};
+      askInput(`ID da CoinGecko para ${k}`, 'O último segmento do endereço da moeda em coingecko.com, por exemplo coinbase-wrapped-btc.\nDeixe em branco para procurar pelo símbolo.', o.over || '', 'ex.: coinbase-wrapped-btc').then(v => {
+        if (v === null) return;
+        const id = v.trim().toLowerCase().replace(/\s+/g, '');
+        if (id) T[k] = Object.assign({}, o, { over: id, u: Date.now() }); else if (T[k]) { delete T[k].over; T[k].u = Date.now(); }
+        save();
+      });
+      break;
+    }
+    case 'cgkey': {
+      askInput('Chave API da CoinGecko', 'Chave gratuita (opcional; aumenta o limite de pedidos). Fica só neste dispositivo.\nDeixe em branco para remover.', cgKey(), 'chave API').then(v => {
+        if (v === null) return;
+        try { v.trim() ? localStorage.setItem('pool-monitor-cgkey', v.trim()) : localStorage.removeItem('pool-monitor-cgkey'); } catch (e) { }
+      });
+      break;
+    }
     case 'export': exportBackup(); break;
     case 'import': if (UI.demo) exitDemo(); importBackup(); break;
     case 'csv-ev': exportEventsCSV(); break;
@@ -1519,7 +2017,7 @@ document.addEventListener('click', ev => {
     case 'demo': enterDemo(); break;
     case 'demo-exit': exitDemo(); break;
     case 'wipe':
-      if (confirm('Apagar TODAS as pools e lançamentos?\n\nRecomendo exportar um backup antes. Isto não pode ser desfeito.')) { DB = emptyDB(); FORCE_NEXT = !!(FILE.handle && FILE.state === 'ok'); UI.open = {}; UI.rede = null; UI.exchange = null; save(); }
+      askConfirm('Apagar todos os dados', 'Apagar TODAS as pools e lançamentos?\n\nRecomendo exportar um backup antes. Isto não pode ser desfeito.', 'Apagar tudo', true, 'apagar').then(yes => { if (yes) { DB = emptyDB(); FORCE_NEXT = !!(FILE.handle && FILE.state === 'ok'); UI.open = {}; UI.rede = null; UI.exchange = null; save(); } });
       break;
   }
 });
@@ -1532,6 +2030,7 @@ window.addEventListener('focus', pullFromFile);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) pullFromFile(); });
 
 async function init() {
+  initUpdateWatch(); initNetWatch();
   adoptDB(loadLocal());
   if (location.hash === '#exemplo' && !DB.pools.length) enterDemo(); else render();
   if (!FILE.supported) return;
