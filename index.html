@@ -57,6 +57,7 @@ h1{font-size:22px;margin:0;font-weight:750;letter-spacing:-.02em}
 .menu .cap{color:var(--dim);font-size:11px;padding:4px 12px;text-transform:uppercase;letter-spacing:.06em;font-weight:650}
 .banner{border:1px solid var(--border);background:var(--card);border-radius:12px;padding:11px 14px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:13px}
 .banner.warn{border-color:rgba(245,197,24,.35);color:#fde68a;background:rgba(245,197,24,.05)}
+.banner.err{border-color:rgba(240,67,82,.45);color:#ffb3ba;background:rgba(240,67,82,.08)}
 .banner .bb{display:flex;gap:8px}
 
 /* —— KPI cards —— */
@@ -210,6 +211,15 @@ h1{font-size:22px;margin:0;font-weight:750;letter-spacing:-.02em}
 details.ev{margin-top:12px}
 details.ev summary{cursor:pointer;color:var(--muted);font-weight:600;font-size:13px}
 .tw{overflow-x:auto;margin-top:8px}
+/* mostra só as últimas linhas; o resto fica escondido até se pedir */
+.tw.clip tbody tr:nth-child(n+4){display:none}
+.evmore{margin-top:8px;display:inline-block}
+.fatal{max-width:640px;margin:48px auto;border:1px solid rgba(240,67,82,.45);background:rgba(240,67,82,.07);border-radius:14px;padding:22px}
+.fatal h2{margin:0 0 8px;font-size:18px}
+.fatal pre{white-space:pre-wrap;word-break:break-word;background:#0b0f18;border:1px solid var(--border);border-radius:10px;padding:12px;font-size:12px;margin:12px 0;color:#ffb3ba}
+.fatal .bb{display:flex;gap:8px;flex-wrap:wrap}
+details.diag{margin-top:6px;font-size:12px;color:var(--muted)}
+details.diag ul{margin:6px 0 0 18px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
 th,td{padding:6px 8px;border-bottom:1px solid var(--border);text-align:right}
 th{color:var(--muted);font-weight:600;font-size:11px}
@@ -246,6 +256,7 @@ details.method b{color:var(--text)}
 .f label .prev.bad{color:#ff8a94}
 .f input,.f select,.f textarea{width:100%;max-width:100%;min-width:0;box-sizing:border-box;background:#121722;border:1px solid var(--border);border-radius:10px;color:var(--text);padding:10px 11px;font:inherit;transition:border-color .12s}
 /* Safari/iOS dão a estes campos uma largura própria que transborda a coluna: forçar o tamanho da caixa */
+.f input.short{width:86px;min-width:86px;text-align:left;letter-spacing:.12em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 .f input[type=date],.f input[type=time]{-webkit-appearance:none;appearance:none;min-height:42px;line-height:1.2;text-align:left}
 .f input[type=date]::-webkit-date-and-time-value,.f input[type=time]::-webkit-date-and-time-value{text-align:left;margin:0}
 .f input[type=date]::-webkit-calendar-picker-indicator,.f input[type=time]::-webkit-calendar-picker-indicator{margin-left:0;padding-left:4px}
@@ -340,9 +351,11 @@ details.method b{color:var(--text)}
 const LS_KEY = 'poolMonitor.v1';
 const DAY = 86400000;
 const MIN_APR_DAYS = 1;   // janela mínima (dias) para exibir APR / ROI anualizado
-const APP_VERSION = 'V4.6';   // mostrada no cabeçalho, ao lado do nome da app
-const NET = { online: false, busy: false, msg: '', ok: null, fail: {}, at: 0, csp: '' };
-const UI = { filter: 'todas', rede: null, exchange: null, sort: 'recent', open: {}, tab: {}, ptab: 'patrimonio', demo: false };
+const APP_VERSION = 'V5.4';   // mostrada no cabeçalho, ao lado do nome da app
+const NET = { online: false, busy: false, msg: '', ok: null, fail: {}, at: 0, csp: '', diag: [] };
+const diag = (fonte, res) => NET.diag.push(`${fonte}: ${res}`);
+const EV_SHOWN = 3;   // lançamentos visíveis por omissão (os mais recentes); o resto fica atrás de “Mostrar todos”
+const UI = { allev: {}, filter: 'todas', rede: null, exchange: null, sort: 'recent', open: {}, tab: {}, ptab: 'patrimonio', demo: false };
 const FILE = { supported: typeof window.showSaveFilePicker === 'function', handle: null, state: 'none', name: '', last: null };
 let DB = emptyDB();
 let CACHE = {};
@@ -453,7 +466,23 @@ function networkLabel(name) {
 function emptyDB() { return { app: 'pool-monitor', version: 1, savedAt: null, pools: [] }; }
 const validDB = d => d && typeof d === 'object' && Array.isArray(d.pools);
 function loadLocal() { try { const s = localStorage.getItem(LS_KEY); if (s) { const d = JSON.parse(s); if (validDB(d)) return d; } } catch (e) { } return emptyDB(); }
-function storeLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(DB)); } catch (e) { } }
+// Grava no navegador. Alguns contextos não deixam (navegação privada do Safari, armazenamento cheio,
+// a app aberta dentro de outra página): nesse caso guardamos o motivo para o avisar no topo.
+const LS = { ok: true, why: '' };
+function storeLocal() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(DB)); LS.ok = true; LS.why = ''; return true; }
+  catch (e) {
+    LS.ok = false;
+    const quota = e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014);
+    LS.why = quota ? 'o armazenamento do navegador está cheio' : 'o navegador não permite gravar nesta janela (navegação privada ou restrições de privacidade)';
+    return false;
+  }
+}
+// Confirma logo no arranque se é possível gravar, para o aviso aparecer antes de se perder trabalho.
+function checkLocalStorage() {
+  try { localStorage.setItem(LS_KEY + '.t', '1'); localStorage.removeItem(LS_KEY + '.t'); LS.ok = true; LS.why = ''; }
+  catch (e) { LS.ok = false; LS.why = 'o navegador não permite gravar nesta janela (navegação privada ou restrições de privacidade)'; }
+}
 function save() {
   if (UI.demo) { render(); return; }   // dados de exemplo nunca são gravados
   stampChanges();
@@ -630,7 +659,42 @@ async function download(name, content, type) {
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800);
 }
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
-function exportBackup() { download(`pool-monitor-backup-${today()}.json`, JSON.stringify(DB, null, 2), 'application/json'); }
+// data e hora no nome do backup (com segundos, para dois backups seguidos não ficarem com o mesmo nome)
+const stamp = () => { const d = new Date(); return `${today()}_${pad(d.getHours())}h${pad(d.getMinutes())}m${pad(d.getSeconds())}`; };
+// Exporta o backup e confirma, a seguir, se o ficheiro gravado está completo e legível.
+async function exportBackup() {
+  const name = `pool-monitor-backup-${stamp()}.json`, txt = JSON.stringify(DB, null, 2);
+  const nPools = DB.pools.length, nEv = DB.pools.reduce((a, p) => a + p.events.length, 0);
+  await download(name, txt, 'application/json');
+  await verifyBackup(name, txt, nPools, nEv);
+}
+// Relê o que foi gravado e compara com os dados atuais. Pede o ficheiro ao utilizador, porque o
+// navegador não deixa a app abrir sozinha o que acabou de descarregar.
+function verifyBackup(name, txt, nPools, nEv) {
+  return dialog({
+    title: 'Backup gravado', ok: 'Verificar o ficheiro…', cancel: 'Agora não',
+    message: `Ficheiro: ${name}
+${nPools} ${nPools === 1 ? 'pool' : 'pools'} e ${nEv} ${nEv === 1 ? 'lançamento' : 'lançamentos'}.
+
+Para confirmar que ficou bem gravado, escolha o ficheiro que acabou de guardar.`
+  }).then(yes => { if (yes) pickAndCheck(txt, nPools, nEv); });
+}
+function pickAndCheck(txt, nPools, nEv) {
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
+  inp.onchange = async () => {
+    const f = inp.files[0]; if (!f) return;
+    let got = '';
+    try { got = await f.text(); } catch (e) { askNotice('Não foi possível ler o ficheiro: ' + e.message, 'Backup por verificar'); return; }
+    let d = null;
+    try { d = JSON.parse(got); } catch (e) { askNotice(`O ficheiro “${f.name}” não contém JSON válido: pode ter ficado incompleto. Exporte de novo.`, 'Backup com problema'); return; }
+    if (!validDB(d)) { askNotice(`O ficheiro “${f.name}” não é um backup do Pool Monitor.`, 'Backup com problema'); return; }
+    const p = d.pools.length, e = d.pools.reduce((a, x) => a + x.events.length, 0);
+    if (got.trim() === txt.trim()) askNotice(`O ficheiro “${f.name}” está igual aos dados atuais: ${p} ${p === 1 ? 'pool' : 'pools'} e ${e} ${e === 1 ? 'lançamento' : 'lançamentos'}. Backup verificado.`, 'Backup verificado');
+    else if (p === nPools && e === nEv) askNotice(`O ficheiro “${f.name}” está legível e completo (${p} ${p === 1 ? 'pool' : 'pools'}, ${e} ${e === 1 ? 'lançamento' : 'lançamentos'}), mas o texto difere do exportado agora. Se escolheu um backup anterior, está tudo bem.`, 'Backup verificado');
+    else askNotice(`Atenção: o ficheiro “${f.name}” tem ${p} ${p === 1 ? 'pool' : 'pools'} e ${e} ${e === 1 ? 'lançamento' : 'lançamentos'}, e os dados atuais têm ${nPools} e ${nEv}. Confirme que escolheu o ficheiro certo ou exporte de novo.`, 'Backup diferente');
+  };
+  inp.click();
+}
 function importBackup() {
   const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
   inp.onchange = async () => {
@@ -778,7 +842,7 @@ function validateEdit(P, e, patch, now) {
   if (!num(nx.valor) || nx.valor < 0 || (nx.fees != null && !(nx.fees >= 0))) return 'Os valores não podem ser negativos.';
   if (['atualizacao', 'rebalance', 'fechamento'].includes(nx.type) && !num(nx.fees)) return 'Preencha as fees.';
   if (nx.type === 'rebalance' && !(num(nx.rangeMin) && num(nx.rangeMax) && nx.rangeMin < nx.rangeMax)) return 'O range mínimo tem de ser menor que o máximo.';
-  if (nx.hash && String(nx.hash).length > 4) return 'A referência do hash deve ter no máximo 4 caracteres.';
+  if (nx.hash && !/^\d{1,4}$/.test(String(nx.hash))) return 'A referência # deve ter no máximo 4 dígitos.';
   const evs = P.events.map(x => x === e ? nx : x), before = timelineIssues(P, P.events).map(i => i.key);
   const bad = timelineIssues(P, evs).find(i => !before.includes(i.key));
   if (!bad) return null;
@@ -914,10 +978,12 @@ function statusHTML() {
   if (UI.demo) return `<span class="status" id="status"><i class="dot"></i>Modo exemplo (nada é guardado)</span>`;
   if (FILE.state === 'ok') return `<span class="status" id="status" title="Os dados são gravados automaticamente neste ficheiro a cada alteração e combinados com as alterações feitas noutros computadores"><i class="dot ok"></i>Guardado em ${esc(FILE.name)}${FILE.last ? ' · ' + pad(FILE.last.getHours()) + ':' + pad(FILE.last.getMinutes()) : ''}</span>`;
   if (FILE.state === 'error') return `<span class="status" id="status"><i class="dot err"></i>Erro ao gravar ${esc(FILE.name)}</span>`;
+  if (!LS.ok) return `<span class="status" id="status" title="${esc('Não está a gravar: ' + LS.why + '. Exporte um backup para não perder os dados.')}"><i class="dot err"></i>Não está a gravar</span>`;
   return `<span class="status" id="status" title="Os dados ficam guardados neste navegador"><i class="dot"></i>Guardado no navegador</span>`;
 }
 function bannerHTML() { return updateBannerHTML() + bannerCore(); }
 function bannerCore() {
+  if (!LS.ok && !UI.demo) return `<div class="banner err"><span><b>Os dados não estão a ser gravados:</b> ${esc(LS.why)}. Tudo o que registar desaparece ao fechar esta janela. Exporte um backup (Dados → Exportar backup) ou abra a app numa janela normal.</span><span class="bb"><button class="btn sm" data-act="export">Exportar backup</button></span></div>`;
   if (UI.demo) return `<div class="banner warn"><span>Está a ver <b>dados de exemplo</b>. Nada é guardado até criar ou alterar alguma coisa.</span><span class="bb"><button class="btn sm" data-act="demo-exit">Sair do exemplo</button></span></div>`;
   if (FILE.handle && FILE.state === 'needs-permission') return `<div class="banner warn"><span>O ficheiro de dados <b>${esc(FILE.name)}</b> está associado, mas o navegador pede a sua autorização para voltar a aceder-lhe.</span><span class="bb"><button class="btn sm green" data-act="reconnect">Voltar a ligar o ficheiro</button><button class="btn sm" data-act="unlink">Desassociar</button></span></div>`;
   if (FILE.handle && FILE.state === 'error') return `<div class="banner warn"><span>Não foi possível gravar em <b>${esc(FILE.name)}</b>. Os dados continuam guardados no navegador.</span><span class="bb"><button class="btn sm green" data-act="reconnect">Tentar novamente</button><button class="btn sm" data-act="unlink">Desassociar</button></span></div>`;
@@ -947,7 +1013,11 @@ function tokensInUse(pools, rOf) {
   return [...m.values()].sort((a, b) => b.pools.size - a.pools.size || a.sym.localeCompare(b.sym));
 }
 // O ID da CoinGecko de cada token: o fixado à mão (✎), senão o descoberto numa atualização anterior (fica guardado).
-const tokenId = (t, T) => (T[t.key] && (T[t.key].over || T[t.key].id)) || null;
+// O "over" fixado à mão pode ser um identificador da CoinGecko (ethereum) ou o endereço do contrato do token (0x…).
+const overOf = (t, T) => (T[t.key] && T[t.key].over) || null;
+const isTokenAddr = s => isPoolAddr(s);
+const tokenAddr = (t, T) => { const o = overOf(t, T); return o && isTokenAddr(o) ? o : null; };
+const tokenId = (t, T) => { const o = overOf(t, T); if (o) return isTokenAddr(o) ? null : o; return (T[t.key] && T[t.key].id) || null; };
 const cgKeyParam = apiKey => (apiKey ? '&x_cg_demo_api_key=' + encodeURIComponent(apiKey) : '');
 // Um único pedido de preços, por IDs (a API pública não aceita pesquisa por símbolo).
 function tokenRequests(toks, T, apiKey) {
@@ -985,6 +1055,13 @@ const chainId = rede => CHAIN_IDS[String(rede || '').trim().toUpperCase()] || nu
 const isPoolAddr = s => /^0x[0-9a-fA-F]{40}$/.test(s || '') || /^0x[0-9a-fA-F]{64}$/.test(s || '') || /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(s || '');
 const sameAddr = (a, b) => /^0x/i.test(a || '') ? String(a).toLowerCase() === String(b || '').toLowerCase() : a === b;
 const pickPair = (rows, addr) => (rows || []).find(r => r && sameAddr(r.pairAddress, addr)) || null;
+const dexTokensUrl = addrs => `https://api.dexscreener.com/latest/dex/tokens/${addrs.map(encodeURIComponent).join(',')}`;
+// Preço em USD de um token pelo seu endereço: usa o par com mais liquidez onde ele é o token base.
+function tokenPriceFromPairs(pairs, addr) {
+  const best = (pairs || []).filter(p => p && p.baseToken && sameAddr(p.baseToken.address, addr) && Number(p.priceUsd) > 0)
+    .sort((a, b) => ((b.liquidity && b.liquidity.usd) || 0) - ((a.liquidity && a.liquidity.usd) || 0))[0];
+  return best ? { usd: Number(best.priceUsd), name: (best.baseToken.name || best.baseToken.symbol || '') + ' (contrato)', dex: best.dexId || '' } : null;
+}
 const dexPairsUrl = (chain, addrs) => `https://api.dexscreener.com/latest/dex/pairs/${chain}/${addrs.map(encodeURIComponent).join(',')}`;
 const dexSearchUrl = addr => `https://api.dexscreener.com/latest/dex/search?q=${encodeURIComponent(addr)}`;
 
@@ -1096,6 +1173,7 @@ async function netFetch(url) {
 }
 async function cgGet(url) {
   const res = await netFetch(url);
+  diag('CoinGecko ' + (url.includes('/search') ? 'pesquisa' : 'preços'), 'HTTP ' + res.status);
   if (res.status === 429) throw pmErr('A CoinGecko limitou os pedidos. Tente daqui a um minuto (ou defina uma chave API gratuita).');
   if (res.status === 401 || res.status === 403) throw pmErr(`A CoinGecko recusou o pedido (${res.status}). Pode ser preciso definir uma chave API gratuita.`);
   if (!res.ok) throw pmErr(`Erro da CoinGecko (${res.status}).`);
@@ -1105,6 +1183,7 @@ async function cgGet(url) {
 }
 async function dexGet(url) {
   const res = await netFetch(url);
+  diag('DexScreener', 'HTTP ' + res.status);
   if (res.status === 429) throw pmErr('A DexScreener limitou os pedidos. Tente daqui a um minuto.');
   if (!res.ok) throw pmErr(`Erro da DexScreener (${res.status}).`);
   const j = await res.json();
@@ -1134,9 +1213,10 @@ function netMsg(e, who) {
 // Descobre o ID da CoinGecko dos tokens que ainda não o têm (uma pesquisa por token, só da primeira vez).
 async function resolveIds(toks, T, apiKey) {
   const retry = Date.now() - DAY;   // um símbolo não encontrado só volta a ser procurado 24 h depois
-  const todo = toks.filter(t => !tokenId(t, T) && !((T[t.key] || {}).nf > retry));
+  const todo = toks.filter(t => !tokenId(t, T) && !tokenAddr(t, T) && !((T[t.key] || {}).nf > retry));
   for (const t of todo.slice(0, 12)) {
     const res = await netFetch(`${CG_SEARCH}?query=${encodeURIComponent(t.sym)}${cgKeyParam(apiKey)}`);
+    diag('CoinGecko pesquisa ' + t.sym, 'HTTP ' + res.status);
     if (res.status === 429) throw pmErr('A CoinGecko limitou os pedidos. Tente daqui a um minuto (ou defina uma chave API gratuita).');
     if (!res.ok) throw pmErr(`Erro da CoinGecko (${res.status}).`);
     const j = await res.json(), c = pickCoin(j && j.coins, t.sym);
@@ -1145,8 +1225,24 @@ async function resolveIds(toks, T, apiKey) {
     else T[t.key] = Object.assign({}, o, { sym: t.sym, nf: Date.now(), u: Date.now() });
   }
 }
+// Vai buscar o preço dos tokens cujo ✎ tem um endereço de contrato (qualquer rede).
+async function applyTokenAddrs(group, T, fail, now) {
+  let n = 0;
+  for (let i = 0; i < group.length; i += 20) {
+    const part = group.slice(i, i + 20), rows = await dexGet(dexTokensUrl(part.map(t => tokenAddr(t, T))));
+    for (const t of part) {
+      const r = tokenPriceFromPairs(rows, tokenAddr(t, T));
+      if (!r) { fail[t.key] = 'endereço não encontrado'; continue; }
+      const o = T[t.key] || {};
+      T[t.key] = Object.assign({}, o, { sym: t.sym, usd: r.usd, prev: o.usd != null ? o.usd : null, t: Date.now(), name: r.name, nf: 0, u: Date.now() });
+      delete fail[t.key]; n++;
+    }
+  }
+  return n;
+}
 async function binanceRows() {
   const res = await netFetch(BINANCE);
+  diag('Binance', 'HTTP ' + res.status);
   if (!res.ok) throw pmErr(`Erro da Binance (${res.status}).`);
   const j = await res.json();
   return Array.isArray(j) ? j : [];
@@ -1160,7 +1256,7 @@ async function updatePrices() {
   NET.fail = {};
   if (!toks.length && !pools.length && !canApp) { NET.ok = false; NET.msg = 'Não há pools abertas com valor: não há preços a atualizar.'; render(); return; }
   if (navigator.onLine === false) { NET.ok = false; NET.msg = 'Sem ligação à internet. A app continua a funcionar offline.'; render(); return; }
-  const t0 = Date.now(); NET.busy = true; NET.online = true; NET.msg = ''; NET.csp = ''; render();
+  const t0 = Date.now(); NET.busy = true; NET.online = true; NET.msg = ''; NET.csp = ''; NET.diag = []; render();
   const T = DB.tokens || {}, msgs = [];
   let n = 0, pairs = {};
   if (!toks.length && !pools.length) msgs.push('Sem pools abertas com valor: não há preços a atualizar.');
@@ -1169,18 +1265,22 @@ async function updatePrices() {
     try {
       await resolveIds(toks, T, cgKey());   // descobre o ID da CoinGecko dos tokens novos (fica guardado)
       for (const rq of tokenRequests(toks, T, cgKey())) n += applyPrices(await cgGet(rq.url), rq.group, rq.field, T, NET.fail, Date.now());
-    } catch (e) { cgErr = netMsg(e, 'CoinGecko'); }
+    } catch (e) { cgErr = netMsg(e, 'CoinGecko'); diag('CoinGecko', e.pm ? e.message : (e.name || 'falha') + ': ' + e.message); }
     const missing = toks.filter(t => !(T[t.key] && T[t.key].t >= t0));
     if (missing.length) {   // fonte alternativa para o que a CoinGecko não devolveu
-      try { nb = applyBinance(await binanceRows(), missing, T, NET.fail, Date.now()); n += nb; } catch (e) { /* a mensagem da CoinGecko já explica o problema */ }
+      try { nb = applyBinance(await binanceRows(), missing, T, NET.fail, Date.now()); n += nb; } catch (e) { diag('Binance', e.pm ? e.message : (e.name || 'falha') + ': ' + e.message); }
     }
-    for (const t of toks) if (!(T[t.key] && T[t.key].t >= t0)) NET.fail[t.key] = NET.fail[t.key] || (tokenId(t, T) ? 'sem preço' : 'símbolo não encontrado (use ✎)');
+    const byAddr = toks.filter(t => tokenAddr(t, T));
+    if (byAddr.length) {   // tokens identificados pelo endereço do contrato: preço na DexScreener
+      try { n += await applyTokenAddrs(byAddr, T, NET.fail, t0); } catch (e) { if (!cgErr) cgErr = netMsg(e, 'DexScreener'); diag('DexScreener', e.pm ? e.message : (e.name || 'falha') + ': ' + e.message); }
+    }
+    for (const t of toks) if (!(T[t.key] && T[t.key].t >= t0)) NET.fail[t.key] = NET.fail[t.key] || (tokenAddr(t, T) ? 'endereço sem preço' : tokenId(t, T) ? 'sem preço' : 'símbolo não encontrado (use ✎)');
     DB.tokens = T;
     msgs.push(n === toks.length
       ? `Preços atualizados (${n} ${n === 1 ? 'token' : 'tokens'})${nb ? `, ${nb} na Binance (fonte alternativa)` : ''}.` + (cgErr ? ` A CoinGecko falhou: ${cgErr}` : '')
       : `${n} de ${toks.length} tokens atualizados${nb ? ` (${nb} na Binance, fonte alternativa)` : ''}.` + (cgErr ? ' ' + cgErr : ' Para os restantes, defina o ID da CoinGecko (✎).'));
   }
-  if (pools.length) { try { pairs = await fetchPairs(pools); } catch (e) { msgs.push(netMsg(e, 'DexScreener')); } }
+  if (pools.length) { try { pairs = await fetchPairs(pools); } catch (e) { msgs.push(netMsg(e, 'DexScreener')); diag('DexScreener', e.pm ? e.message : (e.name || 'falha') + ': ' + e.message); } }
   const nPairs = Object.values(pairs).filter(Boolean).length;
   if (n || nPairs) {   // verifica o range de todas as pools abertas
     DB.rcheck = checkRanges(DB.pools, poolR, T, t0, Date.now(), pairs);
@@ -1224,13 +1324,14 @@ function tokensHTML() {
   const rows = toks.map(t => {
     const e = T[t.key] || {}, dp = ok(e.usd) && ok(e.prev) && e.prev !== 0 ? (e.usd - e.prev) / e.prev : null;
     const nm = NET.fail[t.key] ? `<span class="neg">${esc(NET.fail[t.key])}</span>` : e.name ? esc(e.name) : '—';
-    return `<tr><td><b>${esc(t.sym)}</b></td><td>${nm}${e.over ? ' <span class="state-tag">ID fixo</span>' : ''}</td><td>${fmtPrice(e.usd)}</td><td class="${sgn(dp)}">${dp == null ? '—' : (dp > 0 ? '+' : '') + pct(dp)}</td><td>${e.t ? fmtDT(e.t) : 'nunca'}</td><td>${t.pools.size}</td><td><button class="text-link" data-act="tokid" data-k="${esc(t.key)}" title="Definir o ID deste token na CoinGecko">✎</button></td></tr>`;
+    return `<tr><td><b>${esc(t.sym)}</b></td><td>${nm}${e.over ? ` <span class="state-tag">${isTokenAddr(e.over) ? 'contrato' : 'ID fixo'}</span>` : ''}</td><td>${fmtPrice(e.usd)}</td><td class="${sgn(dp)}">${dp == null ? '—' : (dp > 0 ? '+' : '') + pct(dp)}</td><td>${e.t ? fmtDT(e.t) : 'nunca'}</td><td>${t.pools.size}</td><td><button class="text-link" data-act="tokid" data-k="${esc(t.key)}" title="Identificar este token pelo endereço do contrato ou pelo ID da CoinGecko">✎</button></td></tr>`;
   }).join('');
   return `<section class="dash-section" id="sec-tokens">
     <div class="dash-title"><div><h2>Preços dos tokens</h2><p>Tokens das pools abertas com valor, mesmo que residual. Ligue o interruptor “Offline” no topo para atualizar.</p></div><span class="state-tag">${toks.length}</span></div>
     ${toks.length ? `<div class="dash-table-wrap"><table class="dash-table"><thead><tr><th>Token</th><th>Moeda (fonte)</th><th>Preço (USD)</th><th>Var.</th><th>Atualizado</th><th>Pools</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="note">Sem pools abertas com valor.</p>'}
     ${NET.msg ? `<p class="note ${NET.ok ? 'pos' : 'neg'}">${esc(NET.msg)}</p>` : ''}
-    <p class="note">Ao atualizar, os símbolos dos tokens são enviados à CoinGecko e, nas pools com endereço de contrato, esse endereço é enviado à DexScreener; nada mais sai da app. Se o símbolo apontar para a moeda errada, use ✎ para fixar o ID. <button class="text-link" data-act="cgkey">Chave API (opcional)…</button></p>
+    ${NET.diag.length ? `<details class="method diag"><summary>Detalhes da última tentativa (${NET.diag.length})</summary><ul>${NET.diag.map(d => `<li>${esc(d)}</li>`).join('')}</ul></details>` : ''}
+    <p class="note">Ao atualizar, os símbolos dos tokens são enviados à CoinGecko e, nas pools com endereço de contrato, esse endereço é enviado à DexScreener; nada mais sai da app. Se o símbolo não for encontrado ou apontar para a moeda errada, use ✎ para indicar o endereço do contrato do token ou o ID da CoinGecko. <button class="text-link" data-act="cgkey">Chave API (opcional)…</button></p>
   </section>`;
 }
 
@@ -1591,8 +1692,8 @@ function poolHTML(x) {
       </div>
       <div class="hist-head"><span class="ht">↗ Histórico</span>${segHTML('tab', tab, [['liq', 'Liquidez'], ['apr', 'APR'], ['roi', 'ROI'], ['fees', 'Fees']], p.id)}</div>
       <div class="chart" data-chart="pool" data-id="${esc(p.id)}"></div>
-      <details class="ev"${UI.open[p.id + ':ev'] ? ' open' : ''} data-evid="${esc(p.id)}"><summary>Lançamentos (${r.snaps.length})</summary>
-        <div class="tw"><table><thead><tr><th>Data</th><th>Tipo</th><th>#</th><th>Lançamento</th><th>Valor atual</th><th>Fees pend.</th><th>Fees recol.</th><th>Variação</th><th>ROI</th><th>APR</th><th></th></tr></thead><tbody>
+      <details class="ev"${UI.open[p.id + ':ev'] ? ' open' : ''} data-evid="${esc(p.id)}"><summary>Lançamentos (${r.snaps.length})${r.snaps.length > EV_SHOWN && !UI.allev[p.id] ? ' · últimos ' + EV_SHOWN : ''}</summary>
+        <div class="tw${(UI.allev[p.id] || r.snaps.length <= EV_SHOWN) ? '' : ' clip'}"><table><thead><tr><th>Data</th><th>Tipo</th><th>#</th><th>Lançamento</th><th>Valor atual</th><th>Fees pend.</th><th>Fees recol.</th><th>Variação</th><th>ROI</th><th>APR</th><th></th></tr></thead><tbody>
         ${r.snaps.slice().reverse().map(s => {
           const e = s.ev; let det = '';
           if (e.type === 'atualizacao') det = `valor ${money(e.valor)} · fees ${money(e.fees)}`;
@@ -1608,6 +1709,7 @@ function poolHTML(x) {
           return `<tr><td>${fmtDT(s.t)}</td><td>${esc(TYPE_LABEL[e.type] || e.type)}</td><td class="hs">${e.hash ? esc(e.hash) : ''}</td><td>${det}</td><td>${money(s.valor)}</td><td class="fee">${money(s.pend)}</td><td>${money(s.col)}</td><td class="${sgn(s.varCap)}">${spct(s.varPct)}</td><td class="${sgn(s.ganho)}">${spct(s.roi)}</td><td class="apr">${pct(s.apr)}</td><td class="act"><button class="ed" title="Editar lançamento" data-act="evedit" data-id="${esc(p.id)}" data-ev="${esc(e.id)}">✎</button>${e.type === 'abertura' ? '' : `<button class="del" title="Eliminar lançamento" data-act="delev" data-id="${esc(p.id)}" data-ev="${esc(e.id)}">✕</button>`}</td></tr>`;
         }).join('')}
         </tbody></table></div>
+        ${r.snaps.length > EV_SHOWN ? `<button class="text-link evmore" data-act="allev" data-id="${esc(p.id)}">${UI.allev[p.id] ? 'Mostrar só os últimos ' + EV_SHOWN : `Mostrar todos os ${r.snaps.length} lançamentos`}</button>` : ''}
       </details>
     </div>`;
   }
@@ -1675,7 +1777,7 @@ function fieldHTML(f) {
   let inp;
   if (f.type === 'select') inp = `<select name="${f.name}">${f.options.map(([k, l]) => `<option value="${k}"${k === v ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
   else if (f.type === 'textarea') inp = `<textarea name="${f.name}" placeholder="${esc(f.ph || '')}">${esc(v)}</textarea>`;
-  else inp = `<input name="${f.name}" ${f.type === 'num' ? 'type="text" inputmode="decimal" autocomplete="off"' : `type="${f.type || 'text'}"`} value="${esc(v)}" placeholder="${esc(f.ph || '')}"${f.maxlen ? ` maxlength="${+f.maxlen}" autocomplete="off" spellcheck="false"` : ''}>`;
+  else inp = `<input name="${f.name}" ${f.type === 'num' ? 'type="text" inputmode="decimal" autocomplete="off"' : f.digits ? 'type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off"' : `type="${f.type || 'text'}"`} value="${esc(v)}" placeholder="${esc(f.ph || '')}"${f.maxlen ? ` maxlength="${+f.maxlen}" autocomplete="off" spellcheck="false"` : ''}${f.short ? ' class="short"' : ''}>`;
   return `<div class="f ${f.half ? 'half' : ''}"><label>${esc(f.label)}${f.type === 'num' ? '<span class="prev"></span>' : ''}</label>${inp}${f.hint ? `<div class="hint">${esc(f.hint)}</div>` : ''}</div>`;
 }
 /* ---------- diálogos próprios: os do navegador (confirm, alert, prompt) podem estar bloqueados ---------- */
@@ -1720,6 +1822,10 @@ function openForm(cfg) {
   const onKey = e => { if (e.key === 'Escape') close(); };
   document.addEventListener('keydown', onKey);
   ov.querySelectorAll('[data-x]').forEach(b => b.addEventListener('click', close));
+  cfg.fields.filter(f => f.digits).forEach(f => {   // só dígitos, mesmo que colem texto
+    const inp = form.elements[f.name];
+    if (inp) inp.addEventListener('input', () => { const c = inp.value.replace(/\D+/g, '').slice(0, f.maxlen || 99); if (c !== inp.value) inp.value = c; });
+  });
   cfg.fields.filter(f => f.type === 'num').forEach(f => {
     const inp = form.elements[f.name], prev = inp.closest('.f').querySelector('.prev');
     const upd = () => { const n = parseNum(inp.value, f.money !== false); prev.className = 'prev' + (Number.isNaN(n) ? ' bad' : ''); prev.textContent = n === null ? '' : Number.isNaN(n) ? 'valor inválido' : '= ' + (f.money === false ? fmtNum(n) : money(n)); };
@@ -1736,9 +1842,9 @@ function openForm(cfg) {
         if (n === null && f.req) return showErr(`Preencha “${f.label}”.`);
         vals[f.name] = n;
       } else {
-        const s = raw.trim();
+        const s = f.digits ? raw.replace(/\D+/g, '') : raw.trim();
         if (!s && f.req) return showErr(`Preencha “${f.label}”.`);
-        if (f.maxlen && s.length > f.maxlen) return showErr(`“${f.label}”: no máximo ${f.maxlen} caracteres.`);
+        if (f.maxlen && s.length > f.maxlen) return showErr(`“${f.label}”: no máximo ${f.maxlen} ${f.digits ? 'dígitos' : 'caracteres'}.`);
         vals[f.name] = s;
       }
     }
@@ -1750,7 +1856,7 @@ function openForm(cfg) {
   const first = form.querySelector('input,select,textarea'); if (first) setTimeout(() => first.focus(), 30);
   return ov;
 }
-const hashField = () => ({ name: 'hash', label: 'Referência #', ph: 'ex.: a3f9', maxlen: 4, hint: 'Opcional. 4 caracteres apenas para sua referência.' });
+const hashField = () => ({ name: 'hash', label: 'Referência #', ph: '0000', maxlen: 4, digits: 1, short: 1, hint: 'Opcional. 4 dígitos apenas para sua referência.' });
 const dtFields = () => { const [d, t] = splitDT(nowInput()); return [{ name: 'data', label: 'Data', type: 'date', half: 1, value: d, req: 1 }, { name: 'hora', label: 'Hora', type: 'time', half: 1, value: t, req: 1 }]; };
 function checkDate(P, tt) {
   const t = parseT(tt), st = CACHE[P.id].r.st;
@@ -1819,15 +1925,14 @@ function updateForm(P) {
   });
 }
 function rebalanceForm(P) {
-  const c = CACHE[P.id].r.cur;
   openForm({
     title: 'Mover range - ' + poolName(P), submit: 'Registar rebalance',
     fields: [
       hashField(),
-      { name: 'valor', label: 'Valor da posição após o rebalance (USD)', type: 'num', value: c.valor, req: 1, hint: 'Valor da liquidez já no novo range, sem fees pendentes.' },
-      { name: 'fees', label: 'Fees recolhidas no rebalance (USD)', type: 'num', value: c.pend, req: 1, hint: 'Fees que saíram com a operação. Passam para “recolhidas” e as pendentes ficam a zero.' },
-      { name: 'rangeMin', label: 'Novo range mínimo', type: 'num', money: false, ph: '3000', half: 1, value: P.rangeMin, req: 1 },
-      { name: 'rangeMax', label: 'Novo range máximo', type: 'num', money: false, ph: '4000', half: 1, value: P.rangeMax, req: 1 },
+      { name: 'valor', label: 'Valor da posição após o rebalance (USD)', type: 'num', ph: '0,00', req: 1, hint: 'Valor da liquidez já no novo range, sem fees pendentes.' },
+      { name: 'fees', label: 'Fees recolhidas no rebalance (USD)', type: 'num', ph: '0,00', req: 1, hint: 'Fees que saíram com a operação. Passam para “recolhidas” e as pendentes ficam a zero.' },
+      { name: 'rangeMin', label: 'Novo range mínimo', type: 'num', money: false, ph: ok(P.rangeMin) ? 'anterior: ' + fmtNum(P.rangeMin) : '3000', half: 1, req: 1 },
+      { name: 'rangeMax', label: 'Novo range máximo', type: 'num', money: false, ph: ok(P.rangeMax) ? 'anterior: ' + fmtNum(P.rangeMax) : '4000', half: 1, req: 1 },
       ...dtFields()
     ],
     note: 'Regista a mudança de range (rebalance). O capital investido não muda — só o valor da posição e as fees recolhidas. Gas, slippage e bridge não são descontados automaticamente. O range atual da pool passa a ser o novo.',
@@ -1991,14 +2096,15 @@ document.addEventListener('click', ev => {
     case 'open-file': if (UI.demo) exitDemo(); openExistingFile(); break;
     case 'unlink': unlinkFile(); break;
     case 'reconnect': reconnectFile(); break;
+    case 'allev': UI.allev[id] = !UI.allev[id]; UI.open[id + ':ev'] = true; render(); break;
     case 'prices': updatePrices(); break;
     case 'reloadapp': location.reload(); break;
     case 'tokid': {
       const k = b.dataset.k, T = (DB.tokens = DB.tokens || {}), o = T[k] || {};
-      askInput(`ID da CoinGecko para ${k}`, 'O último segmento do endereço da moeda em coingecko.com, por exemplo coinbase-wrapped-btc.\nDeixe em branco para procurar pelo símbolo.', o.over || '', 'ex.: coinbase-wrapped-btc').then(v => {
+      askInput(`Identificar o token ${k}`, 'Escreva uma de duas coisas:\n• o endereço do contrato do token (0x… ou, na Solana, o endereço do token);\n• ou o ID da CoinGecko (o último segmento do endereço da moeda em coingecko.com, por exemplo coinbase-wrapped-btc).\nDeixe em branco para voltar a procurar pelo símbolo.', o.over || '', '0x… ou coinbase-wrapped-btc').then(v => {
         if (v === null) return;
-        const id = v.trim().toLowerCase().replace(/\s+/g, '');
-        if (id) T[k] = Object.assign({}, o, { over: id, u: Date.now() }); else if (T[k]) { delete T[k].over; T[k].u = Date.now(); }
+        const raw = v.trim().replace(/\s+/g, ''), id = isTokenAddr(raw) ? raw : raw.toLowerCase();
+        if (id) T[k] = Object.assign({}, o, { over: id, nf: 0, u: Date.now() }); else if (T[k]) { delete T[k].over; T[k].nf = 0; T[k].u = Date.now(); }
         save();
       });
       break;
@@ -2029,8 +2135,24 @@ window.addEventListener('storage', e => { if (e.key === LS_KEY && !UI.demo) { ad
 window.addEventListener('focus', pullFromFile);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) pullFromFile(); });
 
+// Se algo correr mal, mostra o erro em vez de deixar o ecrã preto.
+function fatal(e) {
+  const msg = (e && (e.message || e)) + (e && e.stack ? '\n' + String(e.stack).split('\n').slice(0, 4).join('\n') : '');
+  let raw = ''; try { raw = localStorage.getItem(LS_KEY) || ''; } catch (x) { }
+  document.body.innerHTML = `<div class="wrap"><div class="fatal"><h2>A app não conseguiu arrancar</h2>
+    <p>Versão ${APP_VERSION}. Isto não apaga nada: os seus dados continuam gravados.</p>
+    <pre>${esc(msg)}</pre>
+    <div class="bb">${raw ? '<button class="btn" id="fx-save">Guardar cópia dos dados</button>' : ''}<button class="btn" id="fx-reload">Tentar de novo</button></div>
+    <p class="note">Se voltar a acontecer, guarde a cópia dos dados e envie esta mensagem de erro.</p></div></div>`;
+  const sv = document.getElementById('fx-save');
+  if (sv) sv.onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([raw], { type: 'application/json' })); a.download = 'pool-monitor-recuperacao.json'; a.click(); };
+  document.getElementById('fx-reload').onclick = () => location.reload();
+}
+window.addEventListener('error', e => { if (!document.querySelector('.brand') && !document.querySelector('.fatal')) fatal(e.error || e.message); });
+window.addEventListener('unhandledrejection', e => { if (!document.querySelector('.brand') && !document.querySelector('.fatal')) fatal(e.reason); });
+
 async function init() {
-  initUpdateWatch(); initNetWatch();
+  initUpdateWatch(); initNetWatch(); checkLocalStorage();
   adoptDB(loadLocal());
   if (location.hash === '#exemplo' && !DB.pools.length) enterDemo(); else render();
   if (!FILE.supported) return;
@@ -2043,7 +2165,7 @@ async function init() {
   } catch (e) { console.error(e); FILE.state = FILE.handle ? 'error' : 'none'; }
   if (!UI.demo) render(); else updateStatus();
 }
-init();
+init().catch(fatal);
 </script>
 <script>
 // Modo offline (PWA): só em http(s); abrindo o ficheiro diretamente não faz nada.
