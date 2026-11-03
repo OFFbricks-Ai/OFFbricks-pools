@@ -34,7 +34,9 @@ button{font:inherit}
 .top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:4px}
 .brand{display:flex;align-items:center;gap:12px}
 .logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#4f7cff 0%,#a78bfa 100%);display:grid;place-items:center;font-weight:800;font-size:15px;color:#fff;box-shadow:0 4px 16px rgba(79,124,255,.35);flex:none}
-h1{font-size:22px;margin:0;font-weight:750;letter-spacing:-.02em}
+h1{font-size:25px;margin:0;font-weight:750;letter-spacing:-.02em}
+.focus{display:flex;align-items:center;gap:7px;margin-top:3px;color:var(--muted);font-size:13px;font-weight:600}
+.focus img{height:17px;width:auto;display:block}
 .subt{color:var(--muted);margin-top:1px;font-size:12.5px}
 .top-r{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--card2);color:var(--text);padding:8px 13px;border-radius:11px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s ease}
@@ -213,11 +215,26 @@ details.ev summary{cursor:pointer;color:var(--muted);font-weight:600;font-size:1
 .tw{overflow-x:auto;margin-top:8px}
 /* mostra só as últimas linhas; o resto fica escondido até se pedir */
 .tw.clip tbody tr:nth-child(n+4){display:none}
+.ktabs{display:flex;gap:8px;margin-top:16px;border-bottom:1px solid var(--border);padding-bottom:0}
+.ktab{background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);font:inherit;font-weight:650;font-size:14px;padding:9px 14px;cursor:pointer;display:flex;align-items:center;gap:8px}
+.ktab:hover{color:var(--text)}
+.ktab.on{color:var(--text);border-bottom-color:var(--blue)}
+.ktab .n{background:var(--card2);border:1px solid var(--border);border-radius:999px;padding:0 7px;font-size:11px;color:var(--muted)}
+.vtabs{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.vtab{display:flex;align-items:center;gap:7px;background:var(--card2);border:1px solid var(--border);color:var(--muted);font:inherit;font-weight:620;font-size:13px;padding:6px 13px;border-radius:999px;cursor:pointer}
+.vtab:hover{border-color:var(--border2);color:var(--text)}
+.vtab.on{background:rgba(79,124,255,.12);border-color:var(--blue);color:var(--text)}
+.vtab .n{background:var(--card);border:1px solid var(--border);border-radius:999px;padding:0 7px;font-size:11px}
+.ktab.on .n{color:var(--text);border-color:#3a4660}
 .evmore{margin-top:8px;display:inline-block}
 .fatal{max-width:640px;margin:48px auto;border:1px solid rgba(240,67,82,.45);background:rgba(240,67,82,.07);border-radius:14px;padding:22px}
 .fatal h2{margin:0 0 8px;font-size:18px}
 .fatal pre{white-space:pre-wrap;word-break:break-word;background:#0b0f18;border:1px solid var(--border);border-radius:10px;padding:12px;font-size:12px;margin:12px 0;color:#ffb3ba}
 .fatal .bb{display:flex;gap:8px;flex-wrap:wrap}
+.picks{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.pick{display:flex;flex-direction:column;gap:3px;text-align:left;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font:inherit;cursor:pointer}
+.pick:hover,.pick.on{border-color:var(--blue);background:rgba(79,124,255,.08)}
+.pick span{color:var(--muted);font-size:12.5px;font-weight:400}
 details.diag{margin-top:6px;font-size:12px;color:var(--muted)}
 details.diag ul{margin:6px 0 0 18px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
@@ -250,12 +267,19 @@ details.method b{color:var(--text)}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .f{grid-column:span 2;min-width:0}
 .f.half{grid-column:span 1}
-@media (max-width:520px){.f.half{grid-column:span 2}}
+@media (max-width:520px){.f.half:not(.dt){grid-column:span 2}}
+/* data e hora: caixas pequenas, sempre lado a lado */
+.f.dt input{width:auto;max-width:100%}
+.f.dt input[type=date]{min-width:9.5em}
+.f.dt input[type=time]{min-width:6.5em}
 .f label{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:12.5px;margin-bottom:5px}
 .f label .prev{font-weight:500;color:var(--dim)}
 .f label .prev.bad{color:#ff8a94}
 .f input,.f select,.f textarea{width:100%;max-width:100%;min-width:0;box-sizing:border-box;background:#121722;border:1px solid var(--border);border-radius:10px;color:var(--text);padding:10px 11px;font:inherit;transition:border-color .12s}
 /* Safari/iOS dão a estes campos uma largura própria que transborda a coluna: forçar o tamanho da caixa */
+.f.fcheck{display:flex;align-items:center}
+.f .chk{display:flex;align-items:center;gap:9px;cursor:pointer;font-weight:600;color:var(--text);margin:0}
+.f .chk input{width:18px;min-width:18px;height:18px;accent-color:var(--blue);cursor:pointer;flex:none}
 .f input.short{width:86px;min-width:86px;text-align:left;letter-spacing:.12em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 .f input[type=date],.f input[type=time]{-webkit-appearance:none;appearance:none;min-height:42px;line-height:1.2;text-align:left}
 .f input[type=date]::-webkit-date-and-time-value,.f input[type=time]::-webkit-date-and-time-value{text-align:left;margin:0}
@@ -276,7 +300,7 @@ details.method b{color:var(--text)}
   .m{text-align:left}
   .chev{position:absolute;right:12px}
   .pool-head{position:relative;padding-right:52px}
-  h1{font-size:20px}
+  h1{font-size:22px}
   .logo{width:34px;height:34px;font-size:13px}
 }
 
@@ -351,11 +375,22 @@ details.method b{color:var(--text)}
 const LS_KEY = 'poolMonitor.v1';
 const DAY = 86400000;
 const MIN_APR_DAYS = 1;   // janela mínima (dias) para exibir APR / ROI anualizado
-const APP_VERSION = 'V5.4';   // mostrada no cabeçalho, ao lado do nome da app
+const APP_VERSION = 'V7.1';   // mostrada no cabeçalho, ao lado do nome da app
 const NET = { online: false, busy: false, msg: '', ok: null, fail: {}, at: 0, csp: '', diag: [] };
 const diag = (fonte, res) => NET.diag.push(`${fonte}: ${res}`);
+// Tipos de posição: pools de liquidez (lp) e auto-farms (farm). Vivem em separadores próprios.
+const KINDS = { lp: { nome: 'Pools de liquidez', uma: 'Vault Comunitário', nova: '+ Novo', vazio: 'Nenhuma pool registada', onde: 'Exchange', ondePh: 'Uniswap V3' },
+                farm: { nome: 'Auto-farms', uma: 'Auto-Farm Vault', nova: '+ Novo', vazio: 'Nenhuma auto-farm registada' } };
+const kindOf = p => (p && p.kind === 'farm') ? 'farm' : 'lp';
+const K = () => KINDS[UI.kind] || KINDS.lp;
+// Separador principal (pool | vault) e, dentro dos vaults, o sub-separador (farm | com).
+const grupoOf = p => kindOf(p) === 'farm' ? 'farm' : (subOf(p) === 'posicao' ? 'pool' : 'com');
+const naVista = p => { const g = grupoOf(p); return UI.kind === 'vault' ? (g === UI.vsub) : (g === 'pool'); };
+const TITULOS = { pool: 'Pools de liquidez', farm: 'Auto-Farms', com: 'Vaults Comunitários' };
+const vistaAtual = () => UI.kind === 'vault' ? UI.vsub : 'pool';
+const VAZIOS = { pool: 'Nenhuma pool registada', farm: 'Nenhuma auto-farm registada', com: 'Nenhum vault comunitário registado' };
 const EV_SHOWN = 3;   // lançamentos visíveis por omissão (os mais recentes); o resto fica atrás de “Mostrar todos”
-const UI = { allev: {}, filter: 'todas', rede: null, exchange: null, sort: 'recent', open: {}, tab: {}, ptab: 'patrimonio', demo: false };
+const UI = { kind: 'pool', vsub: 'farm', allev: {}, filter: 'todas', rede: null, exchange: null, sort: 'recent', open: {}, tab: {}, ptab: 'patrimonio', demo: false };
 const FILE = { supported: typeof window.showSaveFilePicker === 'function', handle: null, state: 'none', name: '', last: null };
 let DB = emptyDB();
 let CACHE = {};
@@ -401,8 +436,8 @@ function parseNum(str, money = false) {
 }
 
 const poolName = p => (p.nome && p.nome.trim()) || `${p.token1 || '?'}/${p.token2 || '?'}`;
-const initials = p => ((p.token1 || '?').replace(/[^A-Za-z0-9]/g, '').slice(0, 2) || '?').toUpperCase();
-const TYPE_LABEL = { abertura: 'Abertura', atualizacao: 'Atualização', coleta: 'Recolha de fees', aporte: 'Reforço', retirada: 'Retirada', rebalance: 'Mover range', fechamento: 'Fecho' };
+const initials = p => (((p.token1 || p.nome || '?').replace(/[^A-Za-z0-9]/g, '').slice(0, 2)) || '?').toUpperCase();
+const TYPE_LABEL = { abertura: 'Abertura', atualizacao: 'Atualização', coleta: 'Recolha de fees', aporte: 'Reforço', retirada: 'Retirada', rebalance: 'Mover range', par: 'Mudança de par', fechamento: 'Fecho' };
 const NETWORK_IMG = {
   'arbitrum': 'data:image/png;base64,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',
   'base': 'data:image/png;base64,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',
@@ -465,6 +500,9 @@ function networkLabel(name) {
 /* ---------- persistência ---------- */
 function emptyDB() { return { app: 'pool-monitor', version: 1, savedAt: null, pools: [] }; }
 const validDB = d => d && typeof d === 'object' && Array.isArray(d.pools);
+const SUBS = { autofarm: 'Auto-Farm Vault', comunitario: 'Vault Comunitário', posicao: 'Posição de liquidez' };
+// Pools sem subtipo (criadas antes desta versão) contam como Vault Comunitário.
+const subOf = p => p.sub || (kindOf(p) === 'farm' ? 'autofarm' : 'comunitario');
 function loadLocal() { try { const s = localStorage.getItem(LS_KEY); if (s) { const d = JSON.parse(s); if (validDB(d)) return d; } } catch (e) { } return emptyDB(); }
 // Grava no navegador. Alguns contextos não deixam (navegação privada do Safari, armazenamento cheio,
 // a app aberta dentro de outra página): nesse caso guardamos o motivo para o avisar no topo.
@@ -506,7 +544,15 @@ const canon = o => JSON.stringify(o, (k, v) => v && typeof v === 'object' && !Ar
 // assinatura dos "dados cadastrais" da pool (tudo, menos os lançamentos; a abertura entra porque pode ser editada)
 const poolSig = p => JSON.stringify([Object.assign({}, p, { events: undefined, fmod: undefined }), p.events.find(e => e.type === 'abertura') || null]);
 function rebase() { BASE = new Map(DB.pools.map(p => [p.id, { sig: poolSig(p), ev: p.events.map(e => e.id) }])); }
-function adoptDB(d) { DB = d; TOMB = Object.assign({}, d.tomb); rebase(); }
+function adoptDB(d) { DB = d; TOMB = Object.assign({}, d.tomb); rebase(); if (typeof focarVista === 'function') focarVista(); }
+// Ao abrir, mostra o separador que tem posições (evita abrir numa lista vazia).
+function focarVista() {
+  if (typeof grupoOf !== 'function') return;
+  const c = { pool: 0, farm: 0, com: 0 };
+  DB.pools.forEach(p => c[grupoOf(p)]++);
+  if (c.pool) { UI.kind = 'pool'; return; }
+  if (c.farm || c.com) { UI.kind = 'vault'; UI.vsub = c.farm ? 'farm' : 'com'; }
+}
 // Chamada em save(): compara com o último estado conhecido para registrar exclusões e edições.
 function stampChanges() {
   const now = new Date().toISOString();
@@ -716,18 +762,18 @@ function csvCell(v) {
 const toCSV = rows => '﻿' + rows.map(r => r.map(csvCell).join(';')).join('\r\n');
 const p100 = x => ok(x) ? x * 100 : null;
 function exportEventsCSV() {
-  const rows = [['Pool', 'Rede', 'Exchange', 'Estado', 'Data/Hora', 'Tipo', 'Valor informado (USD)', 'Fees informadas (USD)', 'Valor atual após (USD)', 'Capital investido (USD)', 'Fees pendentes (USD)', 'Fees recolhidas (USD)', 'Fees totais (USD)', 'Variação do capital (USD)', 'Ganho total c/ fees (USD)', 'Capital médio (USD)', 'Dias decorridos', 'Variação (%)', 'ROI total (%)', 'APR fees (%)', 'ROI anualizado (%)', 'Referência do hash']];
+  const rows = [['Pool', 'Tipo de posição', 'Rede', 'Exchange/Plataforma', 'Estado', 'Data/Hora', 'Tipo', 'Valor informado (USD)', 'Fees informadas (USD)', 'Valor atual após (USD)', 'Capital investido (USD)', 'Fees pendentes (USD)', 'Fees recolhidas (USD)', 'Fees totais (USD)', 'Variação do capital (USD)', 'Ganho total c/ fees (USD)', 'Capital médio (USD)', 'Dias decorridos', 'Variação (%)', 'ROI total (%)', 'APR fees (%)', 'ROI anualizado (%)', 'Referência do hash']];
   for (const p of DB.pools) {
     const r = compute(p);
-    for (const s of r.snaps) rows.push([poolName(p), p.rede, p.exchange, r.st.closed ? 'Fechada' : 'Ativa', fmtDT(s.t), TYPE_LABEL[s.ev.type], s.ev.valor, s.ev.fees, s.valor, s.investido, s.pend, s.col, s.feesTot, s.varCap, s.ganho, s.capBase, s.days, p100(s.varPct), p100(s.roi), p100(s.apr), p100(s.roiAnual), s.ev.hash || '']);
+    for (const s of r.snaps) rows.push([poolName(p), SUBS[subOf(p)], p.rede, p.exchange, r.st.closed ? 'Fechada' : 'Ativa', fmtDT(s.t), TYPE_LABEL[s.ev.type], s.ev.valor, s.ev.fees, s.valor, s.investido, s.pend, s.col, s.feesTot, s.varCap, s.ganho, s.capBase, s.days, p100(s.varPct), p100(s.roi), p100(s.apr), p100(s.roiAnual), s.ev.hash || '']);
   }
   download(`pool-monitor-lancamentos-${today()}.csv`, toCSV(rows), 'text/csv;charset=utf-8');
 }
 function exportPoolsCSV() {
-  const rows = [['Pool', 'Rede', 'Exchange', 'Token 1', 'Token 2', 'Estado', 'Abertura', 'Último lançamento', 'Range mínimo', 'Range máximo', 'Capital investido (USD)', 'Valor atual (USD)', 'Variação do capital (USD)', 'Variação (%)', 'Fees pendentes (USD)', 'Fees recolhidas (USD)', 'Ganho total c/ fees (USD)', 'ROI total (%)', 'APR fees (%)', 'ROI anualizado (%)', 'Capital médio (USD)', 'Dias (até ao último lançamento)', 'Observações', 'Endereço da pool']];
+  const rows = [['Pool', 'Tipo de posição', 'Rede', 'Exchange/Plataforma', 'Token 1', 'Token 2', 'Estado', 'Abertura', 'Último lançamento', 'Range mínimo', 'Range máximo', 'Capital investido (USD)', 'Valor atual (USD)', 'Variação do capital (USD)', 'Variação (%)', 'Fees pendentes (USD)', 'Fees recolhidas (USD)', 'Ganho total c/ fees (USD)', 'ROI total (%)', 'APR fees (%)', 'ROI anualizado (%)', 'Capital médio (USD)', 'Dias (até ao último lançamento)', 'Observações', 'Endereço da pool']];
   for (const p of DB.pools) {
     const r = compute(p), c = r.cur; if (!c) continue;
-    rows.push([poolName(p), p.rede, p.exchange, p.token1, p.token2, c.closed ? 'Fechada' : 'Ativa', fmtDT(c.start), fmtDT(c.last), p.rangeMin, p.rangeMax, c.investido, c.valor, c.varCap, p100(c.varPct), c.pend, c.col, c.ganho, p100(c.roi), p100(c.apr), p100(c.roiAnual), c.capBase, c.days, p.obs, p.endereco || '']);
+    rows.push([poolName(p), SUBS[subOf(p)], p.rede, p.exchange, p.token1, p.token2, c.closed ? 'Fechada' : 'Ativa', fmtDT(c.start), fmtDT(c.last), p.rangeMin, p.rangeMax, c.investido, c.valor, c.varCap, p100(c.varPct), c.pend, c.col, c.ganho, p100(c.roi), p100(c.apr), p100(c.roiAnual), c.capBase, c.days, p.obs, p.endereco || '']);
   }
   download(`pool-monitor-resumo-${today()}.csv`, toCSV(rows), 'text/csv;charset=utf-8');
 }
@@ -755,6 +801,7 @@ function compute(p, upTo = Infinity) {
       case 'atualizacao': s.valor = v; s.pend = +e.fees || 0; break;
       case 'coleta': s.col += v; s.pend = Math.max(0, s.pend - v); break;
       case 'rebalance': s.valor = v; s.col += (+e.fees || 0); s.pend = 0; break;
+      case 'par': if (ok(e.valor)) s.valor = v; s.col += (+e.fees || 0); s.pend = 0; break;   // o agente trocou o par
       case 'fechamento': s.valor = v; s.col += (+e.fees || 0); s.pend = 0; s.closed = true; s.closeT = t; break;
     }
     snaps.push(Object.assign({ t, ev: e }, metrics(s)));
@@ -827,8 +874,11 @@ function timelineIssues(P, evs) {
 function editPatch(e, v) {
   const nv = { t: v.data + 'T' + v.hora };
   if ('tipo' in v) nv.type = v.tipo;
-  for (const k of ['valor', 'fees', 'rangeMin', 'rangeMax']) if (k in v) nv[k] = v[k];
+  for (const k of ['valor', 'fees', 'rangeMin', 'rangeMax', 'token1', 'token2']) if (k in v) nv[k] = v[k];
+  if ('pApr' in v) nv.pApr = ok(v.pApr) ? v.pApr / 100 : null;
+  if ('pPnl' in v) nv.pPnl = ok(v.pPnl) ? v.pPnl : null;
   if ('hash' in v) nv.hash = v.hash || null;
+  if ('nota' in v) nv.nota = v.nota || null;
   const patch = {};
   for (const k in nv) { const a = e[k] == null ? null : e[k], b = nv[k] == null ? null : nv[k]; if (a !== b) patch[k] = nv[k]; }
   return patch;
@@ -839,7 +889,9 @@ function validateEdit(P, e, patch, now) {
   if (!isFinite(t)) return 'Data ou hora inválida.';
   if (t > now + 5 * 60000) return 'A data não pode estar no futuro.';
   if (['abertura', 'aporte', 'retirada', 'coleta'].includes(nx.type) && !(nx.valor > 0)) return 'Informe um valor maior que zero.';
-  if (!num(nx.valor) || nx.valor < 0 || (nx.fees != null && !(nx.fees >= 0))) return 'Os valores não podem ser negativos.';
+  if (nx.type === 'par' && !(String(nx.token1 || '').trim() && String(nx.token2 || '').trim())) return 'Indique os dois tokens.';
+  if (nx.type === 'par' && ((nx.valor != null && !(num(nx.valor) && nx.valor >= 0)) || !(nx.fees >= 0))) return 'Os valores não podem ser negativos.';
+  if (nx.type !== 'par' && (!num(nx.valor) || nx.valor < 0 || (nx.fees != null && !(nx.fees >= 0)))) return 'Os valores não podem ser negativos.';
   if (['atualizacao', 'rebalance', 'fechamento'].includes(nx.type) && !num(nx.fees)) return 'Preencha as fees.';
   if (nx.type === 'rebalance' && !(num(nx.rangeMin) && num(nx.rangeMax) && nx.rangeMin < nx.rangeMax)) return 'O range mínimo tem de ser menor que o máximo.';
   if (nx.hash && !/^\d{1,4}$/.test(String(nx.hash))) return 'A referência # deve ter no máximo 4 dígitos.';
@@ -855,6 +907,10 @@ function validateEdit(P, e, patch, now) {
 // Grava os campos alterados no lançamento e, se for um rebalance, atualiza o range atual da pool.
 function applyEdit(P, e, patch) {
   Object.assign(e, patch, { m: new Date().toISOString() });
+  if (e.type === 'par') {
+    const pars = sortedEvents(P).filter(x => x.type === 'par'), last = pars[pars.length - 1];
+    if (last) { P.token1 = last.token1; P.token2 = last.token2; }
+  }
   if (e.type === 'rebalance') {
     const rebs = sortedEvents(P).filter(x => x.type === 'rebalance'), last = rebs[rebs.length - 1];
     if (last) { P.rangeMin = last.rangeMin; P.rangeMax = last.rangeMax; }
@@ -862,19 +918,22 @@ function applyEdit(P, e, patch) {
 }
 /* EDIT-PURE-END */
 function editEventForm(P, e) {
-  const [d, t] = splitDT(e.t), hf = Object.assign(hashField(), { value: e.hash || '' });
+  const [d, t] = splitDT(e.t), farmP = kindOf(P) === 'farm';
+  const hf = farmP ? null : Object.assign(hashField(), { value: e.hash || '' });
+  const nt = () => notaField(P, e);
   const dt = [{ name: 'data', label: 'Data', type: 'date', half: 1, value: d, req: 1 }, { name: 'hora', label: 'Hora', type: 'time', half: 1, value: t, req: 1 }];
   const val = label => ({ name: 'valor', label, type: 'num', value: e.valor, req: 1 });
   const fees = label => ({ name: 'fees', label, type: 'num', value: e.fees, req: 1 });
   const rng = (name, label) => ({ name, label, type: 'num', money: false, half: 1, value: e[name], req: 1 });
   let fields;
   switch (e.type) {
-    case 'abertura': fields = [val('Liquidez Inicial (USD)'), ...dt]; break;
-    case 'atualizacao': fields = [hf, val('Valor Atual (USD)'), fees('Fees Acumuladas (USD)'), ...dt]; break;
-    case 'coleta': fields = [hf, val('Valor recolhido (USD)'), ...dt]; break;
-    case 'aporte': case 'retirada': fields = [hf, { name: 'tipo', label: 'Movimento', type: 'select', value: e.type, options: [['aporte', 'Reforço (adicionar liquidez)'], ['retirada', 'Retirada parcial de liquidez']] }, val('Valor (USD)'), ...dt]; break;
-    case 'rebalance': fields = [hf, val('Valor da posição após o rebalance (USD)'), fees('Fees recolhidas no rebalance (USD)'), rng('rangeMin', 'Novo range mínimo'), rng('rangeMax', 'Novo range máximo'), ...dt]; break;
-    case 'fechamento': fields = [hf, val('Valor final recebido (USD)'), fees('Fees recebidas no fecho (USD)'), ...dt]; break;
+    case 'abertura': fields = [val('Liquidez Inicial (USD)'), ...dt, ...nt()]; break;
+    case 'atualizacao': fields = [...(hf ? [hf] : []), val(kindOf(P) === 'farm' ? 'TVL Atual (USD)' : 'Valor Atual (USD)'), fees('Fees Acumuladas (USD)'), ...(kindOf(P) === 'farm' ? [{ name: 'pApr', label: 'APR da plataforma (%)', type: 'num', money: false, half: 1, value: e.pApr != null ? e.pApr * 100 : null }, { name: 'pPnl', label: 'PnL da plataforma (USD)', type: 'num', half: 1, value: e.pPnl }] : []), ...dt, ...nt()]; break;
+    case 'coleta': fields = [...(hf ? [hf] : []), val('Valor recolhido (USD)'), ...dt, ...nt()]; break;
+    case 'aporte': case 'retirada': fields = [...(hf ? [hf] : []), { name: 'tipo', label: 'Movimento', type: 'select', value: e.type, options: [['aporte', 'Reforço (adicionar liquidez)'], ['retirada', 'Retirada parcial de liquidez']] }, val('Valor (USD)'), ...dt, ...nt()]; break;
+    case 'rebalance': fields = [...(hf ? [hf] : []), val('Valor da posição após o rebalance (USD)'), fees('Fees recolhidas no rebalance (USD)'), rng('rangeMin', 'Novo range mínimo'), rng('rangeMax', 'Novo range máximo'), ...dt, ...nt()]; break;
+    case 'par': fields = [...(hf ? [hf] : []), { name: 'token1', label: 'Token 1', half: 1, value: e.token1, req: 1 }, { name: 'token2', label: 'Token 2', half: 1, value: e.token2, req: 1 }, { name: 'valor', label: 'Valor da posição após a mudança (USD)', type: 'num', value: e.valor }, { name: 'fees', label: 'Fees recolhidas na operação (USD)', type: 'num', value: e.fees }, ...dt, ...nt()]; break;
+    case 'fechamento': fields = [...(hf ? [hf] : []), val('Valor final recebido (USD)'), fees('Fees recebidas no fecho (USD)'), ...dt, ...nt()]; break;
     default: return;
   }
   openForm({
@@ -1163,7 +1222,8 @@ function updateBannerHTML() {
 }
 
 const poolR = p => (CACHE[p.id] && CACHE[p.id].r) || compute(p);
-const activeTokens = () => tokensInUse(DB.pools, poolR);
+const kindPools = () => DB.pools.filter(naVista);
+const activeTokens = () => tokensInUse(kindPools(), poolR);
 const cgKey = () => { try { return localStorage.getItem('pool-monitor-cgkey') || ''; } catch (e) { return ''; } };
 const pmErr = m => Object.assign(new Error(m), { pm: true });
 async function netFetch(url) {
@@ -1202,7 +1262,7 @@ async function fetchPairs(pools) {
   for (const p of search) out[p.id] = pickPair(await dexGet(dexSearchUrl(p.endereco)), p.endereco) || false;
   return out;
 }
-const poolsToCheck = () => DB.pools.filter(p => { const r = poolR(p); return r.cur && !r.st.closed && isPoolAddr(p.endereco) && (ok(p.rangeMin) || ok(p.rangeMax)); });
+const poolsToCheck = () => kindPools().filter(p => { const r = poolR(p); return r.cur && !r.st.closed && isPoolAddr(p.endereco) && (ok(p.rangeMin) || ok(p.rangeMax)); });
 function netMsg(e, who) {
   if (e.pm) return e.message;
   if (e.name === 'AbortError') return `A ${who} demorou demasiado a responder.`;
@@ -1283,7 +1343,7 @@ async function updatePrices() {
   if (pools.length) { try { pairs = await fetchPairs(pools); } catch (e) { msgs.push(netMsg(e, 'DexScreener')); diag('DexScreener', e.pm ? e.message : (e.name || 'falha') + ': ' + e.message); } }
   const nPairs = Object.values(pairs).filter(Boolean).length;
   if (n || nPairs) {   // verifica o range de todas as pools abertas
-    DB.rcheck = checkRanges(DB.pools, poolR, T, t0, Date.now(), pairs);
+    DB.rcheck = Object.assign({}, DB.rcheck, checkRanges(kindPools(), poolR, T, t0, Date.now(), pairs));
     const cs = Object.values(DB.rcheck).filter(x => x.why !== 'sem range definido'), cIn = cs.filter(x => x.in === true).length, cOut = cs.filter(x => x.in === false).length, cNa = cs.length - cIn - cOut;
     if (cs.length) msgs.push(`Ranges: ${cIn} dentro, ${cOut} fora${cNa ? `, ${cNa} por verificar` : ''}.`);
   }
@@ -1337,7 +1397,7 @@ function tokensHTML() {
 
 function headerHTML() {
   return `<div class="top">
-    <div class="brand"><div class="logo">PM</div><div><h1>Pool Monitor <span class="ver">${APP_VERSION}</span></h1><div class="subt">Liquidez · ROI · APR · offline</div></div></div>
+    <div class="brand"><div class="logo">PM</div><div><h1>Pool Monitor <span class="ver">${APP_VERSION}</span></h1><div class="focus">focado em <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ4AAAAwCAYAAADgk8PlAAAeUUlEQVR42u19ebyVVbn/91nr3cPZ+0zM8yiITIphJo6gpRnmkIF1HfKnadpwy1JLsw7ET9Osiw1mlgM5dPXgRTE1tRQyFXFmFhGQGTnAmfa837W+94+9XnjZngMHxFsm6/PZnz2cd1zru57n+3yfZ70H+JAbSXHv/aY0LXnvxG1z+ZOmJc8sZOa7JEdEd9m4XtezXgf7HGgH2j63OaQHUkh+blLLy8TmB0286UkOT83hf7S83jw99e6sRSx+gWSn8H6TSL0/wU9Scz8e80D7YO1DsywkZQqgp4r47vvpX0q/MXtmbp1VNg5f8gCNqkxU4mDEMSIf3Tou2fuRybG+93cFXhOR1g94fuXujyJiDwz1vznwBMAXST1TxDgAdAKQAvCZL6fffPyBzBrrIa4sCCWktcZaawVRpWorKjC0oDHa6/LO6fG+vzlDd/oDgKyI8AOCMAngEwBGA5ghIpkDQ//PbWp/Hqye1AQwU8SQHHZHsWH6pNZX3vh15t1pALJUJZwTgAVgCIEorXVEeb5iU2vavJJrtHcVlw+ZhfW3AOgHAHUl67W3YBtJ8pskHwKwCMBzAK4H4IW554H2z2ne/gFcvZ48ZQknlwAXnY/c+RemF0yZU5Hpuy5ZQDbVMOhbGBjxd0CuDCQgKBClPA3S9I5UYaxfe7v2ZLktgQRTO+jeRYQkIwAeADCqbJNtDvcH2kcZeCRFAJksYhJQeIf84o8zK374mH1vzBumEdgquXhtTdQXKexpwAWApTWRpKcvtP3nXBcfeJkhhwLYKiKN+3iJxiFdAGj3OgC8jyrwSMpMQEmJx5Hk0XcXN111bnremXNtI5i1VokWCiIGVGoHl1TtenehkKT6qj0oPy158Bcm57PnnlNYdteggl1A8mQRaQos2l5cqg7x2AOu9aMMPJLKRYmGZOUTfvO081pf/86j0oDWVIbQMYqKKAsCLJkbu8Oltj32msKiFOwpuo/81Bt6FoChNxTf+lV98d3osZEuYxzXawqi1APD9q/dHH9uy8LsUBi8vQHceMxVIuKTjL0LnHthdsG3n5Vth65LbSUiSau8Cm0BYbvYYBvRjaCIojmySz/ve2bIVdUR7+mp6bfX/g83dFYFXWyo9CLPmewpABbNPGC1PhpSSckrmQ9u8XZaOUvyqOmZVb99AA2Hv5rfBpsvGs9Lah/QdgedknZiZ77vZ59F0ytR412e6Xn36VU1P78+veZPv4pt6F1sMT60kgYU8XJ2Uw8AuBVzDwDvX9zSueBuAID/H+LUFkAEwF9F5E6SygOASazXMzGJ9YBMAuz7eJSIJTnq9uy6i05qfO5rL3rZRC6TNVqi4ilP+8KdWGMZwHY5lAIoDpsErW+qY3F9gen1l4tr+1w0K91w/bXe21/e3tLie4h5BEyrn8c6yQ2Mi8LfMfeAEPwvbuzc4HcDcF47wd6dAMQDgJky2QDA5JAet8ShZwrApwvbLvpGfvlvHvE3xDcWWxApRmxUR7UBYbg3lIshCJKWRf3/ZEjmxuqDLzo3n598hV1w7dLURhMxFdpqQlOpQjaHLTp3UtaabiLSsA8BxoFWRpkCl+SCww+j+QByzqMGbtdDKZFQcrUkvQfNxm+mfe+os2PdZ9UAT4pIS+kq69QUTBlyp7/qjvrcO4CfyMVUNEJQ233i+ATEQAMsSM6eHu+vr64efgqAnjfat257JrfeKhNVvoKoHdtrLC+0xJA6wO8+INgUAPN/lD4UB7QAeMF3FaZZ3e5Jr667wi4457TG+Q/+ML3q5VlNG68jOVjLVCsiK46WHr+aHBnqD67tHC/ElC5YYynKKAgVZC8RISjYrBnXeZD+XsUhN/QGXrwys6J+Vm5dZ5UHoJRIqbNAgcCnzUQjFfOl5RQAmLmfsy0fE7JvRcR3/Ks/yXNJ/oZk91AU+n8rp2SBgVtFoi2ZrHneZOR51Tisj5eYdm/r+quvbV5af2ZiwBOf8BI//Db6/9fjSJ3x1+J7l75W1TJykaTQnGkGisYopUVEFNuMW3f8qgCxQLE4qLZX7Bu53nd9JlH1w5tSa+6fIWuH5vJZX3TMo+OIIgKSEIhtqLDeAqZGO+B92Jah3cH7CEsbRwD4LICTABwKoBOAIoAb/2k63nbf7wIiIZbUXkSM8e0Gv5kPY3vVkzU1Fz9hWi8emdIbj0/0mH1xtO+vJyYrf5sCjv19+t3LX/EqJy6szieXFZrBVMZCRem8pOx0xTvSZBkVFRWrScYuK/ab/5+VfS9+KL3lhu9HVvzHtqaU8VTcM7t2GCwEGkqaTQHv5LcdXsqUTOGHNUD/plUsAuCPAIaXkfzGf6Ym6jXA/2SrGJCkgRUCSpQCqJhNZe1rphWvKfZ+SqUuv695zeWjVc2z46Ldb/tucuC3gIFXvgT/yFnZd76+vMacOA9NaEhtAygGSkNTKCQqoZIA5h1RTNx/sAztcXVywOmn5JrPviryzjXLGrf4USkFKm31gyZUPl/EJmVHAugKmbrfA4yQDDASQA12at7iPscBvAYgXaYVMXwdIZe1O9fFPV27O47sab8yF9neOZW7B991sA69JAg2WOoEuxsxuC3xXlBSQfZ6wnqNKCaKWgBRO3RfBge11Fo8wJDvNbWa94zv/aMyd+KTaD3xse3rM4Nitfd8PTn4vp9VHXIBgMEz0hvPei1W/bX5XiaxUBqRb8kQRhsDqqiID6jzCIvryeE/Li6d/tfcZhtlVFmBiOOKLIuSrVDgW6zV6VoAPQA0YD9mMEhqKRU3nARgtgNZMPBBNPYkgNPcwLM9Fx0agA90be2dpwwI5VFpe+e0JK27D4tdha/8HsBmOyIGtzNRdg+8lV7GpIzZuR8BuMEvwbk02TThQUVh0wW7AlmuEJuo8lKX/a3QdNlhGb3+M/FeMy5M9r79QvS+tRn4xG/TK895IdJwypqKaOXh2Rr8BUB+zo88jp9Se0XLgj89ozb28zLW2khEtX3NBMWCIoCh2VqlK+aZ9KkAFk/BXIW2ylz2jdNZkt0A3AEg6Y4bHN8DsAbAhQD6kPRC59UAsgA2B4Pn6v46tSPM0x03JyKb9nBdPQBUhs6l3OCvl1JhbVDrGHHbVYasUlsWL9ZO8uAgkgnszGlvEpFMGGwk+wI4DMAIAP0BdHXbvgdgOYB/iMii0qa79M8eOF46FcmjCLAk9Sq+rxdC04kQgVJQEGi2NqfsfDbJ/LjX9/FI5rrbG9/9wXGR3o+d5iWfuSZ50FeBg7o8i+zYMVovWVxfr2dOmOw/nLv8a7OqW8akN7ca6EoBYSJQgEAUqABbKpPacX4LKHKzzmJetqErAMzdrwGfWJK3ARjoOluHIqIigC87N/WWU98D0hoF8HcR+axz0T8EcKxz1e1VwQiALMkJIrI4lPcOu/vOAF4A0Nedn+6880TkRAfuswFMBDASQPeQlW6P41WEQBi0WgDPlGUWvgjgcZLVTgA+G8BYd0/ttSLJJwB8X0SWd9jiRcUbmykUAOm4paSzRyLQWkWBIrmhqdFsoPGej6bOfNDqM8flOv/oc6rHD86O9bgbKBVzkpS/+00vntpavXB5dPDwjdUqstUU0GIMfFsEsnkA1kJKqRBFKBGRiGjVlGlBjvkvkLxBIC37gedpl3f+sutgP2SpAhd7tYjMIzkMQMKBbReh1IFujlPrO9J1SQCnAVgcsqxhqzYOwEHut7Cl+iPJ4wD8AcCw/TTxEmXfg/s7DsCtYXCVuWmE6EgEwBkAPkVyooi8jg5IXl6TzcZJ7FP6XZcmCwFFTSWGYnP5vFrKLDZ1YfeR2cpzSd4zZe5cmSriu2LOOUl4h6VY7DPHpI5dj8wZ8/2G/pttrkcqboesiRbVZptDizUwfhGmmCcQIYwxb0pTDwAxCNhuqUvHm3Uu7RchNxgG3UMApjt3XHDAjISsYbD9dAe6XDsuVsqOrQF8xkkZbXGnU0Nqf+A+17j9nnbWzS/jam252fCoyh5SSQG9CEsRgbWNuvve3f5FAD0B3EtyjLv23Y6PtxYZ42sF8QkKHacLQTqcdg1Gm6QvsNYaQEGjIiE10SS6wkO35nzrIYk+S09Kd311QrL3TQJYjh+PqdhZOJoCuq0Hhk3QlY939To92AofCXhoZHHYrNyWQWnjX7RUZWtXmW0jtyd073WS05tjeTQ2ZT3X6ftFOiF5M4BeIUBY974cwCUhVxye4WGXNcEBwbj3Pc/V0jGOJDlARNYEkakLcCoAnFwGVgGwBMBVIdB1pLhD9mIbKbs/hsC23rn+he6zcdLMRa7vgm19xwPPBPCqu9f2gddsGbFUkDYmn5Q6BACsIQhaAYsCrSWRrNK9JIr+KbCbTb4+1tasOMrrft/x3ZJzAOQiItZHKe8buBMBEBNtv9X4Wv0rCf/4Hs1++pyWN7b0QHz+oEhyzkJg4Rfi3RcmRCYrACmyoggc9kh+W68Wkz+jS0wtA9ASRKL7KiE5LjURwPllvA4AMgDOc4WnAVlmB1zVIgCr3OwPwOk7Yj4sZIGMCwZOBHB36NwGwOHOzTIEhJwLYg4OBTwMEfxfAHjd7c+y4TPudY87brh8qAXABQC2hCxmwNEiAN5xVvlhEdnexuR9EMDfnLVnSGmYCOCNMov7/kGwvoyBLUCUKIhASDiIWWstAF8hFlOJWAW66BiGFKowsCDbD7Vdnv1kNPnMMV1r/uwGoN+T+dbaKdkVd6VgDvl7PvvLY2648Y+TQwCpw1w9hYbTmpY2Ly40YL6fqkAxMqg6nhjUSce+1DW7FgMyKndWy+tvHK1qcw8Wtsw4Jtp97aRYlxcrRR5O7x8xteDI86/KZn3gYq8QkVc7EKExBJgrAPxeRIptDNCEEIkPD8QpDnjh308OATYAwyIAa0McECHLfKmIPNoBC9/WqroCgOdFZFsbf5sH4MhgyYHrCxPm1CKyiOQDAP6z7HpHucje342LhtdaSEWUIpUo6yuC1ihoSCRRpbtHYuiR8dHPRFePMp3eGMOah7+Y7LUMSbQCiL+AwvBpqaU/2kD/5DVRPWiZSmOLyiJeEcPhheYvRqb+5O7F5OcOBl4Wka1TZYLvXO4lFZnKp6dVv31oOpX2UyYjLZLBGmvkNSVxUfFxj0gjeviJCf2KG9E3a/OXppa/PrAYXTi0ttM/jkHNqurSMffW6mkRyZD8BYDBIWsXgO5OEfk9Sc8FHrsjycHg/5eI3MpS8KTaIN/POzd1WIhLAcDxJLuIyDa34Fw5fhcWfRWAP4esCcsmy9kk5wRrkN2CdR0CaMD/VDuTMEmyKTyRRIQi0lAW+vskq13E3ctF3EMAHBW63uCaOrmX2S3wNkULsEVKrKpCd7GC/iaKAbaipb+p+tvRqHn97OpuMwFsBjDwVfh9p2dWnf5GtuGkzWKPWVct2BRNoTmdBjLGQiIAjD1UeutzEj3+sL51+c8uw1tXnZ2t/p0CLr9121uTqyo7jQQw9cpE/1M35ApP/Tq2dBQKNFFoTdEgSZsxNkOD1czIalhAq5jY2LjO0di4ysyqrx0b644f4eDzAdxXT+rJHQdgI8mT3Sy1ZbxuAYArHADMHvhSkAFIAbg1UP/LJ4IDcJHkPWVBjHUDeAyAR53rH+7AGZwvcMH3Axhfdg1BIHABgCNI3o1SVdHikP6mQvy0vWYct9yhEJR9Huci1qMADHASTG07WiFD+qDak4jufY49th+sspW9peKZE9B57fHVfep7lkx7UyMw8tfplZPXIH/qykL66Lc7KWyOZdDEDGwuA2xXRlEQEyUQURba2sqY17/Al70EGpfr/FVzUm/bsTK6pyGrz2t+5c7nolsrG/I84dqKvuObbfGbsPapWwpLYjAklCdWIAC1EkBEQVCS9my2yG0ocBsKvq+82PmqMAwAlnSsKjnYphuA20I8KXBzzQDOEZFWN2B7kmmC/VYAWOcGuK3rCID4AIAfuUFjyJp9BsCjoUAlFtpHA3hFRFY5V1cIZR9UKJ03AsDNAK4n+QKAGQAeEJEC93I9ckhL7ALglwDO3c29f7Bc7c1dRo8FkPRElvzW/fhUPjVmpl09/1Xb3HlTvIgt+SxocsBWZSAKCpCIRBW11cZaFEAIBBawvWNVajx7PLLYmJ7zkaZSCeWTeQBxK2LXbd5optfqE25KvfuHhMgljUV+fmtlftZ9rcsrPSoLUaqcRLlsmngQGETQ28TtiEh0NQCMxHjuBfAqnRhavk/MzejlHezUYP/GcotRnvpyQN5I8lFnocLu9tMk4yKSA/C5Ns5zvzv22ySvBfDzQD8MuVAbErQnuNe3SH5LRF5yoO1oFQtI1gB4AsCR2HWtlhe691YX2FSGItu9akpE3hWRJYZ1qm7x4mg963Uvo4Yuj2c6v5lZXXivucWXrG8jEqEWrRWUBpSyEFgoUDQoGhANiNEHpbX/9eTAx+pzG05bbdICEHn4CgA1IOLF9drmbcVbueqrd6U23FYVkb9enxh91hmVg7O+KlDtzjcQpKd1Pp9r7Kej/wMAkzqWogm2WQng6pC1CLhTHMDdJHs7fW9/1vyJG9S7y6JVumh3BMlal/UIu9kWALMceLWI/MJJPO9h16JKWxYZ+yiVQT1F8hMuxaY6MDEDS3+lA10hdC2es8znADgapdKq0S5axp5yuW0Cry4gxTLV/mTUqMIkTOLoiopHr8z0n3p09UFR2IISgVglQggsd74ABSUCJQKIMiqZkKE2Ph/AxhcKG07J5lqptYZx16XEA2ERUdpbntlqpmPlZY9mtlw3QORvv4gfds1ZyaHaN0WXuSgtz7ChF6WU2BjMhMa+FYR2AfB7R9h1SKQ1AHq7yLSUOexYceQeZ3qI9z3vZA8VAok4/jYOQHWZJPJXEVnnLKZx73c4HvgDAG+GLJGEeKfnJJ1qADe7gIN7unZ3jjiAL4Vkm2ByzhCRM0SkXkTmi8gaEcnjAxTlqqml6lS7IwQqfc+fnew1ZZqMunasqlXG5iAkAYFQACr3KoGPULA06F1Rjc9XDHjimcKWz6+vRDdQilCCojM4UVEACSsWWmL6jXSTf2N847Tnci1XD/G8X34nMuTqo2r6acu81W2MOwFKxEN3r2I1gEypXnSv0mbBQa9wgUF4wHwAE0le2UErsdfpOZTq4sp50nFO+yqPWO8Pqj4CC+ws33sicpOzSscC+BmATW0QfDpAD3JaYHmLuAmmAASPcBvgIlZVJijfQ9IjGXfvQSrv0L0QqxGSZjzVpjhFik/qk6LVP52aHHPVMfEe8JmjoG0/6FEA+GpEGukzYzVPPJLZ/KU1JkVoD8ZY+NaPAdi+Lt+6GvEYLMQasYhC6Re3rjI/Liy7YYHvf+WEaOLmG/SwOw6t6KKLKuuL7DorCdDzPPSMxlfGRPKYUre3JNcAqBSRlQDqynKlgQWcRvKTzlLtL/AF53gIpQLM8BMODkepOjicFVkL4Bk3qazsNA4kGSEZEZGiiLwgIt93AHu57FzieF/XMj0yoBnVAA5yxy66+42X5YeD/h/sSudz7j1P8rMAPh2auB3qh2B/1Y57IESZsa++Gjkt3u3nN0Q+8d0Tq/orI3lqgOU17iRMtDIpQ4uRZwEUl+jCp/OpDLSlllLZiVSLmCKZhdKhu6d4iKq52Y3qB4WFd68mLzopXnXJdTz43kG13TwrORMeIQqZiMQAcmkBwAnjx+8LMHxnSX7tUkE65PbEdf4MklXYTzV/LurVrhxqdhlABoSKAoLzzRaRFgcwkjyL5LEhkBTLjr/GFe1IGyBrdWBvy/pPJzmO5GAHpB4oPbGhXCaZRvI0kr1IDiB5MYD72pmYbCdVCOdRbiH5e7U7+vL6EUcUT5gzx5sQr7rlZ9Gxlx4X6y1GclShg0tpJNHfq8KZtYPuv7Nl7SeXxfMaCBaiyY5R1SI7I1ZKyUVDxEMEf0m/y7rs0js3khPPq+55wTX+wQ/2T3T1DHxftHI8kqiVGD6V6K0AYPz4fQYC3eB9E0C+TGw1TqKYHkSs2L8l4jN2YyWCSfDfZS7sVADPkXyI5HkkR5HsRrIzyaEkL3OBB7HrIuqtTvJZFvotnGseA+BFlKqr/wKgCsDSUDQbTMZejhe/6cTwOxxfbqsAVDvw5tqgOH0AfBvAJWpPzPnvEyb4x82Z4x0h3h9u8kZ99+TK/srXWSsCCymxPiijR+TjmU+jZtE/uPX8rSZfIl+l9DdyzkEHSxbLM9NWRLSJyD1Nb/Ga1KL/biKP/WZFzy99g4Me6l5V69liwWgIQJFORYt+hQ7Vfdl2XmFx900AN4U4ng2lky4meZ5zd3pPx+tIkOFA/KJLoktZNBjMz1cBvOy2Df7e4v52NoB7XZCy2KXTFjhtslOoSwOOOkNKT+qaHRp82wYFqHWftwC4vUymYehzdyehwNGBR0ORtAllgFaiVL/IsqKO4LvfIVf13Ikn+nWc4x0Tr7rll3rEdWdU9NcWGUXQWoGNxeMcUYj9A0B8lU2f6LdkKDv0OMK4W466qLTNEEuJaK05I7+i6nvptx7Pk5+8uqLfBZey74uJZEQb6xsIVC2ZHx2tWAQAUzDe7qHWTGHn+k6FUi2chMqilEuELw7ItgNZUJd2F8lDXJI+Gfp7sG3FPgQZxVCQ0Vard3xLl7k83xUwFN35u7tIvCI08H6olOk55yK1iDzrrJQXsuomBISC+72LiNzrsiWRUJARTrsp577Pc1UzOtTH2oE464KeoF4vOF9gRVVHxUVMwXiztL5eD48mrl+Zz69BxP/dn21D0hZYHNK5p/4yht9zc3bFp1ckCGn2LEitKaqYz6OXjhzaTOrTt87zoWSH1ZNdhC2htlooqnBbYWVVzMr906qGHTctPnhSIeW/NF2/1c9aMTEj6wCs24OcQdcphbJMwMbQDKRLc2VJfgOlwsewzhbkGr8O4AZnZWIhC+CFqjn2JrgBgHqXyegRuocgBfdwyBpJ6G/ebsqhvLLk/x8BXCUiKZdDFncf25xL7txO0UCz+3y+KxS4FMBQx3sDizgXwE9dkcChKBXBZkOTcjuAqIg8QvJrLojrvbsL3iMvAmAmsV4fJLH7VpPvoPHVx2ZXvdflkLRsOzSJl24uph7ZIll4UGJpICBAQgwrAKhIJGoEQlVa02QNQQtLlJZuaz8iUBWJaNJabEhwaCXwKRF5lORXJec9eIusrh2YiQNArq1C0EBacUntL7QFyNA2LoCniMhzrhPbyslGnZU5oqxebQf32wtJR5wuUIldq5mDbMazIrI6lGcNzneLm2zHuUCkp7PowXkbAKx2bvxBEVkYSoEFXqEI4Ackf+Oi4P4OUDknxywEsCRUH3grydvd+ZJuwm4WkS2hXPCt2LVSOWyslCu4eMjJPoPdNecBrN3r5+PNlMmmbs4cb5DIS/MKzRPHqs71/fKxn7YAw5fpwmib9m1EIgp0mh+AAmgAIEYVpxYx8D14CvFEEtU6iq5GEPNtbhir0p3SdtnALn3ePMkk34LCY/UlV/F0M/nZLsXkjaMqIi+WOou7HfCOLrlzUaPsZmVXvp2IjR3wFFIGzOAxbxeFKjh0yMr+KUzGQ5NktUuX/Zxk1O2bCFnmxh2PHdlZpWLbWHqpRGQ9OrAu3rlov9yqh1fUtbe6LJB/3DG2h/LRe2/xwm3qhAl+HanGicxnIw/TnaTJptY+87bKQMNjOYsz1lcA7JhI7dtvFVMja1WlGaqrtlQV9LzBkerGI7xO64cnkrOrgFSlqPXpsv3rSFUjMj8CTChi/7cP6yFAoSoP7dy672Sar5RZTQHwLoAn3GDaNgAcgKng0mbYzTamPY9Vtk4WZSVRto1gqHwdsS07JjsQULV1vn1vdS4BTXLIVxpfb8LW2Ta25Skb2fIkow1PMvHeE1Ya/2zOb3xlE8mEew1wz++o1m2zMyn9h59d/xkKSQXWqTrW/cs/OyWUcO/jik6D3ytJ3stSM+7dd+/fD4F0t8cO6vdCr4/cA428/dHJbxZTpy1M5mpUiyoKoAwAS4OC9QVRT9kCjZuJOZQWrjiKXa/rJk2SEl8db6fs4GCTzeR2XOfUj0a/BvLMVwBcQvJ5N+OPdGQ9XJennfzwu2Cdbwet88f4UW2sUwrA1NalsyX3F2LrbHr5uexWeJ6jCy/zpKaXit9JvbP2gcyGawSlB0DWsU4Fs/bftlt2eoKr+f5mQu+BtTulI9bu36l9IIs3CSPlIQBddWLlRNs13Ye60MN0ernSU09OjPRsGVETXQBgVVC7HzwAcupHxW7tn+Zj58qwsFQTgOx7IvLUB1zA9DE1fKWKhe4ku1a0Yxk/bv3h3q9j+20TyQs/bpbuQ+x1yAmc49WX/lui+jj+66ZQGdPxJJ8muYTkRpLrSb5Acqp7JsnHFnT/C1S3OjMlOg9yAAAAAElFTkSuQmCC" alt="Krystal" title="Krystal"></div><div class="subt">Liquidez · ROI · APR · offline</div></div></div>
     <div class="top-r">${priceSwitchHTML()}${statusHTML()}
       <div class="menu-wrap"><button class="btn" data-act="menu">Dados ▾</button>
         <div class="menu" id="menu" hidden>
@@ -1355,7 +1415,7 @@ function headerHTML() {
           <button data-act="wipe" class="danger">Apagar todos os dados…</button>
         </div>
       </div>
-      <button class="btn primary" data-act="new">+ Nova Pool</button>
+      <button class="btn primary" data-act="new">${K().nova}</button>
     </div>
   </div>`;
 }
@@ -1650,7 +1710,7 @@ function poolHTML(x) {
   let html = `<div class="pool ${open ? 'open' : ''} ${c.closed ? 'closed' : ''}" id="pool-${esc(p.id)}">
     <div class="pool-head" data-act="toggle" data-id="${esc(p.id)}">
       <div class="avatar">${esc(initials(p))}</div>
-      <div class="pname">${rangeDotHTML(p, c.closed)}<b>${esc(poolName(p))}</b>${badges}${spark}<div class="ps">${subParts.length ? subParts.join(' · ') : '&nbsp;'}</div></div>
+      <div class="pname">${kindOf(p) === 'farm' ? '' : rangeDotHTML(p, c.closed)}<b>${esc(poolName(p))}</b>${badges}${spark}<div class="ps">${subParts.length ? subParts.join(' · ') : '&nbsp;'}</div></div>
       <div class="metrics">
         <div class="m"><span>Valor</span><b>${money(c.valor)}</b><i>inv. ${money(c.investido)}</i></div>
         <div class="m"><span>Variação</span><b class="${sgn(c.varCap)}">${spct(c.varPct)}</b><i>${smoney(c.varCap)}</i></div>
@@ -1673,18 +1733,22 @@ function poolHTML(x) {
         ${tile('Valor Inicial', money(st.inicial), [aportes ? '+' + money(aportes) + ' reforços' : '', st.cout ? '−' + money(st.cout) + ' retiradas' : ''].filter(Boolean).join(' · ') || 'sem reforços ou retiradas')}
         ${tile('Dias Ativos', Math.floor(diasAtivos) + ' dias', 'aberta em ' + fmtD(c.start) + (c.closed ? ' · fechada em ' + fmtD(st.closeT) : ''))}
         ${tile('Total Fees Recolhidas', money(c.col), 'pendentes ' + money(c.pend), 'fee')}
-        ${tile('Range de Preço', rangeDotHTML(p, c.closed) + rng, rsub)}
+        ${kindOf(p) === 'farm' ? (() => {
+          const ult = sortedEvents(p).filter(e => e.pApr != null || e.pPnl != null).pop();
+          if (!ult) return tile('Dados da plataforma', '—', 'registe o APR e o PnL ao atualizar');
+          return tile('Dados da plataforma', (ult.pApr != null ? 'APR ' + pct(ult.pApr) : '') + (ult.pApr != null && ult.pPnl != null ? ' · ' : '') + (ult.pPnl != null ? 'PnL ' + money(ult.pPnl) : ''), 'em ' + fmtDT(parseT(ult.t)));
+        })() : tile('Range de Preço', rangeDotHTML(p, c.closed) + rng, rsub)}
         ${tile('ROI Anualizado', spct(c.roiAnual), 'simples, sem capitalização', sgn(c.roiAnual))}
         ${tile('Último Lançamento', fmtDT(c.last), TYPE_LABEL[c.ev.type] + ' · base: capital médio ' + money(c.capBase))}
       </div>
       ${p.obs ? `<div class="obs">📝 ${esc(p.obs)}</div>` : ''}
-      ${p.endereco ? `<div class="obs">🔗 Contrato da pool: <span title="${esc(p.endereco)}">${esc(p.endereco.length > 14 ? p.endereco.slice(0, 6) + '…' + p.endereco.slice(-4) : p.endereco)}</span></div>` : ''}
+      ${p.endereco ? `<div class="obs">🔗 Contrato: <span title="${esc(p.endereco)}">${esc(p.endereco.length > 14 ? p.endereco.slice(0, 6) + '…' + p.endereco.slice(-4) : p.endereco)}</span></div>` : ''}
       <div class="actions">
         ${c.closed ? `
           <button class="btn sm" data-act="reopen" data-id="${esc(p.id)}">↺ Reabrir</button>` : `
           <button class="btn sm green" data-act="update" data-id="${esc(p.id)}">✎ Atualizar</button>
           ${c.pend > 0 ? `<button class="btn sm green" data-act="collect" data-id="${esc(p.id)}">$ Recolher Fees</button>` : ''}
-          <button class="btn sm" data-act="rebalance" data-id="${esc(p.id)}">↔ Mover range</button>
+          ${kindOf(p) === 'farm' ? '' : `<button class="btn sm" data-act="rebalance" data-id="${esc(p.id)}">↔ Mover range</button>`}
           <button class="btn sm" data-act="flow" data-id="${esc(p.id)}">⇅ Reforço / Retirada</button>
           <button class="btn sm" data-act="close" data-id="${esc(p.id)}">✕ Fechar Pool</button>`}
         <button class="btn sm" data-act="edit" data-id="${esc(p.id)}">Editar dados</button>
@@ -1693,7 +1757,7 @@ function poolHTML(x) {
       <div class="hist-head"><span class="ht">↗ Histórico</span>${segHTML('tab', tab, [['liq', 'Liquidez'], ['apr', 'APR'], ['roi', 'ROI'], ['fees', 'Fees']], p.id)}</div>
       <div class="chart" data-chart="pool" data-id="${esc(p.id)}"></div>
       <details class="ev"${UI.open[p.id + ':ev'] ? ' open' : ''} data-evid="${esc(p.id)}"><summary>Lançamentos (${r.snaps.length})${r.snaps.length > EV_SHOWN && !UI.allev[p.id] ? ' · últimos ' + EV_SHOWN : ''}</summary>
-        <div class="tw${(UI.allev[p.id] || r.snaps.length <= EV_SHOWN) ? '' : ' clip'}"><table><thead><tr><th>Data</th><th>Tipo</th><th>#</th><th>Lançamento</th><th>Valor atual</th><th>Fees pend.</th><th>Fees recol.</th><th>Variação</th><th>ROI</th><th>APR</th><th></th></tr></thead><tbody>
+        <div class="tw${(UI.allev[p.id] || r.snaps.length <= EV_SHOWN) ? '' : ' clip'}"><table><thead><tr><th>Data</th><th>Tipo</th>${kindOf(p) === 'farm' ? '' : '<th>#</th>'}<th>Lançamento</th><th>Valor atual</th><th>Fees pend.</th><th>Fees recol.</th><th>Variação</th><th>ROI</th><th>APR</th><th></th></tr></thead><tbody>
         ${r.snaps.slice().reverse().map(s => {
           const e = s.ev; let det = '';
           if (e.type === 'atualizacao') det = `valor ${money(e.valor)} · fees ${money(e.fees)}`;
@@ -1705,8 +1769,11 @@ function poolHTML(x) {
           else if (e.type === 'fechamento') det = `final ${money(e.valor)} · fees ${money(e.fees)}`;
           else if (e.type === 'retirada') det = '−' + money(e.valor);
           else if (e.type === 'aporte' || e.type === 'coleta') det = '+' + money(e.valor);
+          else if (e.type === 'par') det = `${esc(e.token1 || '?')}/${esc(e.token2 || '?')}${ok(e.valor) ? ' · ' + money(e.valor) : ''}${e.fees > 0 ? ' · fees ' + money(e.fees) : ''}`;
           else det = money(e.valor);
-          return `<tr><td>${fmtDT(s.t)}</td><td>${esc(TYPE_LABEL[e.type] || e.type)}</td><td class="hs">${e.hash ? esc(e.hash) : ''}</td><td>${det}</td><td>${money(s.valor)}</td><td class="fee">${money(s.pend)}</td><td>${money(s.col)}</td><td class="${sgn(s.varCap)}">${spct(s.varPct)}</td><td class="${sgn(s.ganho)}">${spct(s.roi)}</td><td class="apr">${pct(s.apr)}</td><td class="act"><button class="ed" title="Editar lançamento" data-act="evedit" data-id="${esc(p.id)}" data-ev="${esc(e.id)}">✎</button>${e.type === 'abertura' ? '' : `<button class="del" title="Eliminar lançamento" data-act="delev" data-id="${esc(p.id)}" data-ev="${esc(e.id)}">✕</button>`}</td></tr>`;
+          if (e.nota) det += ' · ' + esc(e.nota);
+          if (e.pApr != null || e.pPnl != null) det += ' · plataforma: ' + [e.pApr != null ? 'APR ' + pct(e.pApr) : '', e.pPnl != null ? 'PnL ' + money(e.pPnl) : ''].filter(Boolean).join(', ');
+          return `<tr><td>${fmtDT(s.t)}</td><td>${esc(TYPE_LABEL[e.type] || e.type)}</td>${kindOf(p) === 'farm' ? '' : `<td class="hs">${e.hash ? esc(e.hash) : ''}</td>`}<td>${det}</td><td>${money(s.valor)}</td><td class="fee">${money(s.pend)}</td><td>${money(s.col)}</td><td class="${sgn(s.varCap)}">${spct(s.varPct)}</td><td class="${sgn(s.ganho)}">${spct(s.roi)}</td><td class="apr">${pct(s.apr)}</td><td class="act"><button class="ed" title="Editar lançamento" data-act="evedit" data-id="${esc(p.id)}" data-ev="${esc(e.id)}">✎</button>${e.type === 'abertura' ? '' : `<button class="del" title="Eliminar lançamento" data-act="delev" data-id="${esc(p.id)}" data-ev="${esc(e.id)}">✕</button>`}</td></tr>`;
         }).join('')}
         </tbody></table></div>
         ${r.snaps.length > EV_SHOWN ? `<button class="text-link evmore" data-act="allev" data-id="${esc(p.id)}">${UI.allev[p.id] ? 'Mostrar só os últimos ' + EV_SHOWN : `Mostrar todos os ${r.snaps.length} lançamentos`}</button>` : ''}
@@ -1720,15 +1787,16 @@ function poolsHTML(list, nAll, nAt, nFe) {
   const sortChip = (k, label) => `<button class="chip ${UI.sort === k ? 'on' : ''}" data-act="sort" data-k="${k}">${label}</button>`;
   const redeChip = UI.rede ? `<button class="chip on" data-act="filter-rede" data-k="" title="Remover filtro de rede">${networkLabel(UI.rede)} ×</button>` : '';
   const exChip = UI.exchange ? `<button class="chip on" data-act="filter-ex" data-k="" title="Remover filtro de exchange">${esc(UI.exchange)} ×</button>` : '';
-  const titulo = list.length !== nAll ? `Suas Pools (${list.length} de ${nAll})` : `Suas Pools (${nAll})`;
+  const nomeVista = TITULOS[vistaAtual()];
+  const titulo = list.length !== nAll ? `${nomeVista} (${list.length} de ${nAll})` : `${nomeVista} (${nAll})`;
   const emptyHint = [UI.rede && (networkIconHTML(UI.rede) + ' ' + esc(UI.rede)), UI.exchange && esc(UI.exchange)].filter(Boolean).join(' · ');
   return `<div class="section" id="sec-pools"><div class="sec-head"><h2>${titulo}</h2><div class="chips">${chip('todas', 'Todas')}${chip('ativas', nAt + ' Ativas', 'g')}${chip('fechadas', nFe + ' Fechadas')}${redeChip}${exChip}</div></div>
     <div class="chips" style="margin-top:8px"><span style="color:var(--dim);font-size:12px;align-self:center;margin-right:4px">Ordenar:</span>${sortChip('recent', 'Recentes')}${sortChip('valor', 'Valor')}${sortChip('roi', 'ROI')}${sortChip('apr', 'APR')}${sortChip('fees', 'Fees')}</div>
-    ${list.length ? list.map(poolHTML).join('') : `<div class="nochart" style="margin-top:12px">Nenhuma pool neste filtro${emptyHint ? ' (' + emptyHint + ')' : ''}.</div>`}</div>`;
+    ${list.length ? list.map(poolHTML).join('') : `<div class="nochart" style="margin-top:12px">Nada neste filtro${emptyHint ? ' (' + emptyHint + ')' : ''}.</div>`}</div>`;
 }
 function emptyHTML() {
-  return `<div class="section empty"><h2>Nenhuma pool registada</h2><p>Registe a sua primeira posição. Depois, cada atualização (valor e fees) fica registada com data e hora e forma o histórico de ROI e APR.</p>
-    <div class="bb"><button class="btn primary" data-act="new">+ Nova Pool</button><button class="btn" data-act="demo">Ver dados de exemplo</button>${FILE.supported ? '<button class="btn" data-act="open-file">Abrir ficheiro de dados…</button>' : '<button class="btn" data-act="import">Importar backup…</button>'}</div></div>`;
+  return `<div class="section empty"><h2>${esc(VAZIOS[vistaAtual()])}</h2><p>Registe a sua primeira posição. Depois, cada atualização (valor e fees) fica registada com data e hora e forma o histórico de ROI e APR.</p>
+    <div class="bb"><button class="btn primary" data-act="new">${K().nova}</button><button class="btn" data-act="demo">Ver dados de exemplo</button>${FILE.supported ? '<button class="btn" data-act="open-file">Abrir ficheiro de dados…</button>' : '<button class="btn" data-act="import">Importar backup…</button>'}</div></div>`;
 }
 function methodHTML() {
   return `<details class="section method"><summary>Como os indicadores são calculados</summary><ul>
@@ -1745,10 +1813,19 @@ function methodHTML() {
     <li>Cada lançamento fica gravado com data e hora. Para corrigir um lançamento, elimine-o na tabela “Lançamentos” e registe-o de novo. Pode lançar datas passadas, e o histórico é reordenado automaticamente.</li>
   </ul></details>`;
 }
+function kindTabsHTML(c) {
+  const tab = (k, nome, n) => `<button class="ktab${UI.kind === k ? ' on' : ''}" data-act="kind" data-k="${k}">${esc(nome)}<span class="n">${n}</span></button>`;
+  const sub = (v, nome, n) => `<button class="vtab${UI.vsub === v ? ' on' : ''}" data-act="vsub" data-k="${v}">${esc(nome)}<span class="n">${n}</span></button>`;
+  return `<div class="ktabs" role="tablist">${tab('pool', 'Pools de liquidez', c.pool)}${tab('vault', 'Vaults', c.farm + c.com)}</div>` +
+    (UI.kind === 'vault' ? `<div class="vtabs">${sub('farm', 'Auto-Farms', c.farm)}${sub('com', 'Vaults Comunitários', c.com)}</div>` : '');
+}
 function render() {
   const app = $('#app');
-  const all = DB.pools.map(p => ({ p, r: compute(p) }));
-  CACHE = {}; all.forEach(x => CACHE[x.p.id] = x);
+  const todas = DB.pools.map(p => ({ p, r: compute(p) }));
+  CACHE = {}; todas.forEach(x => CACHE[x.p.id] = x);
+  const counts = { pool: 0, farm: 0, com: 0 };
+  DB.pools.forEach(p => counts[grupoOf(p)]++);
+  const all = todas.filter(x => naVista(x.p));   // cada separador vive isolado dos outros
   const nAt = all.filter(x => x.r.cur && !x.r.st.closed).length, nFe = all.filter(x => x.r.st.closed).length;
   const statusList = all.filter(x => x.r.cur && (UI.filter === 'todas' || (UI.filter === 'ativas' ? !x.r.st.closed : x.r.st.closed)));
   let list = statusList.filter(x => {
@@ -1765,9 +1842,9 @@ function render() {
   };
   list = list.sort(sortFn[UI.sort] || sortFn.recent);
   PSERIES = portfolioSeries(list);
-  app.innerHTML = headerHTML() + `<div id="banner">${bannerHTML()}</div>` +
-    (DB.pools.length ? cardsHTML(aggregate(list.map(x => x.r.cur))) + networkSummaryHTML(statusList) + insightsHTML(list) + portfolioHTML() + poolsHTML(list, all.length, nAt, nFe) + tokensHTML() : emptyHTML()) +
-    methodHTML() + (DB.pools.length ? practicesHTML() : '');
+  app.innerHTML = headerHTML() + `<div id="banner">${bannerHTML()}</div>` + kindTabsHTML(counts) +
+    (all.length ? cardsHTML(aggregate(list.map(x => x.r.cur))) + networkSummaryHTML(statusList) + insightsHTML(list) + portfolioHTML() + poolsHTML(list, all.length, nAt, nFe) + tokensHTML() : emptyHTML()) +
+    methodHTML() + (all.length ? practicesHTML() : '');
   drawCharts();
 }
 
@@ -1775,26 +1852,28 @@ function render() {
 function fieldHTML(f) {
   const v = f.type === 'num' ? numToInput(f.value) : (f.value ?? '');
   let inp;
+  if (f.type === 'check') return `<div class="f ${f.half ? 'half' : ''} fcheck"><label class="chk"><input type="checkbox" name="${f.name}"${f.value ? ' checked' : ''}><span>${esc(f.label)}</span></label>${f.hint ? `<div class="hint">${esc(f.hint)}</div>` : ''}</div>`;
   if (f.type === 'select') inp = `<select name="${f.name}">${f.options.map(([k, l]) => `<option value="${k}"${k === v ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
   else if (f.type === 'textarea') inp = `<textarea name="${f.name}" placeholder="${esc(f.ph || '')}">${esc(v)}</textarea>`;
   else inp = `<input name="${f.name}" ${f.type === 'num' ? 'type="text" inputmode="decimal" autocomplete="off"' : f.digits ? 'type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off"' : `type="${f.type || 'text'}"`} value="${esc(v)}" placeholder="${esc(f.ph || '')}"${f.maxlen ? ` maxlength="${+f.maxlen}" autocomplete="off" spellcheck="false"` : ''}${f.short ? ' class="short"' : ''}>`;
-  return `<div class="f ${f.half ? 'half' : ''}"><label>${esc(f.label)}${f.type === 'num' ? '<span class="prev"></span>' : ''}</label>${inp}${f.hint ? `<div class="hint">${esc(f.hint)}</div>` : ''}</div>`;
+  return `<div class="f ${f.half ? 'half' : ''}${f.dt ? ' dt' : ''}"><label>${esc(f.label)}${f.type === 'num' ? '<span class="prev"></span>' : ''}</label>${inp}${f.hint ? `<div class="hint">${esc(f.hint)}</div>` : ''}</div>`;
 }
 /* ---------- diálogos próprios: os do navegador (confirm, alert, prompt) podem estar bloqueados ---------- */
-function dialog({ title, message, ok = 'OK', cancel = 'Cancelar', danger = false, input = null, confirmWord = null }) {
+function dialog({ title, message, ok = 'OK', cancel = 'Cancelar', danger = false, input = null, confirmWord = null, choices = null, pick = null }) {
   return new Promise(resolve => {
     const ov = document.createElement('div'); ov.className = 'overlay';
     const msg = String(message || '').split('\n').map(esc).join('<br>');
     const need = confirmWord ? String(confirmWord).toLowerCase() : null;   // segurança extra: obriga a escrever uma palavra
     const field = input || need;
     ov.innerHTML = `<div class="modal" role="alertdialog" aria-modal="true" aria-label="${esc(title)}" style="width:min(440px,100%)"><div class="mh"><h3>${esc(title)}</h3></div>
-      <div class="mb"><p class="dlg-msg">${msg}</p>${need ? `<p class="dlg-msg" style="margin-top:12px">Para confirmar, escreva <b>“${esc(confirmWord)}”</b> no campo abaixo.</p>` : ''}${field ? `<input class="dlg-in" type="text" value="${esc(input ? (input.value || '') : '')}" placeholder="${esc(input ? (input.ph || '') : confirmWord)}" autocomplete="off" autocapitalize="none" spellcheck="false" style="width:100%;margin-top:12px">` : ''}
-      <div class="mf" style="margin-top:16px">${cancel ? `<button type="button" class="btn" data-r="no">${esc(cancel)}</button>` : ''}<button type="button" class="btn ${danger ? 'red' : 'primary'}" data-r="yes"${need ? ' disabled' : ''}>${esc(ok)}</button></div></div></div>`;
+      <div class="mb"><p class="dlg-msg">${msg}</p>${choices ? `<div class="picks">${choices.map(([k, t, d]) => `<button type="button" class="pick${k === pick ? ' on' : ''}" data-pick="${esc(k)}"><b>${esc(t)}</b>${d ? `<span>${esc(d)}</span>` : ''}</button>`).join('')}</div>` : ''}${need ? `<p class="dlg-msg" style="margin-top:12px">Para confirmar, escreva <b>“${esc(confirmWord)}”</b> no campo abaixo.</p>` : ''}${field ? `<input class="dlg-in" type="text" value="${esc(input ? (input.value || '') : '')}" placeholder="${esc(input ? (input.ph || '') : confirmWord)}" autocomplete="off" autocapitalize="none" spellcheck="false" style="width:100%;margin-top:12px">` : ''}
+      <div class="mf" style="margin-top:16px">${cancel ? `<button type="button" class="btn" data-r="no">${esc(cancel)}</button>` : ''}${choices ? '' : `<button type="button" class="btn ${danger ? 'red' : 'primary'}" data-r="yes"${need ? ' disabled' : ''}>${esc(ok)}</button>`}</div></div></div>`;
     document.body.appendChild(ov);
     const inp = ov.querySelector('.dlg-in'), yesBtn = ov.querySelector('[data-r="yes"]'), nb = ov.querySelector('[data-r="no"]');
+    ov.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', () => done(b.dataset.pick)));
     const okNow = () => !need || inp.value.trim().toLowerCase() === need;
     const done = v => { ov.remove(); document.removeEventListener('keydown', onKey, true); resolve(v); };
-    const yes = () => { if (okNow()) done(input ? inp.value : true); }, no = () => done(input ? null : false);
+    const yes = () => { if (okNow()) done(input ? inp.value : true); }, no = () => done(input || choices ? null : false);
     const onKey = e => {
       if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); no(); }
       else if (e.key === 'Enter' && inp && document.activeElement === inp) { e.preventDefault(); e.stopImmediatePropagation(); yes(); }
@@ -1802,9 +1881,9 @@ function dialog({ title, message, ok = 'OK', cancel = 'Cancelar', danger = false
     document.addEventListener('keydown', onKey, true);
     if (need) inp.addEventListener('input', () => { yesBtn.disabled = !okNow(); });
     ov.addEventListener('click', e => { if (e.target === ov) no(); });   // clicar fora = cancelar
-    yesBtn.addEventListener('click', yes);
+    if (yesBtn) yesBtn.addEventListener('click', yes);
     if (nb) nb.addEventListener('click', no);
-    (inp || (danger && nb) || yesBtn).focus();   // em ações destrutivas o foco inicial é “Cancelar” (ou o campo de texto)
+    (inp || (choices ? ov.querySelector('[data-pick]') : null) || (danger && nb) || yesBtn).focus();   // em ações destrutivas o foco inicial é “Cancelar” (ou o campo de texto)
   });
 }
 const askConfirm = (title, message, ok = 'Confirmar', danger = true, confirmWord = null) => dialog({ title, message, ok, danger, confirmWord });
@@ -1835,6 +1914,7 @@ function openForm(cfg) {
     e.preventDefault();
     const vals = {};
     for (const f of cfg.fields) {
+      if (f.type === 'check') { vals[f.name] = form.elements[f.name].checked; continue; }
       const raw = form.elements[f.name].value;
       if (f.type === 'num') {
         const n = parseNum(raw, f.money !== false);
@@ -1856,41 +1936,66 @@ function openForm(cfg) {
   const first = form.querySelector('input,select,textarea'); if (first) setTimeout(() => first.focus(), 30);
   return ov;
 }
+// Nas auto-farms não há referência #; em vez disso há um campo de notas no fim do formulário.
+const refField = P => kindOf(P) === 'farm' ? [] : [hashField()];
+const notaField = (P, e) => kindOf(P) === 'farm' ? [{ name: 'nota', label: 'Notas', type: 'textarea', ph: 'Opcional (ex.: o que o agente fez, o que observou…)', value: e ? (e.nota || '') : '' }] : [];
 const hashField = () => ({ name: 'hash', label: 'Referência #', ph: '0000', maxlen: 4, digits: 1, short: 1, hint: 'Opcional. 4 dígitos apenas para sua referência.' });
-const dtFields = () => { const [d, t] = splitDT(nowInput()); return [{ name: 'data', label: 'Data', type: 'date', half: 1, value: d, req: 1 }, { name: 'hora', label: 'Hora', type: 'time', half: 1, value: t, req: 1 }]; };
+const dtFields = () => { const [d, t] = splitDT(nowInput()); return [{ name: 'data', label: 'Data', type: 'date', half: 1, dt: 1, value: d, req: 1 }, { name: 'hora', label: 'Hora', type: 'time', half: 1, dt: 1, value: t, req: 1 }]; };
 function checkDate(P, tt) {
   const t = parseT(tt), st = CACHE[P.id].r.st;
   if (!isFinite(t)) return 'Data ou hora inválida.';
   if (t < st.start) return `A data não pode ser anterior à abertura da pool (${fmtDT(st.start)}).`;
   if (t > Date.now() + 5 * 60000) return 'A data não pode estar no futuro.';
 }
-function poolForm(P) {
+// Ao criar, pergunta primeiro que tipo de posição é.
+async function newPoolFlow() {
+  const a = await dialog({ title: 'Novo', message: 'O que quer criar?', cancel: 'Cancelar',
+    choices: [['vault', 'Novo Vault', 'Um vault por rede, gerido por um agente de IA ou por si.'],
+              ['pos', 'Nova Pool', 'Uma pool de liquidez sua, com par de tokens e range de preço.']] });
+  if (!a) return;
+  if (a === 'pos') { UI.kind = 'pool'; poolForm(null, 'lp', 'posicao'); return; }
+  const b = await dialog({ title: 'Novo Vault', message: 'Que tipo de vault?', cancel: 'Voltar',
+    choices: [['farm', 'Auto-Farm Vault', 'Gerido por um agente de IA que: acrescenta capital, muda o range, troca o par, recolhe fees entre outras decisões…'],
+              ['com', 'Vault Comunitário', 'Vault gerido por si.']] });
+  if (!b) return newPoolFlow();
+  if (b === 'farm') { UI.kind = 'vault'; UI.vsub = 'farm'; poolForm(null, 'farm', 'autofarm'); }
+  else { UI.kind = 'vault'; UI.vsub = 'com'; poolForm(null, 'lp', 'comunitario'); }
+}
+function poolForm(P, kind, sub) {
   const ab = P ? P.events.find(e => e.type === 'abertura') : null;
   const [d, t] = splitDT(ab ? ab.t : nowInput());
+  const k = P ? kindOf(P) : (kind || (UI.kind === 'vault' && UI.vsub === 'farm' ? 'farm' : 'lp')), KK = KINDS[k], farm = k === 'farm';
+  const sb = P ? subOf(P) : (sub || (farm ? 'autofarm' : 'comunitario'));
+  const nomeTipo = farm ? 'Auto-Farm Vault' : sb === 'posicao' ? 'Pool de Liquidez' : 'Pool de Liquidez Comunitária';
   const ov = openForm({
-    title: P ? 'Editar Pool - ' + poolName(P) : 'Nova Pool', submit: P ? 'Guardar' : 'Criar Pool',
+    title: P ? `Editar ${nomeTipo} - ` + poolName(P) : (farm ? 'Nova Auto-Farm Vault' : 'Nova ' + nomeTipo), submit: P ? 'Guardar' : 'Criar',
     fields: [
-      { name: 'rede', label: 'Rede', ph: 'Arbitrum', half: 1, value: P?.rede },
-      { name: 'exchange', label: 'Exchange', ph: 'Uniswap V3', half: 1, value: P?.exchange },
-      { name: 'token1', label: 'Token 1', ph: 'ETH', half: 1, value: P?.token1, req: 1 },
-      { name: 'token2', label: 'Token 2', ph: 'USDC', half: 1, value: P?.token2, req: 1 },
-      { name: 'nome', label: 'Nome da Pool', ph: 'Ex: ETH/USDC', value: P?.nome, hint: 'Deixe em branco para usar Token1/Token2' },
+      { name: 'rede', label: 'Rede', ph: farm ? 'BNB Chain' : 'Arbitrum', half: 1, value: P?.rede },
+      ...(farm ? [{ name: 'nome', label: 'Nome do vault', ph: 'Ex: IA BNB de tijolo em tijolo', half: 1, value: P?.nome, req: 1, hint: 'Como aparece na plataforma.' }]
+               : [{ name: 'exchange', label: KK.onde, ph: KK.ondePh, half: 1, value: P?.exchange }]),
+      ...(farm ? [] : [
+        { name: 'token1', label: 'Token 1', ph: 'ETH', half: 1, value: P?.token1, req: 1 },
+        { name: 'token2', label: 'Token 2', ph: 'USDC', half: 1, value: P?.token2, req: 1 }
+      ]),
+      ...(farm ? [] : [{ name: 'nome', label: 'Nome da Pool', ph: 'Ex: ETH/USDC', value: P?.nome, hint: 'Deixe em branco para usar Token1/Token2' }]),
       { name: 'valor', label: 'Liquidez Inicial (USD)', type: 'num', ph: '10000', value: ab?.valor, req: 1 },
       { name: 'data', label: 'Data de Criação', type: 'date', half: 1, value: d, req: 1 },
       { name: 'hora', label: 'Hora', type: 'time', half: 1, value: t, req: 1 },
-      { name: 'rangeMin', label: 'Range Mínimo', type: 'num', money: false, ph: '3000', half: 1, value: P?.rangeMin, hint: 'Opcional' },
-      { name: 'rangeMax', label: 'Range Máximo', type: 'num', money: false, ph: '4000', half: 1, value: P?.rangeMax, hint: 'Opcional' },
-      { name: 'endereco', label: 'Endereço da pool (contrato)', ph: '0x… (opcional)', value: P?.endereco, hint: 'Opcional. Endereço do contrato da pool, não o hash de uma transação. Permite verificar o range com o preço da própria pool.' },
+      ...(farm ? [] : [
+        { name: 'rangeMin', label: 'Range Mínimo', type: 'num', money: false, ph: '3000', half: 1, value: P?.rangeMin, hint: 'Opcional' },
+        { name: 'rangeMax', label: 'Range Máximo', type: 'num', money: false, ph: '4000', half: 1, value: P?.rangeMax, hint: 'Opcional' }
+      ]),
+      { name: 'endereco', label: farm ? 'Endereço do vault (opcional)' : 'Endereço da pool (contrato)', ph: '0x… (opcional)', value: P?.endereco, hint: farm ? 'Opcional. Endereço do vault na plataforma (o “CA”), não o hash de uma transação.' : 'Opcional. Endereço do contrato da pool, não o hash de uma transação. Permite verificar o range com o preço da própria pool.' },
       { name: 'obs', label: 'Observações', type: 'textarea', ph: 'Opcional (ex.: fee tier 0,05%, carteira usada…)', value: P?.obs }
     ],
     onSubmit: v => {
       if (!(v.valor > 0)) return 'A liquidez inicial deve ser maior que zero.';
-      if (ok(v.rangeMin) && ok(v.rangeMax) && v.rangeMin >= v.rangeMax) return 'O range mínimo deve ser menor que o máximo.';
+      if (!farm && ok(v.rangeMin) && ok(v.rangeMax) && v.rangeMin >= v.rangeMax) return 'O range mínimo deve ser menor que o máximo.';
       if (v.endereco && !isPoolAddr(v.endereco)) return 'O endereço da pool não parece válido. Use o endereço do contrato (por exemplo 0x… ou, na Solana, o endereço da pool).';
       const tt = v.data + 'T' + v.hora;
       if (!isFinite(parseT(tt))) return 'Data ou hora inválida.';
       if (parseT(tt) > Date.now() + 5 * 60000) return 'A data de criação não pode estar no futuro.';
-      const data = { rede: v.rede, exchange: v.exchange, token1: v.token1, token2: v.token2, nome: v.nome, rangeMin: v.rangeMin, rangeMax: v.rangeMax, endereco: v.endereco || '', obs: v.obs };
+      const data = { kind: k, sub: P ? subOf(P) : (sub || (k === 'farm' ? 'autofarm' : 'comunitario')), rede: v.rede, exchange: farm ? '' : v.exchange, token1: farm ? '' : v.token1, token2: farm ? '' : v.token2, nome: v.nome, rangeMin: farm ? null : v.rangeMin, rangeMax: farm ? null : v.rangeMax, endereco: v.endereco || '', obs: v.obs };
       if (P) {
         if (P.events.some(e => e.type !== 'abertura' && parseT(e.t) < parseT(tt))) return 'Existem lançamentos anteriores a essa data de criação. Ajuste a data ou elimine esses lançamentos.';
         Object.assign(P, data); ab.valor = v.valor; ab.t = tt;
@@ -1904,23 +2009,59 @@ function poolForm(P) {
     }
   });
   const f = ov.querySelector('form').elements;
-  const ph = () => { f.nome.placeholder = (f.token1.value.trim() || f.token2.value.trim()) ? `${f.token1.value.trim() || 'Token1'}/${f.token2.value.trim() || 'Token2'}` : 'Ex: ETH/USDC'; };
-  f.token1.addEventListener('input', ph); f.token2.addEventListener('input', ph); ph();
+  if (f.token1 && f.token2 && f.nome) {   // auto-farms não têm tokens
+    const ph = () => { f.nome.placeholder = (f.token1.value.trim() || f.token2.value.trim()) ? `${f.token1.value.trim() || 'Token1'}/${f.token2.value.trim() || 'Token2'}` : 'Ex: ETH/USDC'; };
+    f.token1.addEventListener('input', ph); f.token2.addEventListener('input', ph); ph();
+  }
 }
 function updateForm(P) {
   const c = CACHE[P.id].r.cur;
   openForm({
     title: 'Atualizar Pool - ' + poolName(P), submit: 'Guardar',
     fields: [
-      hashField(),
-      { name: 'valor', label: 'Valor Atual (USD)', type: 'num', value: c.valor, req: 1, hint: 'Valor da posição agora, sem as fees pendentes.' },
-      { name: 'fees', label: 'Fees Acumuladas (USD)', type: 'num', value: c.pend, req: 1, hint: 'Fees ainda não recolhidas, como o protocolo mostra agora.' },
-      ...dtFields()
+      ...refField(P),
+      { name: 'valor', label: kindOf(P) === 'farm' ? 'TVL Atual (USD)' : 'Valor Atual (USD)', type: 'num', value: c.valor, req: 1, hint: kindOf(P) === 'farm' ? 'O TVL do vault agora, como a plataforma mostra.' : 'Valor da posição agora, sem as fees pendentes.' },
+      { name: 'fees', label: 'Fees Acumuladas (USD)', type: 'num', value: c.pend, req: 1, half: 1, hint: 'Fees ainda não recolhidas, como o protocolo mostra agora.' },
+      { name: 'colhidas', label: 'Já recolhidas', type: 'check', half: 1, hint: 'Marque se já levantou estas fees: entram como recolhidas e as pendentes ficam a zero.' },
+      ...(kindOf(P) === 'farm' ? [
+        { name: 'apr', label: 'APR da plataforma (%)', type: 'num', money: false, ph: '1764,72', half: 1, hint: 'Opcional. O APR que a plataforma mostra (ex.: APR-7d).' },
+        { name: 'pnl', label: 'PnL da plataforma (USD)', type: 'num', ph: '-1,05', half: 1, hint: 'Opcional. O PnL que a plataforma mostra.' }
+      ] : []),
+      ...dtFields(),
+      ...notaField(P)
     ],
     onSubmit: v => {
       const tt = v.data + 'T' + v.hora, er = checkDate(P, tt); if (er) return er;
       if (v.valor < 0 || v.fees < 0) return 'Os valores não podem ser negativos.';
-      P.events.push({ id: uid(), type: 'atualizacao', t: tt, valor: v.valor, fees: v.fees, hash: v.hash || null, seq: nextSeq() }); save();
+      const extra = {};
+      if (ok(v.apr)) extra.pApr = v.apr / 100;
+      if (ok(v.pnl)) extra.pPnl = v.pnl;
+      P.events.push(Object.assign({ id: uid(), type: 'atualizacao', t: tt, valor: v.valor, fees: v.colhidas ? 0 : v.fees, hash: v.hash || null, nota: v.nota || null, seq: nextSeq() }, extra));
+      if (v.colhidas && v.fees > 0) P.events.push({ id: uid(), type: 'coleta', t: tt, valor: v.fees, fees: null, hash: v.hash || null, nota: v.nota || null, seq: nextSeq() });
+      save();
+    }
+  });
+}
+function pairForm(P) {
+  const c = CACHE[P.id].r.cur;
+  openForm({
+    title: 'Mudança de par - ' + poolName(P), submit: 'Registar mudança',
+    fields: [
+      ...refField(P),
+      { name: 'token1', label: 'Novo Token 1', ph: P.token1 || 'ETH', half: 1, req: 1 },
+      { name: 'token2', label: 'Novo Token 2', ph: P.token2 || 'USDC', half: 1, req: 1 },
+      { name: 'valor', label: 'Valor da posição após a mudança (USD)', type: 'num', ph: numToInput(c.valor), hint: 'Opcional. Deixe em branco se o valor não mudou.' },
+      { name: 'fees', label: 'Fees recolhidas na operação (USD)', type: 'num', ph: '0,00', hint: 'Opcional. Passam para “recolhidas” e as pendentes ficam a zero.' },
+      ...dtFields(),
+      ...notaField(P)
+    ],
+    note: 'Regista que a posição passou a outro par de tokens. O capital investido não muda.',
+    onSubmit: v => {
+      const tt = v.data + 'T' + v.hora, er = checkDate(P, tt); if (er) return er;
+      if ((ok(v.valor) && v.valor < 0) || (ok(v.fees) && v.fees < 0)) return 'Os valores não podem ser negativos.';
+      P.events.push({ id: uid(), type: 'par', t: tt, valor: ok(v.valor) ? v.valor : null, fees: v.fees || 0, token1: v.token1, token2: v.token2, prevT1: P.token1, prevT2: P.token2, hash: v.hash || null, nota: v.nota || null, seq: nextSeq() });
+      P.token1 = v.token1; P.token2 = v.token2;
+      UI.open[P.id + ':ev'] = true; save();
     }
   });
 }
@@ -1928,12 +2069,13 @@ function rebalanceForm(P) {
   openForm({
     title: 'Mover range - ' + poolName(P), submit: 'Registar rebalance',
     fields: [
-      hashField(),
+      ...refField(P),
       { name: 'valor', label: 'Valor da posição após o rebalance (USD)', type: 'num', ph: '0,00', req: 1, hint: 'Valor da liquidez já no novo range, sem fees pendentes.' },
       { name: 'fees', label: 'Fees recolhidas no rebalance (USD)', type: 'num', ph: '0,00', req: 1, hint: 'Fees que saíram com a operação. Passam para “recolhidas” e as pendentes ficam a zero.' },
       { name: 'rangeMin', label: 'Novo range mínimo', type: 'num', money: false, ph: ok(P.rangeMin) ? 'anterior: ' + fmtNum(P.rangeMin) : '3000', half: 1, req: 1 },
       { name: 'rangeMax', label: 'Novo range máximo', type: 'num', money: false, ph: ok(P.rangeMax) ? 'anterior: ' + fmtNum(P.rangeMax) : '4000', half: 1, req: 1 },
-      ...dtFields()
+      ...dtFields(),
+      ...notaField(P)
     ],
     note: 'Regista a mudança de range (rebalance). O capital investido não muda — só o valor da posição e as fees recolhidas. Gas, slippage e bridge não são descontados automaticamente. O range atual da pool passa a ser o novo.',
     onSubmit: v => {
@@ -1943,7 +2085,7 @@ function rebalanceForm(P) {
       const prevMin = P.rangeMin, prevMax = P.rangeMax;
       P.rangeMin = v.rangeMin;
       P.rangeMax = v.rangeMax;
-      P.events.push({ id: uid(), type: 'rebalance', t: tt, valor: v.valor, fees: v.fees, rangeMin: v.rangeMin, rangeMax: v.rangeMax, prevMin, prevMax, hash: v.hash || null, seq: nextSeq() });
+      P.events.push({ id: uid(), type: 'rebalance', t: tt, valor: v.valor, fees: v.fees, rangeMin: v.rangeMin, rangeMax: v.rangeMax, prevMin, prevMax, hash: v.hash || null, nota: v.nota || null, seq: nextSeq() });
       save();
     }
   });
@@ -1952,11 +2094,11 @@ function collectForm(P) {
   const c = CACHE[P.id].r.cur;
   openForm({
     title: 'Recolher Fees - ' + poolName(P), submit: 'Registar recolha',
-    fields: [hashField(), { name: 'valor', label: 'Valor recolhido (USD)', type: 'num', value: c.pend, req: 1, hint: 'Esse valor sai de “Fees Acumuladas” e passa para “Fees Recolhidas”. O ROI não muda.' }, ...dtFields()],
+    fields: [...refField(P), { name: 'valor', label: 'Valor recolhido (USD)', type: 'num', value: c.pend, req: 1, hint: 'Esse valor sai de “Fees Acumuladas” e passa para “Fees Recolhidas”. O ROI não muda.' }, ...dtFields(), ...notaField(P)],
     onSubmit: v => {
       const tt = v.data + 'T' + v.hora, er = checkDate(P, tt); if (er) return er;
       if (!(v.valor > 0)) return 'Informe um valor maior que zero.';
-      P.events.push({ id: uid(), type: 'coleta', t: tt, valor: v.valor, fees: null, hash: v.hash || null, seq: nextSeq() }); save();
+      P.events.push({ id: uid(), type: 'coleta', t: tt, valor: v.valor, fees: null, hash: v.hash || null, nota: v.nota || null, seq: nextSeq() }); save();
     }
   });
 }
@@ -1965,17 +2107,18 @@ function flowForm(P) {
   openForm({
     title: 'Reforço / Retirada - ' + poolName(P), submit: 'Registar',
     fields: [
-      hashField(),
+      ...refField(P),
       { name: 'tipo', label: 'Movimento', type: 'select', value: 'aporte', options: [['aporte', 'Reforço (adicionar liquidez)'], ['retirada', 'Retirada parcial de liquidez']] },
       { name: 'valor', label: 'Valor (USD)', type: 'num', req: 1, hint: 'Valor em USD no momento da movimentação.' },
-      ...dtFields()
+      ...dtFields(),
+      ...notaField(P)
     ],
     note: 'O valor atual da posição é ajustado automaticamente, e o ROI e o APR passam a usar o capital médio ponderado pelo tempo. Para retirar tudo, use “Fechar Pool”.',
     onSubmit: v => {
       const tt = v.data + 'T' + v.hora, er = checkDate(P, tt); if (er) return er;
       if (!(v.valor > 0)) return 'Informe um valor maior que zero.';
       if (v.tipo === 'retirada' && v.valor >= c.valor) return `A retirada (${money(v.valor)}) não pode ser igual ou maior que o valor atual (${money(c.valor)}). Para retirar tudo, use “Fechar Pool”.`;
-      P.events.push({ id: uid(), type: v.tipo, t: tt, valor: v.valor, fees: null, hash: v.hash || null, seq: nextSeq() }); save();
+      P.events.push({ id: uid(), type: v.tipo, t: tt, valor: v.valor, fees: null, hash: v.hash || null, nota: v.nota || null, seq: nextSeq() }); save();
     }
   });
 }
@@ -1984,17 +2127,18 @@ function closeForm(P) {
   openForm({
     title: 'Fechar Pool - ' + poolName(P), submit: 'Fechar Pool',
     fields: [
-      hashField(),
+      ...refField(P),
       { name: 'valor', label: 'Valor final recebido (USD)', type: 'num', ph: '0,00', req: 1, hint: 'Valor da liquidez retirada no fecho, sem as fees.' },
       { name: 'fees', label: 'Fees recebidas no fecho (USD)', type: 'num', ph: '0,00', req: 1, hint: 'Fees pendentes que foram recolhidas junto com o fecho.' },
-      ...dtFields()
+      ...dtFields(),
+      ...notaField(P)
     ],
     note: 'Depois de fechada, a pool para de contar dias: ROI e APR ficam congelados na data do fecho. Se necessário, é possível reabri-la.',
     onSubmit: v => {
       const tt = v.data + 'T' + v.hora, er = checkDate(P, tt); if (er) return er;
       if (parseT(tt) < CACHE[P.id].r.st.last) return `O fecho não pode ser anterior ao último lançamento (${fmtDT(CACHE[P.id].r.st.last)}).`;
       if (v.valor < 0 || v.fees < 0) return 'Os valores não podem ser negativos.';
-      P.events.push({ id: uid(), type: 'fechamento', t: tt, valor: v.valor, fees: v.fees, hash: v.hash || null, seq: nextSeq() }); save();
+      P.events.push({ id: uid(), type: 'fechamento', t: tt, valor: v.valor, fees: v.fees, hash: v.hash || null, nota: v.nota || null, seq: nextSeq() }); save();
     }
   });
 }
@@ -2034,7 +2178,9 @@ document.addEventListener('click', ev => {
   }
   switch (act) {
     case 'menu': menu.hidden = !menu.hidden; break;
-    case 'new': poolForm(); break;
+    case 'new': newPoolFlow(); break;
+    case 'kind': UI.kind = b.dataset.k; UI.filter = 'todas'; UI.rede = null; UI.exchange = null; render(); break;
+    case 'vsub': UI.vsub = b.dataset.k; UI.filter = 'todas'; UI.rede = null; UI.exchange = null; render(); break;
     case 'toggle': {
       UI.open[id] = !UI.open[id];
       render();
@@ -2064,7 +2210,7 @@ document.addEventListener('click', ev => {
       break;
     }
     case 'update': updateForm(P); break;
-    case 'rebalance': rebalanceForm(P); break;
+    case 'rebalance': if (kindOf(P) !== 'farm') rebalanceForm(P); break;
     case 'collect': collectForm(P); break;
     case 'flow': flowForm(P); break;
     case 'close': closeForm(P); break;
@@ -2082,6 +2228,11 @@ document.addEventListener('click', ev => {
       askConfirm('Eliminar lançamento', `Eliminar o lançamento “${TYPE_LABEL[e.type]}” de ${fmtDT(parseT(e.t))}?\n\nO ROI, o APR e os gráficos da pool recalculam-se sem ele.`, 'Eliminar').then(yes => {
         if (!yes) return;
         P.events = P.events.filter(x => x !== e);
+        if (e.type === 'par') {
+          const pars = sortedEvents(P).filter(x => x.type === 'par');
+          if (pars.length) { P.token1 = pars[pars.length - 1].token1; P.token2 = pars[pars.length - 1].token2; }
+          else if ('prevT1' in e) { P.token1 = e.prevT1; P.token2 = e.prevT2; }
+        }
         if (e.type === 'rebalance') {
           const rebs = sortedEvents(P).filter(x => x.type === 'rebalance');
           if (rebs.length) { P.rangeMin = rebs[rebs.length - 1].rangeMin; P.rangeMax = rebs[rebs.length - 1].rangeMax; }
