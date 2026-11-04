@@ -225,6 +225,13 @@ details.ev summary{cursor:pointer;color:var(--muted);font-weight:600;font-size:1
 .vtab:hover{border-color:var(--border2);color:var(--text)}
 .vtab.on{background:rgba(79,124,255,.12);border-color:var(--blue);color:var(--text)}
 .vtab .n{background:var(--card);border:1px solid var(--border);border-radius:999px;padding:0 7px;font-size:11px}
+.vtabs.lvl2{margin-top:8px;padding-left:14px;border-left:2px solid var(--border)}
+.vtabs.lvl3{margin-top:8px;padding-left:28px;border-left:2px solid var(--border)}
+.vtabs.lvl2 .vtab{font-size:12.5px;padding:5px 11px}
+.vtabs.lvl3 .vtab{font-size:12px;padding:4px 10px;font-weight:600}
+.vgrp{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:16px 0 6px;padding:7px 12px;border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:10px;background:var(--card2);font-size:12.5px;flex-wrap:wrap}
+.vg-t{font-weight:700;color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.vg-n{color:var(--muted)}
 .ktab.on .n{color:var(--text);border-color:#3a4660}
 .evmore{margin-top:8px;display:inline-block}
 .fatal{max-width:640px;margin:48px auto;border:1px solid rgba(240,67,82,.45);background:rgba(240,67,82,.07);border-radius:14px;padding:22px}
@@ -375,7 +382,7 @@ details.method b{color:var(--text)}
 const LS_KEY = 'poolMonitor.v1';
 const DAY = 86400000;
 const MIN_APR_DAYS = 1;   // janela mínima (dias) para exibir APR / ROI anualizado
-const APP_VERSION = 'V7.1';   // mostrada no cabeçalho, ao lado do nome da app
+const APP_VERSION = 'V7.5';   // mostrada no cabeçalho, ao lado do nome da app
 const NET = { online: false, busy: false, msg: '', ok: null, fail: {}, at: 0, csp: '', diag: [] };
 const diag = (fonte, res) => NET.diag.push(`${fonte}: ${res}`);
 // Tipos de posição: pools de liquidez (lp) e auto-farms (farm). Vivem em separadores próprios.
@@ -385,12 +392,32 @@ const kindOf = p => (p && p.kind === 'farm') ? 'farm' : 'lp';
 const K = () => KINDS[UI.kind] || KINDS.lp;
 // Separador principal (pool | vault) e, dentro dos vaults, o sub-separador (farm | com).
 const grupoOf = p => kindOf(p) === 'farm' ? 'farm' : (subOf(p) === 'posicao' ? 'pool' : 'com');
-const naVista = p => { const g = grupoOf(p); return UI.kind === 'vault' ? (g === UI.vsub) : (g === 'pool'); };
+// A que vault pertence: nos comunitários é o vault-mãe; nas auto-farms é a própria farm.
+const vaultKey = p => grupoOf(p) === 'com' ? nickKey(p.vault) : (grupoOf(p) === 'farm' ? p.id : '');
+const vaultNome = k => {
+  if (!k) return '—';
+  const p = DB.pools.find(x => grupoOf(x) === 'farm' && x.id === k);
+  return p ? poolName(p) : (nickOf(k) || addrCurto(k));
+};
+// Vaults do sub-separador atual, com as respetivas pools.
+function vaultList() {
+  const m = new Map();
+  for (const p of DB.pools) { if (grupoOf(p) !== UI.vsub) continue; const k = vaultKey(p); if (!m.has(k)) m.set(k, []); m.get(k).push(p); }
+  return [...m.entries()].sort((a, b) => vaultNome(a[0]).localeCompare(vaultNome(b[0])));
+}
+const naVista = p => {
+  const g = grupoOf(p);
+  if (UI.kind !== 'vault') return g === 'pool';
+  if (g !== UI.vsub) return false;
+  if (UI.vsel && vaultKey(p) !== UI.vsel) return false;
+  if (UI.psel && p.id !== UI.psel) return false;
+  return true;
+};
 const TITULOS = { pool: 'Pools de liquidez', farm: 'Auto-Farms', com: 'Vaults Comunitários' };
 const vistaAtual = () => UI.kind === 'vault' ? UI.vsub : 'pool';
 const VAZIOS = { pool: 'Nenhuma pool registada', farm: 'Nenhuma auto-farm registada', com: 'Nenhum vault comunitário registado' };
 const EV_SHOWN = 3;   // lançamentos visíveis por omissão (os mais recentes); o resto fica atrás de “Mostrar todos”
-const UI = { kind: 'pool', vsub: 'farm', allev: {}, filter: 'todas', rede: null, exchange: null, sort: 'recent', open: {}, tab: {}, ptab: 'patrimonio', demo: false };
+const UI = { kind: 'pool', vsub: 'farm', vsel: null, psel: null, allev: {}, filter: 'todas', rede: null, exchange: null, sort: 'recent', open: {}, tab: {}, ptab: 'patrimonio' };
 const FILE = { supported: typeof window.showSaveFilePicker === 'function', handle: null, state: 'none', name: '', last: null };
 let DB = emptyDB();
 let CACHE = {};
@@ -522,7 +549,6 @@ function checkLocalStorage() {
   catch (e) { LS.ok = false; LS.why = 'o navegador não permite gravar nesta janela (navegação privada ou restrições de privacidade)'; }
 }
 function save() {
-  if (UI.demo) { render(); return; }   // dados de exemplo nunca são gravados
   stampChanges();
   DB.savedAt = new Date().toISOString();
   storeLocal();
@@ -655,7 +681,7 @@ async function writeFile(force = false) {
 }
 let pulling = false;
 async function pullFromFile() {
-  if (!FILE.handle || FILE.state !== 'ok' || UI.demo || pulling || document.querySelector('.overlay')) return;
+  if (!FILE.handle || FILE.state !== 'ok' || pulling || document.querySelector('.overlay')) return;
   pulling = true;
   try { if (await syncFromFile()) render(); else updateStatus(); } catch (e) { console.error(e); } finally { pulling = false; }
 }
@@ -676,7 +702,7 @@ async function openExistingFile() {
     if (txt) { fd = JSON.parse(txt); if (!validDB(fd)) throw new Error('o ficheiro não é um ficheiro de dados do Pool Monitor'); }
     if (fd && DB.pools.length && !(await askConfirm('Carregar dados do ficheiro', `Carregar os dados de “${h.name}”?\n\nOs dados que estão agora neste navegador serão substituídos pelos do ficheiro.`, 'Carregar'))) return;
     if ((await h.requestPermission({ mode: 'readwrite' })) !== 'granted') throw new Error('permissão de gravação negada');
-    if (fd) { adoptDB(fd); UI.demo = false; }
+    if (fd) adoptDB(fd);
     FILE.handle = h; FILE.name = h.name; FILE.state = 'ok';
     await idbSet('handle', h);
     storeLocal();
@@ -770,10 +796,10 @@ function exportEventsCSV() {
   download(`pool-monitor-lancamentos-${today()}.csv`, toCSV(rows), 'text/csv;charset=utf-8');
 }
 function exportPoolsCSV() {
-  const rows = [['Pool', 'Tipo de posição', 'Rede', 'Exchange/Plataforma', 'Token 1', 'Token 2', 'Estado', 'Abertura', 'Último lançamento', 'Range mínimo', 'Range máximo', 'Capital investido (USD)', 'Valor atual (USD)', 'Variação do capital (USD)', 'Variação (%)', 'Fees pendentes (USD)', 'Fees recolhidas (USD)', 'Ganho total c/ fees (USD)', 'ROI total (%)', 'APR fees (%)', 'ROI anualizado (%)', 'Capital médio (USD)', 'Dias (até ao último lançamento)', 'Observações', 'Endereço da pool']];
+  const rows = [['Pool', 'Tipo de posição', 'Rede', 'Exchange/Plataforma', 'Token 1', 'Token 2', 'Estado', 'Abertura', 'Último lançamento', 'Range mínimo', 'Range máximo', 'Capital investido (USD)', 'Valor atual (USD)', 'Variação do capital (USD)', 'Variação (%)', 'Fees pendentes (USD)', 'Fees recolhidas (USD)', 'Ganho total c/ fees (USD)', 'ROI total (%)', 'APR fees (%)', 'ROI anualizado (%)', 'Capital médio (USD)', 'Dias (até ao último lançamento)', 'Observações', 'Endereço da pool', 'Vault-mãe']];
   for (const p of DB.pools) {
     const r = compute(p), c = r.cur; if (!c) continue;
-    rows.push([poolName(p), SUBS[subOf(p)], p.rede, p.exchange, p.token1, p.token2, c.closed ? 'Fechada' : 'Ativa', fmtDT(c.start), fmtDT(c.last), p.rangeMin, p.rangeMax, c.investido, c.valor, c.varCap, p100(c.varPct), c.pend, c.col, c.ganho, p100(c.roi), p100(c.apr), p100(c.roiAnual), c.capBase, c.days, p.obs, p.endereco || '']);
+    rows.push([poolName(p), SUBS[subOf(p)], p.rede, p.exchange, p.token1, p.token2, c.closed ? 'Fechada' : 'Ativa', fmtDT(c.start), fmtDT(c.last), p.rangeMin, p.rangeMax, c.investido, c.valor, c.varCap, p100(c.varPct), c.pend, c.col, c.ganho, p100(c.roi), p100(c.apr), p100(c.roiAnual), c.capBase, c.days, p.obs, p.endereco || '', p.vault || '']);
   }
   download(`pool-monitor-resumo-${today()}.csv`, toCSV(rows), 'text/csv;charset=utf-8');
 }
@@ -1034,7 +1060,6 @@ function drawCharts() {
 /* ---------- interface ---------- */
 const ICON_CHEV = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
 function statusHTML() {
-  if (UI.demo) return `<span class="status" id="status"><i class="dot"></i>Modo exemplo (nada é guardado)</span>`;
   if (FILE.state === 'ok') return `<span class="status" id="status" title="Os dados são gravados automaticamente neste ficheiro a cada alteração e combinados com as alterações feitas noutros computadores"><i class="dot ok"></i>Guardado em ${esc(FILE.name)}${FILE.last ? ' · ' + pad(FILE.last.getHours()) + ':' + pad(FILE.last.getMinutes()) : ''}</span>`;
   if (FILE.state === 'error') return `<span class="status" id="status"><i class="dot err"></i>Erro ao gravar ${esc(FILE.name)}</span>`;
   if (!LS.ok) return `<span class="status" id="status" title="${esc('Não está a gravar: ' + LS.why + '. Exporte um backup para não perder os dados.')}"><i class="dot err"></i>Não está a gravar</span>`;
@@ -1042,8 +1067,7 @@ function statusHTML() {
 }
 function bannerHTML() { return updateBannerHTML() + bannerCore(); }
 function bannerCore() {
-  if (!LS.ok && !UI.demo) return `<div class="banner err"><span><b>Os dados não estão a ser gravados:</b> ${esc(LS.why)}. Tudo o que registar desaparece ao fechar esta janela. Exporte um backup (Dados → Exportar backup) ou abra a app numa janela normal.</span><span class="bb"><button class="btn sm" data-act="export">Exportar backup</button></span></div>`;
-  if (UI.demo) return `<div class="banner warn"><span>Está a ver <b>dados de exemplo</b>. Nada é guardado até criar ou alterar alguma coisa.</span><span class="bb"><button class="btn sm" data-act="demo-exit">Sair do exemplo</button></span></div>`;
+  if (!LS.ok) return `<div class="banner err"><span><b>Os dados não estão a ser gravados:</b> ${esc(LS.why)}. Tudo o que registar desaparece ao fechar esta janela. Exporte um backup (Dados → Exportar backup) ou abra a app numa janela normal.</span><span class="bb"><button class="btn sm" data-act="export">Exportar backup</button></span></div>`;
   if (FILE.handle && FILE.state === 'needs-permission') return `<div class="banner warn"><span>O ficheiro de dados <b>${esc(FILE.name)}</b> está associado, mas o navegador pede a sua autorização para voltar a aceder-lhe.</span><span class="bb"><button class="btn sm green" data-act="reconnect">Voltar a ligar o ficheiro</button><button class="btn sm" data-act="unlink">Desassociar</button></span></div>`;
   if (FILE.handle && FILE.state === 'error') return `<div class="banner warn"><span>Não foi possível gravar em <b>${esc(FILE.name)}</b>. Os dados continuam guardados no navegador.</span><span class="bb"><button class="btn sm green" data-act="reconnect">Tentar novamente</button><button class="btn sm" data-act="unlink">Desassociar</button></span></div>`;
   if (!DB.pools.length) return '';
@@ -1214,7 +1238,7 @@ function initUpdateWatch() {
 }
 function updateBannerHTML() {
   const newer = UPD.latest ? isNewer(UPD.latest, APP_VERSION) : UPD.swChanged;
-  if (UI.demo || !newer) return '';
+  if (!newer) return '';
   const nv = UPD.latest ? ` <b>${esc(UPD.latest)}</b>` : '';
   return UPD.swChanged
     ? `<div class="banner"><span>Nova versão${nv} pronta. Está a usar a ${esc(APP_VERSION)}.</span><span class="bb"><button class="btn sm green" data-act="reloadapp">Atualizar agora</button></span></div>`
@@ -1411,7 +1435,9 @@ function headerHTML() {
           <button data-act="csv-ev">Exportar lançamentos para Excel (.csv)</button>
           <button data-act="csv-pools">Exportar resumo das pools para Excel (.csv)</button>
           <hr>
-          <button data-act="demo">Ver dados de exemplo</button>
+          <div class="cap">Ajustes</div>
+          <button data-act="nicks">Nomes dos contratos…</button>
+          <hr>
           <button data-act="wipe" class="danger">Apagar todos os dados…</button>
         </div>
       </div>
@@ -1742,7 +1768,8 @@ function poolHTML(x) {
         ${tile('Último Lançamento', fmtDT(c.last), TYPE_LABEL[c.ev.type] + ' · base: capital médio ' + money(c.capBase))}
       </div>
       ${p.obs ? `<div class="obs">📝 ${esc(p.obs)}</div>` : ''}
-      ${p.endereco ? `<div class="obs">🔗 Contrato: <span title="${esc(p.endereco)}">${esc(p.endereco.length > 14 ? p.endereco.slice(0, 6) + '…' + p.endereco.slice(-4) : p.endereco)}</span></div>` : ''}
+      ${p.vault ? `<div class="obs">🏛 Vault-mãe: <span title="${esc(p.vault)}">${esc(addrLabel(p.vault))}</span></div>` : ''}
+      ${p.endereco ? `<div class="obs">🔗 Contrato: <span title="${esc(p.endereco)}">${esc(addrLabel(p.endereco))}</span></div>` : ''}
       <div class="actions">
         ${c.closed ? `
           <button class="btn sm" data-act="reopen" data-id="${esc(p.id)}">↺ Reabrir</button>` : `
@@ -1787,16 +1814,77 @@ function poolsHTML(list, nAll, nAt, nFe) {
   const sortChip = (k, label) => `<button class="chip ${UI.sort === k ? 'on' : ''}" data-act="sort" data-k="${k}">${label}</button>`;
   const redeChip = UI.rede ? `<button class="chip on" data-act="filter-rede" data-k="" title="Remover filtro de rede">${networkLabel(UI.rede)} ×</button>` : '';
   const exChip = UI.exchange ? `<button class="chip on" data-act="filter-ex" data-k="" title="Remover filtro de exchange">${esc(UI.exchange)} ×</button>` : '';
-  const nomeVista = TITULOS[vistaAtual()];
+  const nomeVista = TITULOS[vistaAtual()] + (UI.kind === 'vault' && UI.vsel ? ' · ' + vaultNome(UI.vsel) : '') + (UI.psel ? ' · ' + poolName(DB.pools.find(p => p.id === UI.psel) || {}) : '');
   const titulo = list.length !== nAll ? `${nomeVista} (${list.length} de ${nAll})` : `${nomeVista} (${nAll})`;
   const emptyHint = [UI.rede && (networkIconHTML(UI.rede) + ' ' + esc(UI.rede)), UI.exchange && esc(UI.exchange)].filter(Boolean).join(' · ');
   return `<div class="section" id="sec-pools"><div class="sec-head"><h2>${titulo}</h2><div class="chips">${chip('todas', 'Todas')}${chip('ativas', nAt + ' Ativas', 'g')}${chip('fechadas', nFe + ' Fechadas')}${redeChip}${exChip}</div></div>
     <div class="chips" style="margin-top:8px"><span style="color:var(--dim);font-size:12px;align-self:center;margin-right:4px">Ordenar:</span>${sortChip('recent', 'Recentes')}${sortChip('valor', 'Valor')}${sortChip('roi', 'ROI')}${sortChip('apr', 'APR')}${sortChip('fees', 'Fees')}</div>
-    ${list.length ? list.map(poolHTML).join('') : `<div class="nochart" style="margin-top:12px">Nada neste filtro${emptyHint ? ' (' + emptyHint + ')' : ''}.</div>`}</div>`;
+    ${list.length ? (vistaAtual() === 'com' ? grupos(list) : list.map(poolHTML).join('')) : `<div class="nochart" style="margin-top:12px">Nada neste filtro${emptyHint ? ' (' + emptyHint + ')' : ''}.</div>`}</div>`;
+}
+// No separador dos vaults comunitários, as pools aparecem agrupadas pelo vault-mãe.
+const addrCurto = a => a && a.length > 14 ? a.slice(0, 6) + '…' + a.slice(-4) : (a || '');
+/* ---------- nomes para os contratos (ajustes) ---------- */
+// DB.nicks: { "<endereço em minúsculas>": "nome" }. Onde a app mostra um contrato, mostra o nome se existir.
+const nickKey = a => String(a || '').trim().toLowerCase();
+const nickOf = a => (DB.nicks || {})[nickKey(a)] || '';
+// Nome a mostrar: o nick, se existir; senão o endereço abreviado.
+const addrLabel = a => nickOf(a) || addrCurto(a);
+// Aceita, em qualquer campo de endereço, o nome já atribuído a um contrato.
+const resolveAddr = s => {
+  const t = String(s || '').trim();
+  if (!t || isPoolAddr(t)) return t;
+  const alvo = t.toLowerCase();
+  for (const [addr, nome] of Object.entries(DB.nicks || {})) if (String(nome).trim().toLowerCase() === alvo) return addr;
+  return t;
+};
+function nicksForm() {
+  const lista = Object.entries(DB.nicks || {});
+  const usados = new Map();   // contratos já usados nas pools, para sugerir
+  for (const p of DB.pools) for (const [a, onde] of [[p.endereco, 'pool ' + poolName(p)], [p.vault, 'vault-mãe']]) {
+    const k = nickKey(a); if (k && !usados.has(k)) usados.set(k, onde);
+  }
+  const semNome = [...usados.keys()].filter(k => !nickOf(k));
+  const linhas = lista.length ? lista.map(([a, n]) => `<tr><td class="hs" title="${esc(a)}">${esc(addrCurto(a))}</td><td><b>${esc(n)}</b></td><td>${esc(usados.get(a) || '—')}</td><td class="act"><button class="ed" data-act="nick-edit" data-a="${esc(a)}" title="Mudar o nome">✎</button><button class="del" data-act="nick-del" data-a="${esc(a)}" title="Remover o nome">✕</button></td></tr>`).join('') : '';
+  openForm({
+    title: 'Ajustes · Nomes dos contratos', submit: 'Fechar', noSubmit: 1,
+    fields: [],
+    html: `<p class="hint" style="margin:0 0 12px">Dê um nome aos endereços de contratos. Onde a app mostrar esse contrato, passa a mostrar o nome. Nos campos de endereço pode escrever o nome em vez do contrato.</p>
+      <div class="bb" style="margin-bottom:12px"><button type="button" class="btn sm primary" data-act="nick-add">+ Novo nome</button>${semNome.length ? `<span class="hint" style="align-self:center">${semNome.length} contrato(s) em uso sem nome</span>` : ''}</div>
+      ${linhas ? `<div class="tw"><table><thead><tr><th>Contrato</th><th>Nome</th><th>Onde é usado</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div>` : '<p class="note">Ainda não há nomes definidos.</p>'}
+      ${semNome.length ? `<p class="note">Sem nome: ${semNome.map(k => `<button class="text-link" data-act="nick-add" data-a="${esc(k)}">${esc(addrCurto(k))}</button>`).join(', ')}</p>` : ''}`
+  });
+}
+async function nickEdit(addr) {
+  const atual = addr ? nickOf(addr) : '';
+  const a = addr || await askInput('Contrato', 'Endereço do contrato (0x… ou, na Solana, o endereço).', '', '0x…');
+  if (!a) return;
+  const end = String(a).trim();
+  if (!isPoolAddr(end)) { await askNotice('O endereço não parece válido. Use o endereço do contrato (0x… ou, na Solana, o endereço).', 'Endereço inválido'); return nicksForm(); }
+  const nome = await askInput('Nome do contrato', `Nome para ${addrCurto(end)}.\nDeixe em branco para remover o nome.`, atual, 'ex.: Vault IA BNB');
+  if (nome === null) return nicksForm();
+  DB.nicks = DB.nicks || {};
+  const t = nome.trim();
+  if (!t) delete DB.nicks[nickKey(end)];
+  else {
+    const dono = Object.entries(DB.nicks).find(([k, n]) => k !== nickKey(end) && String(n).trim().toLowerCase() === t.toLowerCase());
+    if (dono) { await askNotice(`O nome “${t}” já está atribuído a ${addrCurto(dono[0])}.`, 'Nome repetido'); return nicksForm(); }
+    DB.nicks[nickKey(end)] = t;
+  }
+  save(); nicksForm();
+}
+
+function grupos(list) {
+  const m = new Map();
+  for (const x of list) { const k = (x.p.vault || '').toLowerCase(); if (!m.has(k)) m.set(k, []); m.get(k).push(x); }
+  return [...m.entries()].map(([k, xs]) => {
+    const val = xs.reduce((a, x) => a + (x.r.cur ? x.r.cur.valor : 0), 0);
+    const cab = `<div class="vgrp"><span class="vg-t">Vault <span title="${esc(xs[0].p.vault || '')}">${esc(addrLabel(xs[0].p.vault))}</span></span><span class="vg-n">${xs.length} ${xs.length === 1 ? 'pool' : 'pools'} · ${money(val)}</span></div>`;
+    return cab + xs.map(poolHTML).join('');
+  }).join('');
 }
 function emptyHTML() {
   return `<div class="section empty"><h2>${esc(VAZIOS[vistaAtual()])}</h2><p>Registe a sua primeira posição. Depois, cada atualização (valor e fees) fica registada com data e hora e forma o histórico de ROI e APR.</p>
-    <div class="bb"><button class="btn primary" data-act="new">${K().nova}</button><button class="btn" data-act="demo">Ver dados de exemplo</button>${FILE.supported ? '<button class="btn" data-act="open-file">Abrir ficheiro de dados…</button>' : '<button class="btn" data-act="import">Importar backup…</button>'}</div></div>`;
+    <div class="bb"><button class="btn primary" data-act="new">${K().nova}</button>${FILE.supported ? '<button class="btn" data-act="open-file">Abrir ficheiro de dados…</button>' : '<button class="btn" data-act="import">Importar backup…</button>'}</div></div>`;
 }
 function methodHTML() {
   return `<details class="section method"><summary>Como os indicadores são calculados</summary><ul>
@@ -1816,8 +1904,19 @@ function methodHTML() {
 function kindTabsHTML(c) {
   const tab = (k, nome, n) => `<button class="ktab${UI.kind === k ? ' on' : ''}" data-act="kind" data-k="${k}">${esc(nome)}<span class="n">${n}</span></button>`;
   const sub = (v, nome, n) => `<button class="vtab${UI.vsub === v ? ' on' : ''}" data-act="vsub" data-k="${v}">${esc(nome)}<span class="n">${n}</span></button>`;
-  return `<div class="ktabs" role="tablist">${tab('pool', 'Pools de liquidez', c.pool)}${tab('vault', 'Vaults', c.farm + c.com)}</div>` +
-    (UI.kind === 'vault' ? `<div class="vtabs">${sub('farm', 'Auto-Farms', c.farm)}${sub('com', 'Vaults Comunitários', c.com)}</div>` : '');
+  const chip = (act, k, nome, n, on) => `<button class="vtab lvl${on ? ' on' : ''}" data-act="${act}" data-k="${esc(k)}">${esc(nome)}${n != null ? `<span class="n">${n}</span>` : ''}</button>`;
+  let linhas = `<div class="ktabs" role="tablist">${tab('pool', 'Pools de liquidez', c.pool)}${tab('vault', 'Vaults', c.farm + c.com)}</div>`;
+  if (UI.kind !== 'vault') return linhas;
+  linhas += `<div class="vtabs">${sub('farm', 'Auto-Farms', c.farm)}${sub('com', 'Vaults Comunitários', c.com)}</div>`;
+  const vs = vaultList();
+  if (vs.length > 1) {   // linha dos vaults, só quando há mais de um
+    linhas += `<div class="vtabs lvl2">${chip('vsel', '', 'Todos', vs.reduce((a, [, ps]) => a + ps.length, 0), !UI.vsel)}${vs.map(([k, ps]) => chip('vsel', k, vaultNome(k), ps.length, UI.vsel === k)).join('')}</div>`;
+  }
+  const dentro = UI.vsel ? (vs.find(([k]) => k === UI.vsel) || [, []])[1] : (vs.length === 1 ? vs[0][1] : []);
+  if (dentro.length > 1) {   // linha das posições desse vault
+    linhas += `<div class="vtabs lvl3">${chip('psel', '', 'Todas', dentro.length, !UI.psel)}${dentro.map(p => chip('psel', p.id, poolName(p), null, UI.psel === p.id)).join('')}</div>`;
+  }
+  return linhas;
 }
 function render() {
   const app = $('#app');
@@ -1893,8 +1992,8 @@ const askInput = (title, message, value = '', ph = '') => dialog({ title, messag
 function openForm(cfg) {
   const ov = document.createElement('div'); ov.className = 'overlay';
   ov.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><div class="mh"><h3>${esc(cfg.title)}</h3><button class="x" type="button" data-x aria-label="Fechar">×</button></div>
-    <form class="mb" novalidate><div class="grid2">${cfg.fields.map(fieldHTML).join('')}</div>${cfg.note ? `<p class="note">${esc(cfg.note)}</p>` : ''}<div class="err" hidden></div>
-    <div class="mf"><button type="button" class="btn" data-x>Cancelar</button><button type="submit" class="btn primary">${esc(cfg.submit || 'Guardar')}</button></div></form></div>`;
+    <form class="mb" novalidate>${cfg.html || ''}<div class="grid2">${cfg.fields.map(fieldHTML).join('')}</div>${cfg.note ? `<p class="note">${esc(cfg.note)}</p>` : ''}<div class="err" hidden></div>
+    <div class="mf">${cfg.noSubmit ? `<button type="button" class="btn primary" data-x>${esc(cfg.submit || 'Fechar')}</button>` : `<button type="button" class="btn" data-x>Cancelar</button><button type="submit" class="btn primary">${esc(cfg.submit || 'Guardar')}</button>`}</div></form></div>`;
   document.body.appendChild(ov);
   const form = ov.querySelector('form'), err = ov.querySelector('.err');
   const close = () => { ov.remove(); document.removeEventListener('keydown', onKey); };
@@ -1912,6 +2011,7 @@ function openForm(cfg) {
   });
   form.addEventListener('submit', e => {
     e.preventDefault();
+    if (cfg.noSubmit) { close(); return; }
     const vals = {};
     for (const f of cfg.fields) {
       if (f.type === 'check') { vals[f.name] = form.elements[f.name].checked; continue; }
@@ -1986,22 +2086,26 @@ function poolForm(P, kind, sub) {
         { name: 'rangeMax', label: 'Range Máximo', type: 'num', money: false, ph: '4000', half: 1, value: P?.rangeMax, hint: 'Opcional' }
       ]),
       { name: 'endereco', label: farm ? 'Endereço do vault (opcional)' : 'Endereço da pool (contrato)', ph: '0x… (opcional)', value: P?.endereco, hint: farm ? 'Opcional. Endereço do vault na plataforma (o “CA”), não o hash de uma transação.' : 'Opcional. Endereço do contrato da pool, não o hash de uma transação. Permite verificar o range com o preço da própria pool.' },
+      ...(sb === 'comunitario' || (P && P.vault) ? [{ name: 'vault', label: 'Endereço do vault-mãe (contrato)', ph: '0x…', value: P?.vault, hint: 'Obrigatório para a pool ficar agrupada no vault. Sem este endereço, fica como pool de liquidez simples.' }] : []),
       { name: 'obs', label: 'Observações', type: 'textarea', ph: 'Opcional (ex.: fee tier 0,05%, carteira usada…)', value: P?.obs }
     ],
     onSubmit: v => {
       if (!(v.valor > 0)) return 'A liquidez inicial deve ser maior que zero.';
       if (!farm && ok(v.rangeMin) && ok(v.rangeMax) && v.rangeMin >= v.rangeMax) return 'O range mínimo deve ser menor que o máximo.';
+      v.endereco = resolveAddr(v.endereco); v.vault = resolveAddr(v.vault);
       if (v.endereco && !isPoolAddr(v.endereco)) return 'O endereço da pool não parece válido. Use o endereço do contrato (por exemplo 0x… ou, na Solana, o endereço da pool).';
+      if (v.vault && !isPoolAddr(v.vault)) return 'O endereço do vault-mãe não parece válido. Use o endereço do contrato (0x… ou, na Solana, o endereço do vault).';
       const tt = v.data + 'T' + v.hora;
       if (!isFinite(parseT(tt))) return 'Data ou hora inválida.';
       if (parseT(tt) > Date.now() + 5 * 60000) return 'A data de criação não pode estar no futuro.';
-      const data = { kind: k, sub: P ? subOf(P) : (sub || (k === 'farm' ? 'autofarm' : 'comunitario')), rede: v.rede, exchange: farm ? '' : v.exchange, token1: farm ? '' : v.token1, token2: farm ? '' : v.token2, nome: v.nome, rangeMin: farm ? null : v.rangeMin, rangeMax: farm ? null : v.rangeMax, endereco: v.endereco || '', obs: v.obs };
+      const vm = (v.vault || '').trim();
+      const subFinal = farm ? 'autofarm' : (vm ? 'comunitario' : 'posicao');   // sem vault-mãe não é vault
+      const data = { kind: k, sub: subFinal, vault: farm ? '' : vm, rede: v.rede, exchange: farm ? '' : v.exchange, token1: farm ? '' : v.token1, token2: farm ? '' : v.token2, nome: v.nome, rangeMin: farm ? null : v.rangeMin, rangeMax: farm ? null : v.rangeMax, endereco: v.endereco || '', obs: v.obs };
       if (P) {
         if (P.events.some(e => e.type !== 'abertura' && parseT(e.t) < parseT(tt))) return 'Existem lançamentos anteriores a essa data de criação. Ajuste a data ou elimine esses lançamentos.';
         Object.assign(P, data); ab.valor = v.valor; ab.t = tt;
       } else {
         const id = uid();
-        if (UI.demo) { adoptDB(REAL || loadLocal()); REAL = null; UI.demo = false; UI.open = {}; }
         DB.pools.push(Object.assign({ id }, data, { events: [{ id: uid(), type: 'abertura', t: tt, valor: v.valor, fees: null, seq: nextSeq() }] }));
         UI.open[id] = true;
       }
@@ -2143,28 +2247,6 @@ function closeForm(P) {
   });
 }
 
-/* ---------- exemplo ---------- */
-function exampleDB() {
-  const mk = (o, evs) => Object.assign({ id: uid(), nome: '', obs: '' }, o, { events: evs.map(([type, t, valor, fees]) => ({ id: uid(), type, t, valor, fees: fees ?? null, seq: nextSeq() })) });
-  const d = emptyDB();
-  d.pools = [
-    mk({ rede: 'SOLANA', exchange: 'ORCA', token1: 'cbBTC', token2: 'USDC', rangeMin: 60000, rangeMax: 70000, obs: 'Exemplo ilustrativo' },
-      [['abertura', '2026-02-10T16:25', 4998], ['atualizacao', '2026-02-16T16:26', 5600, 120]]),
-    mk({ rede: 'SOLANA', exchange: 'BYREAL', token1: 'COINx', token2: 'USDC', rangeMin: 180, rangeMax: 240 },
-      [['abertura', '2026-02-07T20:20', 195]]),
-    mk({ rede: 'SOLANA', exchange: 'BYREAL', token1: 'COINx', token2: 'USDC', rangeMin: 165, rangeMax: 231 },
-      [['abertura', '2026-01-25T09:00', 24.8], ['atualizacao', '2026-02-07T20:13', 24.8, 0.31], ['atualizacao', '2026-02-07T20:14', 19.19, 0.47], ['fechamento', '2026-02-07T20:15', 19.19, 0.47]])
-  ];
-  return d;
-}
-let REAL = null;
-function enterDemo() {
-  if (UI.demo) return;
-  REAL = DB; DB = exampleDB(); UI.demo = true; UI.filter = 'todas'; UI.rede = null; UI.exchange = null; UI.sort = 'recent';
-  UI.open = { [DB.pools[0].id]: true }; render();
-}
-function exitDemo() { if (!UI.demo) return; adoptDB(REAL || loadLocal()); REAL = null; UI.demo = false; UI.open = {}; UI.rede = null; UI.exchange = null; render(); }
-
 /* ---------- eventos ---------- */
 document.addEventListener('click', ev => {
   const menu = $('#menu');
@@ -2173,14 +2255,13 @@ document.addEventListener('click', ev => {
   if (!b) return;
   const act = b.dataset.act, id = b.dataset.id, P = id ? DB.pools.find(p => p.id === id) : null;
   if (menu && b.closest('.menu')) menu.hidden = true;
-  if (UI.demo && ['update', 'collect', 'flow', 'close', 'reopen', 'edit', 'delpool', 'delev', 'evedit', 'export', 'csv-ev', 'csv-pools', 'wipe', 'link', 'rebalance'].includes(act)) {
-    askNotice('Isto é apenas um exemplo. Saia do modo exemplo para lançar e guardar os seus próprios dados.', 'Modo exemplo'); return;
-  }
   switch (act) {
     case 'menu': menu.hidden = !menu.hidden; break;
     case 'new': newPoolFlow(); break;
-    case 'kind': UI.kind = b.dataset.k; UI.filter = 'todas'; UI.rede = null; UI.exchange = null; render(); break;
-    case 'vsub': UI.vsub = b.dataset.k; UI.filter = 'todas'; UI.rede = null; UI.exchange = null; render(); break;
+    case 'kind': UI.kind = b.dataset.k; UI.vsel = null; UI.psel = null; UI.filter = 'todas'; UI.rede = null; UI.exchange = null; render(); break;
+    case 'vsub': UI.vsub = b.dataset.k; UI.vsel = null; UI.psel = null; UI.filter = 'todas'; UI.rede = null; UI.exchange = null; render(); break;
+    case 'vsel': UI.vsel = b.dataset.k || null; UI.psel = null; UI.filter = 'todas'; render(); break;
+    case 'psel': UI.psel = b.dataset.k || null; UI.filter = 'todas'; render(); break;
     case 'toggle': {
       UI.open[id] = !UI.open[id];
       render();
@@ -2244,10 +2325,14 @@ document.addEventListener('click', ev => {
       break;
     }
     case 'link': linkNewFile(); break;
-    case 'open-file': if (UI.demo) exitDemo(); openExistingFile(); break;
+    case 'open-file': openExistingFile(); break;
     case 'unlink': unlinkFile(); break;
     case 'reconnect': reconnectFile(); break;
     case 'allev': UI.allev[id] = !UI.allev[id]; UI.open[id + ':ev'] = true; render(); break;
+    case 'nicks': nicksForm(); break;
+    case 'nick-add': nickEdit(b.dataset.a || ''); break;
+    case 'nick-edit': nickEdit(b.dataset.a); break;
+    case 'nick-del': { const a = b.dataset.a; askConfirm('Remover nome', `Remover o nome “${nickOf(a)}” de ${addrCurto(a)}?`, 'Remover').then(yes => { if (yes) { delete DB.nicks[nickKey(a)]; save(); nicksForm(); } }); break; }
     case 'prices': updatePrices(); break;
     case 'reloadapp': location.reload(); break;
     case 'tokid': {
@@ -2268,11 +2353,9 @@ document.addEventListener('click', ev => {
       break;
     }
     case 'export': exportBackup(); break;
-    case 'import': if (UI.demo) exitDemo(); importBackup(); break;
+    case 'import': importBackup(); break;
     case 'csv-ev': exportEventsCSV(); break;
     case 'csv-pools': exportPoolsCSV(); break;
-    case 'demo': enterDemo(); break;
-    case 'demo-exit': exitDemo(); break;
     case 'wipe':
       askConfirm('Apagar todos os dados', 'Apagar TODAS as pools e lançamentos?\n\nRecomendo exportar um backup antes. Isto não pode ser desfeito.', 'Apagar tudo', true, 'apagar').then(yes => { if (yes) { DB = emptyDB(); FORCE_NEXT = !!(FILE.handle && FILE.state === 'ok'); UI.open = {}; UI.rede = null; UI.exchange = null; save(); } });
       break;
@@ -2282,7 +2365,7 @@ document.addEventListener('toggle', e => { const d = e.target; if (d.matches && 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { const m = $('#menu'); if (m) m.hidden = true; } });
 let rT = null;
 window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(drawCharts, 150); });
-window.addEventListener('storage', e => { if (e.key === LS_KEY && !UI.demo) { adoptDB(loadLocal()); render(); } });
+window.addEventListener('storage', e => { if (e.key === LS_KEY) { adoptDB(loadLocal()); render(); } });
 window.addEventListener('focus', pullFromFile);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) pullFromFile(); });
 
@@ -2305,16 +2388,16 @@ window.addEventListener('unhandledrejection', e => { if (!document.querySelector
 async function init() {
   initUpdateWatch(); initNetWatch(); checkLocalStorage();
   adoptDB(loadLocal());
-  if (location.hash === '#exemplo' && !DB.pools.length) enterDemo(); else render();
+  render();
   if (!FILE.supported) return;
   try {
     const h = await idbGet('handle');
     if (!h) return;
     FILE.handle = h; FILE.name = h.name;
-    if ((await h.queryPermission({ mode: 'readwrite' })) === 'granted') { if (!UI.demo) await syncFromFile(); else FILE.state = 'ok'; }
+    if ((await h.queryPermission({ mode: 'readwrite' })) === 'granted') await syncFromFile();
     else FILE.state = 'needs-permission';
   } catch (e) { console.error(e); FILE.state = FILE.handle ? 'error' : 'none'; }
-  if (!UI.demo) render(); else updateStatus();
+  render();
 }
 init().catch(fatal);
 </script>
