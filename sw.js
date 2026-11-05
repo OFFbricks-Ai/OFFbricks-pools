@@ -1,6 +1,6 @@
 // Service worker do Pool Monitor: guarda a app no dispositivo para abrir sem internet.
 // A versão é preenchida automaticamente ao gerar o pacote; cada versão nova muda este ficheiro e, com isso, é instalada.
-const VERSION = 'V7.5';
+const VERSION = 'V8.3';
 const CACHE = 'pool-monitor-' + VERSION;
 const FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './icons/favicon-32.png'];
 

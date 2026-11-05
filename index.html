@@ -232,6 +232,7 @@ details.ev summary{cursor:pointer;color:var(--muted);font-weight:600;font-size:1
 .vgrp{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:16px 0 6px;padding:7px 12px;border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:10px;background:var(--card2);font-size:12.5px;flex-wrap:wrap}
 .vg-t{font-weight:700;color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 .vg-n{color:var(--muted)}
+.btn.xs{padding:2px 8px;font-size:11px;border-radius:8px;margin-left:8px;vertical-align:middle}
 .ktab.on .n{color:var(--text);border-color:#3a4660}
 .evmore{margin-top:8px;display:inline-block}
 .fatal{max-width:640px;margin:48px auto;border:1px solid rgba(240,67,82,.45);background:rgba(240,67,82,.07);border-radius:14px;padding:22px}
@@ -382,8 +383,8 @@ details.method b{color:var(--text)}
 const LS_KEY = 'poolMonitor.v1';
 const DAY = 86400000;
 const MIN_APR_DAYS = 1;   // janela mínima (dias) para exibir APR / ROI anualizado
-const APP_VERSION = 'V7.5';   // mostrada no cabeçalho, ao lado do nome da app
-const NET = { online: false, busy: false, msg: '', ok: null, fail: {}, at: 0, csp: '', diag: [] };
+const APP_VERSION = 'V8.3';   // mostrada no cabeçalho, ao lado do nome da app
+const NET = { online: false, busy: false, msg: '', ok: null, fail: {}, at: 0, csp: '', diag: [], vaults: [] };
 const diag = (fonte, res) => NET.diag.push(`${fonte}: ${res}`);
 // Tipos de posição: pools de liquidez (lp) e auto-farms (farm). Vivem em separadores próprios.
 const KINDS = { lp: { nome: 'Pools de liquidez', uma: 'Vault Comunitário', nova: '+ Novo', vazio: 'Nenhuma pool registada', onde: 'Exchange', ondePh: 'Uniswap V3' },
@@ -444,6 +445,9 @@ const parseT = s => new Date(s).getTime();               // 'AAAA-MM-DDTHH:mm' e
 function nowInput() { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; }
 const splitDT = s => [s.slice(0, 10), s.slice(11, 16)];
 function fmtDT(t) { const d = new Date(t); return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+// Na tabela de lançamentos o ano não cabe e raramente faz falta: 12/Jan 14:30.
+function fmtDTcurto(t) { const d = new Date(t); return `${pad(d.getDate())}/${MESES[d.getMonth()]} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
 function fmtD(t) { const d = new Date(t); return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`; }
 function fmtAxisT(t, span) { const d = new Date(t); return span < 2 * DAY ? `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}` : `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${String(d.getFullYear()).slice(2)}`; }
 function fAxisMoney(v) { const a = Math.abs(v), s = v < 0 ? '-' : ''; if (a >= 1e6) return s + '$' + fmt(a / 1e6, 2) + 'M'; if (a >= 1e3) return s + '$' + fmt(a / 1e3, a >= 1e5 ? 0 : 1) + 'k'; return s + '$' + fmt(a, a < 10 ? 2 : 0); }
@@ -464,7 +468,7 @@ function parseNum(str, money = false) {
 
 const poolName = p => (p.nome && p.nome.trim()) || `${p.token1 || '?'}/${p.token2 || '?'}`;
 const initials = p => (((p.token1 || p.nome || '?').replace(/[^A-Za-z0-9]/g, '').slice(0, 2)) || '?').toUpperCase();
-const TYPE_LABEL = { abertura: 'Abertura', atualizacao: 'Atualização', coleta: 'Recolha de fees', aporte: 'Reforço', retirada: 'Retirada', rebalance: 'Mover range', par: 'Mudança de par', fechamento: 'Fecho' };
+const TYPE_LABEL = { abertura: 'Abertura', atualizacao: 'Atualização', coleta: 'Recolha de fees', aporte: 'Reforço', retirada: 'Retirada', rebalance: 'Mover range', par: 'Mudança de par', quota: 'Minha percentagem', fechamento: 'Fecho' };
 const NETWORK_IMG = {
   'arbitrum': 'data:image/png;base64,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',
   'base': 'data:image/png;base64,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',
@@ -810,12 +814,27 @@ function sortedEvents(p) {
   return p.events.slice().sort((a, b) => parseT(a.t) - parseT(b.t) || (ORDER[a.type] ?? 1) - (ORDER[b.type] ?? 1) || (a.seq || 0) - (b.seq || 0));
 }
 // Reproduz os lançamentos em ordem e devolve um "retrato" (snapshot) após cada um.
+// Percentagem do utilizador na pool, por ordem cronológica (lançamentos do tipo "quota").
+const quotaInicial = p => ok(p.pct) ? p.pct : 1;
+function quotaEm(p, t) {
+  let q = quotaInicial(p);
+  for (const e of sortedEvents(p)) { if (parseT(e.t) > t) break; if (e.type === 'quota' && ok(e.pct)) q = e.pct; }
+  return q;
+}
+const quotaAtual = p => quotaEm(p, Infinity);
+// Quando os lançamentos trazem os valores totais da pool, aplica-se a percentagem vigente a cada um.
+const porQuota = p => (p.pctMode || 'total') === 'total' && ok(p.pct);
 function compute(p, upTo = Infinity) {
   const s = { valor: 0, cin: 0, cout: 0, K: 0, pend: 0, col: 0, integ: 0, start: null, last: null, closed: false, closeT: null, inicial: 0 };
   const snaps = [];
-  for (const e of sortedEvents(p)) {
-    const t = parseT(e.t);
+  const ajusta = porQuota(p); let q = quotaInicial(p); let rev = null, taxas = 0;
+  for (const e0 of sortedEvents(p)) {
+    const t = parseT(e0.t);
     if (t > upTo) break;
+    if (ok(e0.taxa)) taxas += e0.taxa;
+    if (ok(e0.rev)) rev = e0.rev;   // REV: lucro pela gestão do vault, registado tal como é lançado
+    if (e0.type === 'quota') { if (ok(e0.pct)) q = e0.pct; snaps.push(Object.assign({ t, ev: e0, rev, taxas }, metrics(s))); continue; }
+    const e = ajusta && q !== 1 ? Object.assign({}, e0, { valor: ok(e0.valor) ? e0.valor * q : e0.valor, fees: ok(e0.fees) ? e0.fees * q : e0.fees }) : e0;
     if (s.last !== null) s.integ += Math.max(0, s.K) * (t - s.last) / DAY;   // capital × dias
     if (s.start === null) s.start = t;
     s.last = t;
@@ -830,9 +849,9 @@ function compute(p, upTo = Infinity) {
       case 'par': if (ok(e.valor)) s.valor = v; s.col += (+e.fees || 0); s.pend = 0; break;   // o agente trocou o par
       case 'fechamento': s.valor = v; s.col += (+e.fees || 0); s.pend = 0; s.closed = true; s.closeT = t; break;
     }
-    snaps.push(Object.assign({ t, ev: e }, metrics(s)));
+    snaps.push(Object.assign({ t, ev: e0, rev, taxas }, metrics(s)));
   }
-  return { snaps, cur: snaps.length ? snaps[snaps.length - 1] : null, st: s };
+  return { snaps, rev, taxas, cur: snaps.length ? snaps[snaps.length - 1] : null, st: s };
 }
 function metrics(s) {
   const days = s.start === null ? 0 : (s.last - s.start) / DAY;   // até o último lançamento
@@ -905,6 +924,9 @@ function editPatch(e, v) {
   if ('pPnl' in v) nv.pPnl = ok(v.pPnl) ? v.pPnl : null;
   if ('hash' in v) nv.hash = v.hash || null;
   if ('nota' in v) nv.nota = v.nota || null;
+  if ('pct' in v) nv.pct = ok(v.pct) ? v.pct / 100 : null;
+  if ('rev' in v) nv.rev = ok(v.rev) ? v.rev : null;
+  if ('taxa' in v) nv.taxa = ok(v.taxa) ? v.taxa : null;
   const patch = {};
   for (const k in nv) { const a = e[k] == null ? null : e[k], b = nv[k] == null ? null : nv[k]; if (a !== b) patch[k] = nv[k]; }
   return patch;
@@ -914,6 +936,7 @@ function validateEdit(P, e, patch, now) {
   const nx = Object.assign({}, e, patch), t = parseT(nx.t), num = x => typeof x === 'number' && isFinite(x);
   if (!isFinite(t)) return 'Data ou hora inválida.';
   if (t > now + 5 * 60000) return 'A data não pode estar no futuro.';
+  if (nx.type === 'quota') return (nx.pct > 0 && nx.pct <= 1) ? null : 'A percentagem tem de estar entre 0 e 100.';
   if (['abertura', 'aporte', 'retirada', 'coleta'].includes(nx.type) && !(nx.valor > 0)) return 'Informe um valor maior que zero.';
   if (nx.type === 'par' && !(String(nx.token1 || '').trim() && String(nx.token2 || '').trim())) return 'Indique os dois tokens.';
   if (nx.type === 'par' && ((nx.valor != null && !(num(nx.valor) && nx.valor >= 0)) || !(nx.fees >= 0))) return 'Os valores não podem ser negativos.';
@@ -953,13 +976,14 @@ function editEventForm(P, e) {
   const rng = (name, label) => ({ name, label, type: 'num', money: false, half: 1, value: e[name], req: 1 });
   let fields;
   switch (e.type) {
-    case 'abertura': fields = [val('Liquidez Inicial (USD)'), ...dt, ...nt()]; break;
-    case 'atualizacao': fields = [...(hf ? [hf] : []), val(kindOf(P) === 'farm' ? 'TVL Atual (USD)' : 'Valor Atual (USD)'), fees('Fees Acumuladas (USD)'), ...(kindOf(P) === 'farm' ? [{ name: 'pApr', label: 'APR da plataforma (%)', type: 'num', money: false, half: 1, value: e.pApr != null ? e.pApr * 100 : null }, { name: 'pPnl', label: 'PnL da plataforma (USD)', type: 'num', half: 1, value: e.pPnl }] : []), ...dt, ...nt()]; break;
-    case 'coleta': fields = [...(hf ? [hf] : []), val('Valor recolhido (USD)'), ...dt, ...nt()]; break;
-    case 'aporte': case 'retirada': fields = [...(hf ? [hf] : []), { name: 'tipo', label: 'Movimento', type: 'select', value: e.type, options: [['aporte', 'Reforço (adicionar liquidez)'], ['retirada', 'Retirada parcial de liquidez']] }, val('Valor (USD)'), ...dt, ...nt()]; break;
-    case 'rebalance': fields = [...(hf ? [hf] : []), val('Valor da posição após o rebalance (USD)'), fees('Fees recolhidas no rebalance (USD)'), rng('rangeMin', 'Novo range mínimo'), rng('rangeMax', 'Novo range máximo'), ...dt, ...nt()]; break;
-    case 'par': fields = [...(hf ? [hf] : []), { name: 'token1', label: 'Token 1', half: 1, value: e.token1, req: 1 }, { name: 'token2', label: 'Token 2', half: 1, value: e.token2, req: 1 }, { name: 'valor', label: 'Valor da posição após a mudança (USD)', type: 'num', value: e.valor }, { name: 'fees', label: 'Fees recolhidas na operação (USD)', type: 'num', value: e.fees }, ...dt, ...nt()]; break;
-    case 'fechamento': fields = [...(hf ? [hf] : []), val('Valor final recebido (USD)'), fees('Fees recebidas no fecho (USD)'), ...dt, ...nt()]; break;
+    case 'abertura': fields = [val('Liquidez Inicial (USD)'), ...dt, { name: 'taxa', label: 'Taxas (USD)', type: 'num', half: 1, value: e.taxa }, ...nt()]; break;
+    case 'atualizacao': fields = [...(hf ? [hf] : []), val(kindOf(P) === 'farm' ? 'TVL Atual (USD)' : 'Valor Atual (USD)'), fees('Fees Acumuladas (USD)'), ...(subOf(P) === 'comunitario' ? [{ name: 'rev', label: 'REV (USD)', type: 'num', half: 1, value: e.rev }] : []), ...(kindOf(P) === 'farm' ? [{ name: 'pApr', label: 'APR da plataforma (%)', type: 'num', money: false, half: 1, value: e.pApr != null ? e.pApr * 100 : null }, { name: 'pPnl', label: 'PnL da plataforma (USD)', type: 'num', half: 1, value: e.pPnl }] : []), ...dt, { name: 'taxa', label: 'Taxas (USD)', type: 'num', half: 1, value: e.taxa }, ...nt()]; break;
+    case 'coleta': fields = [...(hf ? [hf] : []), val('Valor recolhido (USD)'), ...dt, { name: 'taxa', label: 'Taxas (USD)', type: 'num', half: 1, value: e.taxa }, ...nt()]; break;
+    case 'aporte': case 'retirada': fields = [...(hf ? [hf] : []), { name: 'tipo', label: 'Movimento', type: 'select', value: e.type, options: [['aporte', 'Reforço (adicionar liquidez)'], ['retirada', 'Retirada parcial de liquidez']] }, val('Valor (USD)'), ...dt, { name: 'taxa', label: 'Taxas (USD)', type: 'num', half: 1, value: e.taxa }, ...nt()]; break;
+    case 'rebalance': fields = [...(hf ? [hf] : []), val('Valor da posição após o rebalance (USD)'), fees('Fees recolhidas no rebalance (USD)'), rng('rangeMin', 'Novo range mínimo'), rng('rangeMax', 'Novo range máximo'), ...dt, { name: 'taxa', label: 'Taxas (USD)', type: 'num', half: 1, value: e.taxa }, ...nt()]; break;
+    case 'quota': fields = [{ name: 'pct', label: 'Percentagem (%)', type: 'num', money: false, half: 1, value: ok(e.pct) ? e.pct * 100 : null, req: 1 }, ...dt]; break;
+    case 'par': fields = [...(hf ? [hf] : []), { name: 'token1', label: 'Token 1', half: 1, value: e.token1, req: 1 }, { name: 'token2', label: 'Token 2', half: 1, value: e.token2, req: 1 }, { name: 'valor', label: 'Valor da posição após a mudança (USD)', type: 'num', value: e.valor }, { name: 'fees', label: 'Fees recolhidas na operação (USD)', type: 'num', value: e.fees }, ...dt, { name: 'taxa', label: 'Taxas (USD)', type: 'num', half: 1, value: e.taxa }, ...nt()]; break;
+    case 'fechamento': fields = [...(hf ? [hf] : []), val('Valor final recebido (USD)'), fees('Fees recebidas no fecho (USD)'), ...dt, { name: 'taxa', label: 'Taxas (USD)', type: 'num', half: 1, value: e.taxa }, ...nt()]; break;
     default: return;
   }
   openForm({
@@ -1336,14 +1360,18 @@ function initNetWatch() { document.addEventListener('securitypolicyviolation', e
 // Liga o interruptor, vai buscar os preços (CoinGecko) e os preços das pools com endereço (DexScreener), verifica os ranges e volta a pôr a app offline.
 async function updatePrices() {
   if (NET.busy) return;
-  const toks = activeTokens(), pools = poolsToCheck(), canApp = swOK();
+  const toks = activeTokens(), pools = poolsToCheck(), canApp = swOK(), temCarteira = !!(DB.wallet || '').trim();
   NET.fail = {};
-  if (!toks.length && !pools.length && !canApp) { NET.ok = false; NET.msg = 'Não há pools abertas com valor: não há preços a atualizar.'; render(); return; }
+  if (!toks.length && !pools.length && !canApp && !temCarteira) { NET.ok = false; NET.msg = 'Não há pools abertas com valor: não há preços a atualizar.'; render(); return; }
   if (navigator.onLine === false) { NET.ok = false; NET.msg = 'Sem ligação à internet. A app continua a funcionar offline.'; render(); return; }
   const t0 = Date.now(); NET.busy = true; NET.online = true; NET.msg = ''; NET.csp = ''; NET.diag = []; render();
   const T = DB.tokens || {}, msgs = [];
   let n = 0, pairs = {};
-  if (!toks.length && !pools.length) msgs.push('Sem pools abertas com valor: não há preços a atualizar.');
+  if (temCarteira) {   // os meus vaults na Krystal, independente dos preços
+    try { NET.vaults = await fetchVaultsKrystal(); if (NET.vaults.length) msgs.push(`Krystal: ${NET.vaults.length} vault(s) encontrado(s).`); }
+    catch (e) { msgs.push(netMsg(e, 'Krystal')); diag('Krystal', e.pm ? e.message : (e.name || 'falha') + ': ' + e.message); }
+  }
+  if (!toks.length && !pools.length && !temCarteira) msgs.push('Sem pools abertas com valor: não há preços a atualizar.');
   if (toks.length) {
     let cgErr = '', nb = 0;
     try {
@@ -1437,6 +1465,7 @@ function headerHTML() {
           <hr>
           <div class="cap">Ajustes</div>
           <button data-act="nicks">Nomes dos contratos…</button>
+          <button data-act="wallet">Minha carteira (Krystal)…</button>
           <hr>
           <button data-act="wipe" class="danger">Apagar todos os dados…</button>
         </div>
@@ -1759,6 +1788,8 @@ function poolHTML(x) {
         ${tile('Valor Inicial', money(st.inicial), [aportes ? '+' + money(aportes) + ' reforços' : '', st.cout ? '−' + money(st.cout) + ' retiradas' : ''].filter(Boolean).join(' · ') || 'sem reforços ou retiradas')}
         ${tile('Dias Ativos', Math.floor(diasAtivos) + ' dias', 'aberta em ' + fmtD(c.start) + (c.closed ? ' · fechada em ' + fmtD(st.closeT) : ''))}
         ${tile('Total Fees Recolhidas', money(c.col), 'pendentes ' + money(c.pend), 'fee')}
+        ${ok(r.rev) ? tile('REV', money(r.rev), 'lucro pela gestão do vault') : ''}
+        ${ok(p.pct) ? tile('Minha quota', `${pct(quotaAtual(p))} <button class="btn xs" data-act="quota" data-id="${esc(p.id)}">Alterar</button>`, (p.pctMode || 'total') === 'total' ? 'aplicada a todos os valores' : 'os lançamentos já são só a sua parte') : ''}
         ${kindOf(p) === 'farm' ? (() => {
           const ult = sortedEvents(p).filter(e => e.pApr != null || e.pPnl != null).pop();
           if (!ult) return tile('Dados da plataforma', '—', 'registe o APR e o PnL ao atualizar');
@@ -1766,6 +1797,7 @@ function poolHTML(x) {
         })() : tile('Range de Preço', rangeDotHTML(p, c.closed) + rng, rsub)}
         ${tile('ROI Anualizado', spct(c.roiAnual), 'simples, sem capitalização', sgn(c.roiAnual))}
         ${tile('Último Lançamento', fmtDT(c.last), TYPE_LABEL[c.ev.type] + ' · base: capital médio ' + money(c.capBase))}
+        ${r.taxas > 0 ? tile('Taxas', money(r.taxas), 'gás e taxas somados desde o início') : ''}
       </div>
       ${p.obs ? `<div class="obs">📝 ${esc(p.obs)}</div>` : ''}
       ${p.vault ? `<div class="obs">🏛 Vault-mãe: <span title="${esc(p.vault)}">${esc(addrLabel(p.vault))}</span></div>` : ''}
@@ -1776,6 +1808,7 @@ function poolHTML(x) {
           <button class="btn sm green" data-act="update" data-id="${esc(p.id)}">✎ Atualizar</button>
           ${c.pend > 0 ? `<button class="btn sm green" data-act="collect" data-id="${esc(p.id)}">$ Recolher Fees</button>` : ''}
           ${kindOf(p) === 'farm' ? '' : `<button class="btn sm" data-act="rebalance" data-id="${esc(p.id)}">↔ Mover range</button>`}
+          ${vaultDaPool(p) ? `<button class="btn sm" data-act="krystal" data-id="${esc(p.id)}">⬇ Dados da Krystal</button>` : ''}
           <button class="btn sm" data-act="flow" data-id="${esc(p.id)}">⇅ Reforço / Retirada</button>
           <button class="btn sm" data-act="close" data-id="${esc(p.id)}">✕ Fechar Pool</button>`}
         <button class="btn sm" data-act="edit" data-id="${esc(p.id)}">Editar dados</button>
@@ -1784,23 +1817,25 @@ function poolHTML(x) {
       <div class="hist-head"><span class="ht">↗ Histórico</span>${segHTML('tab', tab, [['liq', 'Liquidez'], ['apr', 'APR'], ['roi', 'ROI'], ['fees', 'Fees']], p.id)}</div>
       <div class="chart" data-chart="pool" data-id="${esc(p.id)}"></div>
       <details class="ev"${UI.open[p.id + ':ev'] ? ' open' : ''} data-evid="${esc(p.id)}"><summary>Lançamentos (${r.snaps.length})${r.snaps.length > EV_SHOWN && !UI.allev[p.id] ? ' · últimos ' + EV_SHOWN : ''}</summary>
-        <div class="tw${(UI.allev[p.id] || r.snaps.length <= EV_SHOWN) ? '' : ' clip'}"><table><thead><tr><th>Data</th><th>Tipo</th>${kindOf(p) === 'farm' ? '' : '<th>#</th>'}<th>Lançamento</th><th>Valor atual</th><th>Fees pend.</th><th>Fees recol.</th><th>Variação</th><th>ROI</th><th>APR</th><th></th></tr></thead><tbody>
+        <div class="tw${(UI.allev[p.id] || r.snaps.length <= EV_SHOWN) ? '' : ' clip'}"><table><thead><tr><th>Data</th><th>Tipo</th>${kindOf(p) === 'farm' ? '' : '<th>#</th>'}<th>Lançamento</th><th>Taxas</th><th>Valor atual</th><th>Fees pend.</th><th>Fees recol.</th><th>Variação</th><th>ROI</th><th>APR</th><th></th></tr></thead><tbody>
         ${r.snaps.slice().reverse().map(s => {
           const e = s.ev; let det = '';
-          if (e.type === 'atualizacao') det = `valor ${money(e.valor)} · fees ${money(e.fees)}`;
+          if (e.type === 'atualizacao') det = `${money(e.valor)} · fees ${money(e.fees)}`;
           else if (e.type === 'rebalance') {
             const rmin = ok(e.rangeMin) ? fmtNum(e.rangeMin) : '—';
             const rmax = ok(e.rangeMax) ? fmtNum(e.rangeMax) : '—';
-            det = `valor ${money(e.valor)} · fees ${money(e.fees)} · range $${rmin}–$${rmax}`;
+            det = `${money(e.valor)} · fees ${money(e.fees)} · range $${rmin}–$${rmax}`;
           }
           else if (e.type === 'fechamento') det = `final ${money(e.valor)} · fees ${money(e.fees)}`;
           else if (e.type === 'retirada') det = '−' + money(e.valor);
           else if (e.type === 'aporte' || e.type === 'coleta') det = '+' + money(e.valor);
           else if (e.type === 'par') det = `${esc(e.token1 || '?')}/${esc(e.token2 || '?')}${ok(e.valor) ? ' · ' + money(e.valor) : ''}${e.fees > 0 ? ' · fees ' + money(e.fees) : ''}`;
+          else if (e.type === 'quota') det = 'passa a ' + pct(e.pct);
           else det = money(e.valor);
+          if (ok(e.rev)) det += ' · REV ' + money(e.rev);
           if (e.nota) det += ' · ' + esc(e.nota);
           if (e.pApr != null || e.pPnl != null) det += ' · plataforma: ' + [e.pApr != null ? 'APR ' + pct(e.pApr) : '', e.pPnl != null ? 'PnL ' + money(e.pPnl) : ''].filter(Boolean).join(', ');
-          return `<tr><td>${fmtDT(s.t)}</td><td>${esc(TYPE_LABEL[e.type] || e.type)}</td>${kindOf(p) === 'farm' ? '' : `<td class="hs">${e.hash ? esc(e.hash) : ''}</td>`}<td>${det}</td><td>${money(s.valor)}</td><td class="fee">${money(s.pend)}</td><td>${money(s.col)}</td><td class="${sgn(s.varCap)}">${spct(s.varPct)}</td><td class="${sgn(s.ganho)}">${spct(s.roi)}</td><td class="apr">${pct(s.apr)}</td><td class="act"><button class="ed" title="Editar lançamento" data-act="evedit" data-id="${esc(p.id)}" data-ev="${esc(e.id)}">✎</button>${e.type === 'abertura' ? '' : `<button class="del" title="Eliminar lançamento" data-act="delev" data-id="${esc(p.id)}" data-ev="${esc(e.id)}">✕</button>`}</td></tr>`;
+          return `<tr><td title="${esc(fmtDT(s.t))}">${fmtDTcurto(s.t)}</td><td>${esc(TYPE_LABEL[e.type] || e.type)}</td>${kindOf(p) === 'farm' ? '' : `<td class="hs">${e.hash ? esc(e.hash) : ''}</td>`}<td>${det}</td><td class="fee">${ok(e.taxa) ? money(e.taxa) : ''}</td><td>${money(s.valor)}</td><td class="fee">${money(s.pend)}</td><td>${money(s.col)}</td><td class="${sgn(s.varCap)}">${spct(s.varPct)}</td><td class="${sgn(s.ganho)}">${spct(s.roi)}</td><td class="apr">${pct(s.apr)}</td><td class="act"><button class="ed" title="Editar lançamento" data-act="evedit" data-id="${esc(p.id)}" data-ev="${esc(e.id)}">✎</button>${e.type === 'abertura' ? '' : `<button class="del" title="Eliminar lançamento" data-act="delev" data-id="${esc(p.id)}" data-ev="${esc(e.id)}">✕</button>`}</td></tr>`;
         }).join('')}
         </tbody></table></div>
         ${r.snaps.length > EV_SHOWN ? `<button class="text-link evmore" data-act="allev" data-id="${esc(p.id)}">${UI.allev[p.id] ? 'Mostrar só os últimos ' + EV_SHOWN : `Mostrar todos os ${r.snaps.length} lançamentos`}</button>` : ''}
@@ -1837,6 +1872,84 @@ const resolveAddr = s => {
   for (const [addr, nome] of Object.entries(DB.nicks || {})) if (String(nome).trim().toLowerCase() === alvo) return addr;
   return t;
 };
+/* ---------- Krystal: os meus vaults ---------- */
+// Endpoint público (sem chave). Pode mudar sem aviso e às vezes devolve listas incompletas,
+// por isso nada é gravado sem confirmação do utilizador.
+const KRY_PROFILE = 'https://api.krystal.app/all/v1/vaults/profile';
+const num = x => { const n = typeof x === 'string' ? parseFloat(x) : x; return Number.isFinite(n) ? n : null; };
+// A resposta não é documentada: procuramos os campos por nome, em vez de assumir uma forma fixa.
+function pick(o, nomes) {
+  for (const n of nomes) for (const k of Object.keys(o || {})) if (k.toLowerCase() === n) { const v = num(o[k]); if (v !== null) return v; }
+  return null;
+}
+function normVault(v) {
+  const dentro = v && (v.vault || v.vaultInfo || v) || {};
+  const addr = [v.vaultAddress, dentro.vaultAddress, dentro.address, v.address, v.id].find(a => typeof a === 'string' && isPoolAddr(a)) || '';
+  const nome = [dentro.name, v.name, dentro.vaultName, v.vaultName].find(x => typeof x === 'string' && x.trim()) || '';
+  const tvl = pick(v, ['tvl', 'vaulttvl', 'totalvalue']) ?? pick(dentro, ['tvl', 'totalvalue']);
+  const meu = pick(v, ['uservalue', 'myvalue', 'sharevalue', 'uservaluesusd', 'userbalanceusd', 'value', 'uservalueusd', 'balanceusd']);
+  let q = pick(v, ['sharepercent', 'usersharepercent', 'sharepercentage', 'ownership']);
+  if (q !== null && q > 1) q = q / 100;
+  if (q === null && meu !== null && tvl) q = meu / tvl;
+  return { addr: addr.toLowerCase(), nome, tvl, meu, q, apr: pick(v, ['apr', 'apr7d', 'apr24h']), pnl: pick(v, ['pnl', 'userpnl', 'pnlusd']) };
+}
+function colheVaults(j) {
+  const out = [];
+  const anda = x => {
+    if (Array.isArray(x)) return x.forEach(anda);
+    if (!x || typeof x !== 'object') return;
+    const n = normVault(x);
+    if (n.addr && (n.meu !== null || n.tvl !== null)) out.push(n);
+    for (const k of Object.keys(x)) if (x[k] && typeof x[k] === 'object') anda(x[k]);
+  };
+  anda(j);
+  const m = new Map();
+  for (const v of out) if (!m.has(v.addr) || (m.get(v.addr).meu === null && v.meu !== null)) m.set(v.addr, v);
+  return [...m.values()];
+}
+async function fetchVaultsKrystal() {
+  const w = (DB.wallet || '').trim();
+  if (!w) return [];
+  const res = await netFetch(`${KRY_PROFILE}?userAddress=${encodeURIComponent(w)}&perPage=500`);
+  diag('Krystal vaults', 'HTTP ' + res.status);
+  if (res.status === 429) { const e = new Error('A Krystal limitou os pedidos. Tente daqui a um minuto.'); e.pm = 1; throw e; }
+  if (!res.ok) { const e = new Error(`A Krystal respondeu HTTP ${res.status}.`); e.pm = 1; throw e; }
+  return colheVaults(await res.json());
+}
+// Liga cada pool registada ao vault correspondente na Krystal.
+const vaultDaPool = p => {
+  const k = kindOf(p) === 'farm' ? nickKey(p.endereco) : nickKey(p.vault);
+  return k ? (NET.vaults || []).find(v => v.addr === k) || null : null;
+};
+function walletForm() {
+  askInput('Minha carteira', 'Endereço da carteira que usa na Krystal (0x…).\nServe para ir buscar os seus vaults e a sua quota.\nDeixe em branco para remover.', DB.wallet || '', '0x…').then(v => {
+    if (v === null) return;
+    const t = v.trim();
+    if (t && !isPoolAddr(t)) return askNotice('O endereço não parece válido.', 'Endereço inválido').then(nicksForm);
+    DB.wallet = t; save(); askNotice(t ? 'Carteira guardada. Ligue o interruptor no topo para ir buscar os seus vaults.' : 'Carteira removida.', 'Ajustes');
+  });
+}
+// Mostra o que a Krystal devolveu para esta pool e grava só depois de confirmado.
+async function krystalForm(P) {
+  const v = vaultDaPool(P);
+  if (!v) return askNotice(DB.wallet ? 'Ainda não há dados da Krystal para este vault. Ligue o interruptor no topo para os ir buscar.' : 'Defina primeiro a sua carteira em Dados → Ajustes.', 'Krystal');
+  const c = CACHE[P.id].r.cur, qAtual = quotaAtual(P), total = (P.pctMode || 'total') === 'total';
+  const linhas = [
+    v.nome ? `Vault: ${v.nome}` : '',
+    v.tvl !== null ? `TVL do vault: ${money(v.tvl)}` : '',
+    v.meu !== null ? `O seu valor: ${money(v.meu)}` : '',
+    v.q !== null ? `A sua quota: ${pct(v.q)} (agora na app: ${pct(qAtual)})` : '',
+    v.apr !== null ? `APR: ${fmtNum(v.apr)}%` : '', v.pnl !== null ? `PnL: ${money(v.pnl)}` : ''
+  ].filter(Boolean).join('\n');
+  const yes = await askConfirm('Dados da Krystal', `${linhas}\n\nQuer registar isto agora? Será criado um lançamento com a data e hora atuais${v.q !== null && Math.abs(v.q - qAtual) > 1e-6 ? ' e a sua percentagem passa a ' + pct(v.q) : ''}.`, 'Registar');
+  if (!yes) return;
+  const tt = nowInput();
+  if (v.q !== null && Math.abs(v.q - qAtual) > 1e-6) P.events.push({ id: uid(), type: 'quota', t: tt, valor: null, fees: null, pct: v.q, seq: nextSeq() });
+  const valor = total ? v.tvl : v.meu;
+  if (valor !== null) P.events.push({ id: uid(), type: 'atualizacao', t: tt, valor, fees: c ? (total && ok(P.pct) ? c.pend / Math.max(1e-9, quotaAtual(P)) : c.pend) : 0, nota: 'dados da Krystal', pApr: v.apr !== null ? v.apr / 100 : undefined, pPnl: v.pnl, seq: nextSeq() });
+  UI.open[P.id + ':ev'] = true; save();
+}
+
 function nicksForm() {
   const lista = Object.entries(DB.nicks || {});
   const usados = new Map();   // contratos já usados nas pools, para sugerir
@@ -2038,6 +2151,7 @@ function openForm(cfg) {
 }
 // Nas auto-farms não há referência #; em vez disso há um campo de notas no fim do formulário.
 const refField = P => kindOf(P) === 'farm' ? [] : [hashField()];
+const taxaField = e => ({ name: 'taxa', label: 'Taxas (USD)', type: 'num', half: 1, value: e ? e.taxa : null, hint: 'Opcional. Gás e outras taxas desta operação. Somadas no mosaico “Taxas”.' });
 const notaField = (P, e) => kindOf(P) === 'farm' ? [{ name: 'nota', label: 'Notas', type: 'textarea', ph: 'Opcional (ex.: o que o agente fez, o que observou…)', value: e ? (e.nota || '') : '' }] : [];
 const hashField = () => ({ name: 'hash', label: 'Referência #', ph: '0000', maxlen: 4, digits: 1, short: 1, hint: 'Opcional. 4 dígitos apenas para sua referência.' });
 const dtFields = () => { const [d, t] = splitDT(nowInput()); return [{ name: 'data', label: 'Data', type: 'date', half: 1, dt: 1, value: d, req: 1 }, { name: 'hora', label: 'Hora', type: 'time', half: 1, dt: 1, value: t, req: 1 }]; };
@@ -2078,7 +2192,11 @@ function poolForm(P, kind, sub) {
         { name: 'token2', label: 'Token 2', ph: 'USDC', half: 1, value: P?.token2, req: 1 }
       ]),
       ...(farm ? [] : [{ name: 'nome', label: 'Nome da Pool', ph: 'Ex: ETH/USDC', value: P?.nome, hint: 'Deixe em branco para usar Token1/Token2' }]),
-      { name: 'valor', label: 'Liquidez Inicial (USD)', type: 'num', ph: '10000', value: ab?.valor, req: 1 },
+      { name: 'valor', label: 'Liquidez Inicial (USD)', type: 'num', ph: '10000', value: ab?.valor, req: 1, half: (sb === 'comunitario' || (P && ok(P.pct))) ? 1 : 0 },
+      ...(sb === 'comunitario' || (P && ok(P.pct)) ? [
+        { name: 'pct', label: 'Minha percentagem (%)', type: 'num', money: false, half: 1, ph: '100', value: ok(P?.pct) ? P.pct * 100 : null, req: 1, hint: 'A sua parte da pool. Depois pode alterá-la no cartão da pool, em “Minha quota”.' },
+        { name: 'pctMode', label: 'Os valores que lanço são o total da pool', type: 'check', value: P ? (P.pctMode || 'total') === 'total' : true, hint: 'Marcado: lança os números da plataforma e a app aplica a sua percentagem. Desmarcado: lança já só a sua parte e a percentagem fica apenas como informação.' }
+      ] : []),
       { name: 'data', label: 'Data de Criação', type: 'date', half: 1, value: d, req: 1 },
       { name: 'hora', label: 'Hora', type: 'time', half: 1, value: t, req: 1 },
       ...(farm ? [] : [
@@ -2093,6 +2211,7 @@ function poolForm(P, kind, sub) {
       if (!(v.valor > 0)) return 'A liquidez inicial deve ser maior que zero.';
       if (!farm && ok(v.rangeMin) && ok(v.rangeMax) && v.rangeMin >= v.rangeMax) return 'O range mínimo deve ser menor que o máximo.';
       v.endereco = resolveAddr(v.endereco); v.vault = resolveAddr(v.vault);
+      if (ok(v.pct) && (v.pct <= 0 || v.pct > 100)) return 'A percentagem tem de estar entre 0 e 100.';
       if (v.endereco && !isPoolAddr(v.endereco)) return 'O endereço da pool não parece válido. Use o endereço do contrato (por exemplo 0x… ou, na Solana, o endereço da pool).';
       if (v.vault && !isPoolAddr(v.vault)) return 'O endereço do vault-mãe não parece válido. Use o endereço do contrato (0x… ou, na Solana, o endereço do vault).';
       const tt = v.data + 'T' + v.hora;
@@ -2100,7 +2219,7 @@ function poolForm(P, kind, sub) {
       if (parseT(tt) > Date.now() + 5 * 60000) return 'A data de criação não pode estar no futuro.';
       const vm = (v.vault || '').trim();
       const subFinal = farm ? 'autofarm' : (vm ? 'comunitario' : 'posicao');   // sem vault-mãe não é vault
-      const data = { kind: k, sub: subFinal, vault: farm ? '' : vm, rede: v.rede, exchange: farm ? '' : v.exchange, token1: farm ? '' : v.token1, token2: farm ? '' : v.token2, nome: v.nome, rangeMin: farm ? null : v.rangeMin, rangeMax: farm ? null : v.rangeMax, endereco: v.endereco || '', obs: v.obs };
+      const data = { kind: k, sub: subFinal, vault: farm ? '' : vm, pct: ok(v.pct) ? v.pct / 100 : null, pctMode: v.pctMode === false ? 'minha' : 'total', rede: v.rede, exchange: farm ? '' : v.exchange, token1: farm ? '' : v.token1, token2: farm ? '' : v.token2, nome: v.nome, rangeMin: farm ? null : v.rangeMin, rangeMax: farm ? null : v.rangeMax, endereco: v.endereco || '', obs: v.obs };
       if (P) {
         if (P.events.some(e => e.type !== 'abertura' && parseT(e.t) < parseT(tt))) return 'Existem lançamentos anteriores a essa data de criação. Ajuste a data ou elimine esses lançamentos.';
         Object.assign(P, data); ab.valor = v.valor; ab.t = tt;
@@ -2127,21 +2246,24 @@ function updateForm(P) {
       { name: 'valor', label: kindOf(P) === 'farm' ? 'TVL Atual (USD)' : 'Valor Atual (USD)', type: 'num', value: c.valor, req: 1, hint: kindOf(P) === 'farm' ? 'O TVL do vault agora, como a plataforma mostra.' : 'Valor da posição agora, sem as fees pendentes.' },
       { name: 'fees', label: 'Fees Acumuladas (USD)', type: 'num', value: c.pend, req: 1, half: 1, hint: 'Fees ainda não recolhidas, como o protocolo mostra agora.' },
       { name: 'colhidas', label: 'Já recolhidas', type: 'check', half: 1, hint: 'Marque se já levantou estas fees: entram como recolhidas e as pendentes ficam a zero.' },
+      ...(subOf(P) === 'comunitario' ? [{ name: 'rev', label: 'REV (USD)', type: 'num', value: CACHE[P.id] && ok(CACHE[P.id].r.rev) ? CACHE[P.id].r.rev : null, half: 1, hint: 'Lucro pela gestão do vault, acumulado. Guarda o último valor lançado e não entra no ROI.' }] : []),
       ...(kindOf(P) === 'farm' ? [
         { name: 'apr', label: 'APR da plataforma (%)', type: 'num', money: false, ph: '1764,72', half: 1, hint: 'Opcional. O APR que a plataforma mostra (ex.: APR-7d).' },
         { name: 'pnl', label: 'PnL da plataforma (USD)', type: 'num', ph: '-1,05', half: 1, hint: 'Opcional. O PnL que a plataforma mostra.' }
       ] : []),
       ...dtFields(),
+      taxaField(),
       ...notaField(P)
     ],
     onSubmit: v => {
       const tt = v.data + 'T' + v.hora, er = checkDate(P, tt); if (er) return er;
       if (v.valor < 0 || v.fees < 0) return 'Os valores não podem ser negativos.';
       const extra = {};
+      if (ok(v.rev)) extra.rev = v.rev;
       if (ok(v.apr)) extra.pApr = v.apr / 100;
       if (ok(v.pnl)) extra.pPnl = v.pnl;
-      P.events.push(Object.assign({ id: uid(), type: 'atualizacao', t: tt, valor: v.valor, fees: v.colhidas ? 0 : v.fees, hash: v.hash || null, nota: v.nota || null, seq: nextSeq() }, extra));
-      if (v.colhidas && v.fees > 0) P.events.push({ id: uid(), type: 'coleta', t: tt, valor: v.fees, fees: null, hash: v.hash || null, nota: v.nota || null, seq: nextSeq() });
+      P.events.push(Object.assign({ id: uid(), type: 'atualizacao', t: tt, valor: v.valor, fees: v.colhidas ? 0 : v.fees, hash: v.hash || null, nota: v.nota || null, taxa: ok(v.taxa) ? v.taxa : null, seq: nextSeq() }, extra));
+      if (v.colhidas && v.fees > 0) P.events.push({ id: uid(), type: 'coleta', t: tt, valor: v.fees, fees: null, hash: v.hash || null, nota: v.nota || null, taxa: ok(v.taxa) ? v.taxa : null, seq: nextSeq() });
       save();
     }
   });
@@ -2157,6 +2279,7 @@ function pairForm(P) {
       { name: 'valor', label: 'Valor da posição após a mudança (USD)', type: 'num', ph: numToInput(c.valor), hint: 'Opcional. Deixe em branco se o valor não mudou.' },
       { name: 'fees', label: 'Fees recolhidas na operação (USD)', type: 'num', ph: '0,00', hint: 'Opcional. Passam para “recolhidas” e as pendentes ficam a zero.' },
       ...dtFields(),
+      taxaField(),
       ...notaField(P)
     ],
     note: 'Regista que a posição passou a outro par de tokens. O capital investido não muda.',
@@ -2166,6 +2289,31 @@ function pairForm(P) {
       P.events.push({ id: uid(), type: 'par', t: tt, valor: ok(v.valor) ? v.valor : null, fees: v.fees || 0, token1: v.token1, token2: v.token2, prevT1: P.token1, prevT2: P.token2, hash: v.hash || null, nota: v.nota || null, seq: nextSeq() });
       P.token1 = v.token1; P.token2 = v.token2;
       UI.open[P.id + ':ev'] = true; save();
+    }
+  });
+}
+// A percentagem muda várias vezes na vida da pool: fica num quadro próprio, com confirmação,
+// para não ser alterada por engano nos lançamentos do dia a dia.
+function quotaForm(P) {
+  const atual = quotaAtual(P);
+  openForm({
+    title: 'Minha percentagem - ' + poolName(P), submit: 'Registar alteração',
+    fields: [
+      { name: 'pct', label: 'Nova percentagem (%)', type: 'num', money: false, half: 1, ph: fmtNum(atual * 100), req: 1, hint: `Agora: ${pct(atual)}.` },
+      ...dtFields()
+    ],
+    note: 'Use isto quando alguém entra, sai, reforça ou reduz liquidez e a sua parte muda. A percentagem anterior continua a valer para os lançamentos anteriores a esta data.',
+    onSubmit: v => {
+      const tt = v.data + 'T' + v.hora, er = checkDate(P, tt); if (er) return er;
+      if (!(v.pct > 0 && v.pct <= 100)) return 'A percentagem tem de estar entre 0 e 100.';
+      const nova = v.pct / 100;
+      if (Math.abs(nova - atual) < 1e-9) return 'Essa já é a percentagem atual.';
+      // o quadro fecha e a alteração só é gravada depois de confirmada
+      setTimeout(() => askConfirm('Confirmar alteração', `A sua parte passa de ${pct(atual)} para ${pct(nova)} em ${fmtDT(parseT(tt))}. Todos os valores a partir dessa data passam a usar ${pct(nova)}.`, 'Alterar').then(yes => {
+        if (!yes) return;
+        P.events.push({ id: uid(), type: 'quota', t: tt, valor: null, fees: null, pct: nova, seq: nextSeq() });
+        UI.open[P.id + ':ev'] = true; save();
+      }), 0);
     }
   });
 }
@@ -2179,6 +2327,7 @@ function rebalanceForm(P) {
       { name: 'rangeMin', label: 'Novo range mínimo', type: 'num', money: false, ph: ok(P.rangeMin) ? 'anterior: ' + fmtNum(P.rangeMin) : '3000', half: 1, req: 1 },
       { name: 'rangeMax', label: 'Novo range máximo', type: 'num', money: false, ph: ok(P.rangeMax) ? 'anterior: ' + fmtNum(P.rangeMax) : '4000', half: 1, req: 1 },
       ...dtFields(),
+      taxaField(),
       ...notaField(P)
     ],
     note: 'Regista a mudança de range (rebalance). O capital investido não muda — só o valor da posição e as fees recolhidas. Gas, slippage e bridge não são descontados automaticamente. O range atual da pool passa a ser o novo.',
@@ -2189,7 +2338,7 @@ function rebalanceForm(P) {
       const prevMin = P.rangeMin, prevMax = P.rangeMax;
       P.rangeMin = v.rangeMin;
       P.rangeMax = v.rangeMax;
-      P.events.push({ id: uid(), type: 'rebalance', t: tt, valor: v.valor, fees: v.fees, rangeMin: v.rangeMin, rangeMax: v.rangeMax, prevMin, prevMax, hash: v.hash || null, nota: v.nota || null, seq: nextSeq() });
+      P.events.push({ id: uid(), type: 'rebalance', t: tt, valor: v.valor, fees: v.fees, rangeMin: v.rangeMin, rangeMax: v.rangeMax, prevMin, prevMax, hash: v.hash || null, nota: v.nota || null, taxa: ok(v.taxa) ? v.taxa : null, seq: nextSeq() });
       save();
     }
   });
@@ -2198,11 +2347,11 @@ function collectForm(P) {
   const c = CACHE[P.id].r.cur;
   openForm({
     title: 'Recolher Fees - ' + poolName(P), submit: 'Registar recolha',
-    fields: [...refField(P), { name: 'valor', label: 'Valor recolhido (USD)', type: 'num', value: c.pend, req: 1, hint: 'Esse valor sai de “Fees Acumuladas” e passa para “Fees Recolhidas”. O ROI não muda.' }, ...dtFields(), ...notaField(P)],
+    fields: [...refField(P), { name: 'valor', label: 'Valor recolhido (USD)', type: 'num', value: c.pend, req: 1, hint: 'Esse valor sai de “Fees Acumuladas” e passa para “Fees Recolhidas”. O ROI não muda.' }, ...dtFields(), taxaField(), ...notaField(P)],
     onSubmit: v => {
       const tt = v.data + 'T' + v.hora, er = checkDate(P, tt); if (er) return er;
       if (!(v.valor > 0)) return 'Informe um valor maior que zero.';
-      P.events.push({ id: uid(), type: 'coleta', t: tt, valor: v.valor, fees: null, hash: v.hash || null, nota: v.nota || null, seq: nextSeq() }); save();
+      P.events.push({ id: uid(), type: 'coleta', t: tt, valor: v.valor, fees: null, hash: v.hash || null, nota: v.nota || null, taxa: ok(v.taxa) ? v.taxa : null, seq: nextSeq() }); save();
     }
   });
 }
@@ -2215,6 +2364,7 @@ function flowForm(P) {
       { name: 'tipo', label: 'Movimento', type: 'select', value: 'aporte', options: [['aporte', 'Reforço (adicionar liquidez)'], ['retirada', 'Retirada parcial de liquidez']] },
       { name: 'valor', label: 'Valor (USD)', type: 'num', req: 1, hint: 'Valor em USD no momento da movimentação.' },
       ...dtFields(),
+      taxaField(),
       ...notaField(P)
     ],
     note: 'O valor atual da posição é ajustado automaticamente, e o ROI e o APR passam a usar o capital médio ponderado pelo tempo. Para retirar tudo, use “Fechar Pool”.',
@@ -2222,7 +2372,7 @@ function flowForm(P) {
       const tt = v.data + 'T' + v.hora, er = checkDate(P, tt); if (er) return er;
       if (!(v.valor > 0)) return 'Informe um valor maior que zero.';
       if (v.tipo === 'retirada' && v.valor >= c.valor) return `A retirada (${money(v.valor)}) não pode ser igual ou maior que o valor atual (${money(c.valor)}). Para retirar tudo, use “Fechar Pool”.`;
-      P.events.push({ id: uid(), type: v.tipo, t: tt, valor: v.valor, fees: null, hash: v.hash || null, nota: v.nota || null, seq: nextSeq() }); save();
+      P.events.push({ id: uid(), type: v.tipo, t: tt, valor: v.valor, fees: null, hash: v.hash || null, nota: v.nota || null, taxa: ok(v.taxa) ? v.taxa : null, seq: nextSeq() }); save();
     }
   });
 }
@@ -2235,6 +2385,7 @@ function closeForm(P) {
       { name: 'valor', label: 'Valor final recebido (USD)', type: 'num', ph: '0,00', req: 1, hint: 'Valor da liquidez retirada no fecho, sem as fees.' },
       { name: 'fees', label: 'Fees recebidas no fecho (USD)', type: 'num', ph: '0,00', req: 1, hint: 'Fees pendentes que foram recolhidas junto com o fecho.' },
       ...dtFields(),
+      taxaField(),
       ...notaField(P)
     ],
     note: 'Depois de fechada, a pool para de contar dias: ROI e APR ficam congelados na data do fecho. Se necessário, é possível reabri-la.',
@@ -2242,7 +2393,7 @@ function closeForm(P) {
       const tt = v.data + 'T' + v.hora, er = checkDate(P, tt); if (er) return er;
       if (parseT(tt) < CACHE[P.id].r.st.last) return `O fecho não pode ser anterior ao último lançamento (${fmtDT(CACHE[P.id].r.st.last)}).`;
       if (v.valor < 0 || v.fees < 0) return 'Os valores não podem ser negativos.';
-      P.events.push({ id: uid(), type: 'fechamento', t: tt, valor: v.valor, fees: v.fees, hash: v.hash || null, nota: v.nota || null, seq: nextSeq() }); save();
+      P.events.push({ id: uid(), type: 'fechamento', t: tt, valor: v.valor, fees: v.fees, hash: v.hash || null, nota: v.nota || null, taxa: ok(v.taxa) ? v.taxa : null, seq: nextSeq() }); save();
     }
   });
 }
@@ -2292,6 +2443,7 @@ document.addEventListener('click', ev => {
     }
     case 'update': updateForm(P); break;
     case 'rebalance': if (kindOf(P) !== 'farm') rebalanceForm(P); break;
+    case 'quota': if (P && ok(P.pct)) quotaForm(P); break;
     case 'collect': collectForm(P); break;
     case 'flow': flowForm(P); break;
     case 'close': closeForm(P); break;
@@ -2330,6 +2482,8 @@ document.addEventListener('click', ev => {
     case 'reconnect': reconnectFile(); break;
     case 'allev': UI.allev[id] = !UI.allev[id]; UI.open[id + ':ev'] = true; render(); break;
     case 'nicks': nicksForm(); break;
+    case 'wallet': walletForm(); break;
+    case 'krystal': if (P) krystalForm(P); break;
     case 'nick-add': nickEdit(b.dataset.a || ''); break;
     case 'nick-edit': nickEdit(b.dataset.a); break;
     case 'nick-del': { const a = b.dataset.a; askConfirm('Remover nome', `Remover o nome “${nickOf(a)}” de ${addrCurto(a)}?`, 'Remover').then(yes => { if (yes) { delete DB.nicks[nickKey(a)]; save(); nicksForm(); } }); break; }
