@@ -51,11 +51,18 @@ h1{font-size:25px;margin:0;font-weight:750;letter-spacing:-.02em}
 .dot.ok{background:var(--green);box-shadow:0 0 0 3px rgba(34,197,94,.15)}
 .dot.err{background:var(--red);box-shadow:0 0 0 3px rgba(240,67,82,.15)}
 .menu-wrap{position:relative}
+.btn.gear{display:inline-flex;align-items:center;gap:7px}
+.btn.gear svg{opacity:.85}
 .menu{position:absolute;right:0;top:calc(100% + 6px);background:#0e121c;border:1px solid var(--border);border-radius:14px;padding:6px;min-width:300px;z-index:40;box-shadow:var(--shadow)}
 .menu button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--text);padding:9px 12px;border-radius:9px;cursor:pointer;transition:background .12s}
 .menu button:hover{background:var(--card2)}
 .menu button.danger{color:#ff8a94}
 .menu hr{border:0;border-top:1px solid var(--border);margin:6px 0}
+.rodape{display:flex;align-items:center;justify-content:center;gap:11px;margin:30px 0 14px;color:var(--muted);font-size:12.5px}
+.rodape img{height:30px;width:auto;display:block;opacity:.95}
+td.soma{border-bottom:1px dotted var(--border2);cursor:pointer}
+td.soma:active{opacity:.6}
+.menu .cap.sub{text-transform:none;letter-spacing:0;font-style:italic;opacity:.75;padding-top:2px}
 .menu .cap{color:var(--dim);font-size:11px;padding:4px 12px;text-transform:uppercase;letter-spacing:.06em;font-weight:650}
 .banner{border:1px solid var(--border);background:var(--card);border-radius:12px;padding:11px 14px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:13px}
 .banner.warn{border-color:rgba(245,197,24,.35);color:#fde68a;background:rgba(245,197,24,.05)}
@@ -383,7 +390,7 @@ details.method b{color:var(--text)}
 const LS_KEY = 'poolMonitor.v1';
 const DAY = 86400000;
 const MIN_APR_DAYS = 1;   // janela mínima (dias) para exibir APR / ROI anualizado
-const APP_VERSION = 'V8.3';   // mostrada no cabeçalho, ao lado do nome da app
+const APP_VERSION = 'V9.0';   // mostrada no cabeçalho, ao lado do nome da app
 const NET = { online: false, busy: false, msg: '', ok: null, fail: {}, at: 0, csp: '', diag: [], vaults: [] };
 const diag = (fonte, res) => NET.diag.push(`${fonte}: ${res}`);
 // Tipos de posição: pools de liquidez (lp) e auto-farms (farm). Vivem em separadores próprios.
@@ -454,9 +461,17 @@ function fAxisMoney(v) { const a = Math.abs(v), s = v < 0 ? '-' : ''; if (a >= 1
 const fAxisPct = v => fmt(v, Math.abs(v) < 10 ? 1 : 0) + '%';
 const fTipPct = v => nf2.format(v) + '%';
 
+// Aceita somas no próprio campo: "0.034+0.06" vale 0,094. As parcelas ficam guardadas para consulta.
+const temSoma = str => /[+]/.test(String(str ?? '').trim().slice(1));
+function parcelas(str) { return String(str ?? '').trim().replace(/\s/g, '').split('+').filter(x => x !== ''); }
 function parseNum(str, money = false) {
   let s = String(str ?? '').trim().replace(/\s|\$|US/gi, '');
   if (!s) return null;
+  if (temSoma(s)) {   // soma de parcelas
+    let tot = 0;
+    for (const parte of parcelas(s)) { const n = parseNum(parte, money); if (n === null || Number.isNaN(n)) return NaN; tot += n; }
+    return Math.round(tot * 1e8) / 1e8;
+  }
   const c = s.includes(','), d = s.includes('.');
   if (c && d) { s = s.lastIndexOf(',') > s.lastIndexOf('.') ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, ''); }
   else if (c) { s = (s.match(/,/g).length > 1) ? s.replace(/,/g, '') : s.replace(',', '.'); }
@@ -927,6 +942,7 @@ function editPatch(e, v) {
   if ('pct' in v) nv.pct = ok(v.pct) ? v.pct / 100 : null;
   if ('rev' in v) nv.rev = ok(v.rev) ? v.rev : null;
   if ('taxa' in v) nv.taxa = ok(v.taxa) ? v.taxa : null;
+  if (v.__expr) nv.expr = Object.assign({}, nv.expr, v.__expr);
   const patch = {};
   for (const k in nv) { const a = e[k] == null ? null : e[k], b = nv[k] == null ? null : nv[k]; if (a !== b) patch[k] = nv[k]; }
   return patch;
@@ -1091,12 +1107,12 @@ function statusHTML() {
 }
 function bannerHTML() { return updateBannerHTML() + bannerCore(); }
 function bannerCore() {
-  if (!LS.ok) return `<div class="banner err"><span><b>Os dados não estão a ser gravados:</b> ${esc(LS.why)}. Tudo o que registar desaparece ao fechar esta janela. Exporte um backup (Dados → Exportar backup) ou abra a app numa janela normal.</span><span class="bb"><button class="btn sm" data-act="export">Exportar backup</button></span></div>`;
+  if (!LS.ok) return `<div class="banner err"><span><b>Os dados não estão a ser gravados:</b> ${esc(LS.why)}. Tudo o que registar desaparece ao fechar esta janela. Exporte um backup (Ajustes → Exportar backup) ou abra a app numa janela normal.</span><span class="bb"><button class="btn sm" data-act="export">Exportar backup</button></span></div>`;
   if (FILE.handle && FILE.state === 'needs-permission') return `<div class="banner warn"><span>O ficheiro de dados <b>${esc(FILE.name)}</b> está associado, mas o navegador pede a sua autorização para voltar a aceder-lhe.</span><span class="bb"><button class="btn sm green" data-act="reconnect">Voltar a ligar o ficheiro</button><button class="btn sm" data-act="unlink">Desassociar</button></span></div>`;
   if (FILE.handle && FILE.state === 'error') return `<div class="banner warn"><span>Não foi possível gravar em <b>${esc(FILE.name)}</b>. Os dados continuam guardados no navegador.</span><span class="bb"><button class="btn sm green" data-act="reconnect">Tentar novamente</button><button class="btn sm" data-act="unlink">Desassociar</button></span></div>`;
   if (!DB.pools.length) return '';
   if (FILE.supported && !FILE.handle) return `<div class="banner"><span>Os dados estão guardados só neste navegador. Para não os perder, associe um ficheiro de dados (.json), por exemplo numa pasta do OneDrive. É regravado automaticamente a cada lançamento e combinado com as alterações de outros computadores.</span><span class="bb"><button class="btn sm green" data-act="link">Associar ficheiro</button></span></div>`;
-  if (!FILE.supported) return `<div class="banner"><span>Este navegador não grava diretamente em ficheiro. Os dados ficam guardados no navegador, por isso use <b>Dados → Exportar backup</b> com frequência. No Edge ou no Chrome, a gravação automática em ficheiro funciona.</span></div>`;
+  if (!FILE.supported) return `<div class="banner"><span>Este navegador não grava diretamente em ficheiro. Os dados ficam guardados no navegador, por isso use <b>Ajustes → Exportar backup</b> com frequência. No Edge ou no Chrome, a gravação automática em ficheiro funciona.</span></div>`;
   return '';
 }
 function updateStatus() { const s = $('#status'); if (s) s.outerHTML = statusHTML(); const b = $('#banner'); if (b) b.innerHTML = bannerHTML(); }
@@ -1451,22 +1467,27 @@ function headerHTML() {
   return `<div class="top">
     <div class="brand"><div class="logo">PM</div><div><h1>Pool Monitor <span class="ver">${APP_VERSION}</span></h1><div class="focus">focado em <img src="data:image/png;base64,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" alt="Krystal" title="Krystal"></div><div class="subt">Liquidez · ROI · APR · offline</div></div></div>
     <div class="top-r">${priceSwitchHTML()}${statusHTML()}
-      <div class="menu-wrap"><button class="btn" data-act="menu">Dados ▾</button>
+      <div class="menu-wrap"><button class="btn gear" data-act="menu" title="Ajustes" aria-label="Ajustes"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path fill="currentColor" d="M12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm7.43-2.53c.04-.32.07-.64.07-.97s-.03-.65-.07-.97l2.11-1.65a.5.5 0 0 0 .12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a7.3 7.3 0 0 0-1.69-.98l-.38-2.65a.5.5 0 0 0-.49-.43h-4a.5.5 0 0 0-.49.43l-.38 2.65c-.61.25-1.17.58-1.69.98l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46a.5.5 0 0 0 .12.64L4.57 11c-.04.32-.07.64-.07.97s.03.65.07.97l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46c.13.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.04.25.25.43.49.43h4c.24 0 .45-.18.49-.43l.38-2.65c.61-.25 1.17-.58 1.69-.98l2.49 1c.22.08.48 0 .61-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65Z"/></svg> Ajustes ▾</button>
         <div class="menu" id="menu" hidden>
-          ${FILE.supported ? `<div class="cap">Ficheiro de dados (gravação automática)</div>
-          <button data-act="link">Associar novo ficheiro de dados…</button>
-          <button data-act="open-file">Abrir ficheiro de dados existente…</button>
-          ${FILE.handle ? `<button data-act="unlink">Desassociar “${esc(FILE.name)}”</button>` : ''}<hr>` : ''}
-          <div class="cap">Backup e folhas de cálculo</div>
+          <div class="cap">Ficheiros e segurança</div>
           <button data-act="export">Exportar backup (.json)</button>
           <button data-act="import">Importar backup (.json)…</button>
+          <hr>
+          <div class="cap">Folhas de cálculo</div>
           <button data-act="csv-ev">Exportar lançamentos para Excel (.csv)</button>
           <button data-act="csv-pools">Exportar resumo das pools para Excel (.csv)</button>
           <hr>
-          <div class="cap">Ajustes</div>
+          <div class="cap">Contratos e carteiras</div>
           <button data-act="nicks">Nomes dos contratos…</button>
           <button data-act="wallet">Minha carteira (Krystal)…</button>
           <hr>
+          <div class="cap">Ficheiro de dados (gravação automática)</div>
+          ${FILE.supported ? `<button data-act="link">Associar novo ficheiro de dados…</button>
+          <button data-act="open-file">Abrir ficheiro de dados existente…</button>
+          ${FILE.handle ? `<button data-act="unlink">Desassociar “${esc(FILE.name)}”</button>` : ''}`
+          : `<button data-act="nofile">Associar novo ficheiro de dados…</button>
+          <button data-act="nofile">Abrir ficheiro de dados existente…</button>
+          <div class="cap sub">Indisponível neste navegador</div>`}<hr>
           <button data-act="wipe" class="danger">Apagar todos os dados…</button>
         </div>
       </div>
@@ -1835,7 +1856,7 @@ function poolHTML(x) {
           if (ok(e.rev)) det += ' · REV ' + money(e.rev);
           if (e.nota) det += ' · ' + esc(e.nota);
           if (e.pApr != null || e.pPnl != null) det += ' · plataforma: ' + [e.pApr != null ? 'APR ' + pct(e.pApr) : '', e.pPnl != null ? 'PnL ' + money(e.pPnl) : ''].filter(Boolean).join(', ');
-          return `<tr><td title="${esc(fmtDT(s.t))}">${fmtDTcurto(s.t)}</td><td>${esc(TYPE_LABEL[e.type] || e.type)}</td>${kindOf(p) === 'farm' ? '' : `<td class="hs">${e.hash ? esc(e.hash) : ''}</td>`}<td>${det}</td><td class="fee">${ok(e.taxa) ? money(e.taxa) : ''}</td><td>${money(s.valor)}</td><td class="fee">${money(s.pend)}</td><td>${money(s.col)}</td><td class="${sgn(s.varCap)}">${spct(s.varPct)}</td><td class="${sgn(s.ganho)}">${spct(s.roi)}</td><td class="apr">${pct(s.apr)}</td><td class="act"><button class="ed" title="Editar lançamento" data-act="evedit" data-id="${esc(p.id)}" data-ev="${esc(e.id)}">✎</button>${e.type === 'abertura' ? '' : `<button class="del" title="Eliminar lançamento" data-act="delev" data-id="${esc(p.id)}" data-ev="${esc(e.id)}">✕</button>`}</td></tr>`;
+          return `<tr><td title="${esc(fmtDT(s.t))}">${fmtDTcurto(s.t)}</td><td>${esc(TYPE_LABEL[e.type] || e.type)}</td>${kindOf(p) === 'farm' ? '' : `<td class="hs">${e.hash ? esc(e.hash) : ''}</td>`}<td>${det}</td><td class="fee${e.expr && e.expr.taxa ? ' soma' : ''}"${e.expr && e.expr.taxa ? ` title="${esc(e.expr.taxa.split('+').join(' + '))}" data-act="parc" data-e="${esc(e.expr.taxa)}" data-l="Taxas" role="button" tabindex="0"` : ''}>${ok(e.taxa) ? money(e.taxa) : ''}</td><td>${money(s.valor)}</td><td class="fee">${money(s.pend)}</td><td>${money(s.col)}</td><td class="${sgn(s.varCap)}">${spct(s.varPct)}</td><td class="${sgn(s.ganho)}">${spct(s.roi)}</td><td class="apr">${pct(s.apr)}</td><td class="act"><button class="ed" title="Editar lançamento" data-act="evedit" data-id="${esc(p.id)}" data-ev="${esc(e.id)}">✎</button>${e.type === 'abertura' ? '' : `<button class="del" title="Eliminar lançamento" data-act="delev" data-id="${esc(p.id)}" data-ev="${esc(e.id)}">✕</button>`}</td></tr>`;
         }).join('')}
         </tbody></table></div>
         ${r.snaps.length > EV_SHOWN ? `<button class="text-link evmore" data-act="allev" data-id="${esc(p.id)}">${UI.allev[p.id] ? 'Mostrar só os últimos ' + EV_SHOWN : `Mostrar todos os ${r.snaps.length} lançamentos`}</button>` : ''}
@@ -1932,7 +1953,7 @@ function walletForm() {
 // Mostra o que a Krystal devolveu para esta pool e grava só depois de confirmado.
 async function krystalForm(P) {
   const v = vaultDaPool(P);
-  if (!v) return askNotice(DB.wallet ? 'Ainda não há dados da Krystal para este vault. Ligue o interruptor no topo para os ir buscar.' : 'Defina primeiro a sua carteira em Dados → Ajustes.', 'Krystal');
+  if (!v) return askNotice(DB.wallet ? 'Ainda não há dados da Krystal para este vault. Ligue o interruptor no topo para os ir buscar.' : 'Defina primeiro a sua carteira em Ajustes.', 'Krystal');
   const c = CACHE[P.id].r.cur, qAtual = quotaAtual(P), total = (P.pctMode || 'total') === 'total';
   const linhas = [
     v.nome ? `Vault: ${v.nome}` : '',
@@ -1957,15 +1978,27 @@ function nicksForm() {
     const k = nickKey(a); if (k && !usados.has(k)) usados.set(k, onde);
   }
   const semNome = [...usados.keys()].filter(k => !nickOf(k));
-  const linhas = lista.length ? lista.map(([a, n]) => `<tr><td class="hs" title="${esc(a)}">${esc(addrCurto(a))}</td><td><b>${esc(n)}</b></td><td>${esc(usados.get(a) || '—')}</td><td class="act"><button class="ed" data-act="nick-edit" data-a="${esc(a)}" title="Mudar o nome">✎</button><button class="del" data-act="nick-del" data-a="${esc(a)}" title="Remover o nome">✕</button></td></tr>`).join('') : '';
+  // data-s guarda o que é pesquisável: o endereço todo e o nome
+  const linhas = lista.length ? lista.sort((x, y) => String(x[1]).localeCompare(String(y[1]))).map(([a, n]) => `<tr data-s="${esc((a + ' ' + n).toLowerCase())}"><td class="hs" title="${esc(a)}">${esc(addrCurto(a))}</td><td><b>${esc(n)}</b></td><td>${esc(usados.get(a) || '—')}</td><td class="act"><button class="ed" data-act="nick-edit" data-a="${esc(a)}" title="Mudar o nome">✎</button><button class="del" data-act="nick-del" data-a="${esc(a)}" title="Remover o nome">✕</button></td></tr>`).join('') : '';
   openForm({
     title: 'Ajustes · Nomes dos contratos', submit: 'Fechar', noSubmit: 1,
     fields: [],
     html: `<p class="hint" style="margin:0 0 12px">Dê um nome aos endereços de contratos. Onde a app mostrar esse contrato, passa a mostrar o nome. Nos campos de endereço pode escrever o nome em vez do contrato.</p>
       <div class="bb" style="margin-bottom:12px"><button type="button" class="btn sm primary" data-act="nick-add">+ Novo nome</button>${semNome.length ? `<span class="hint" style="align-self:center">${semNome.length} contrato(s) em uso sem nome</span>` : ''}</div>
+      ${lista.length > 3 ? `<div class="f" style="margin-bottom:10px"><input id="nick-q" type="search" placeholder="Procurar por nome ou pelos dígitos do contrato (ex.: 58d2)" autocomplete="off" spellcheck="false"><div class="hint" id="nick-c"></div></div>` : ''}
       ${linhas ? `<div class="tw"><table><thead><tr><th>Contrato</th><th>Nome</th><th>Onde é usado</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div>` : '<p class="note">Ainda não há nomes definidos.</p>'}
       ${semNome.length ? `<p class="note">Sem nome: ${semNome.map(k => `<button class="text-link" data-act="nick-add" data-a="${esc(k)}">${esc(addrCurto(k))}</button>`).join(', ')}</p>` : ''}`
   });
+  const q = document.getElementById('nick-q');
+  if (q) {   // pesquisa por qualquer parte do endereço (incluindo os 4 ou 5 dígitos visíveis) ou do nome
+    const trs = [...document.querySelectorAll('.overlay tbody tr')], cont = document.getElementById('nick-c');
+    const filtra = () => {
+      const t = q.value.trim().toLowerCase(); let v = 0;
+      for (const tr of trs) { const m = !t || tr.dataset.s.includes(t); tr.hidden = !m; if (m) v++; }
+      cont.textContent = t ? `${v} de ${trs.length}` : `${trs.length} contrato(s) com nome`;
+    };
+    q.addEventListener('input', filtra); filtra(); setTimeout(() => q.focus(), 40);
+  }
 }
 async function nickEdit(addr) {
   const atual = addr ? nickOf(addr) : '';
@@ -1998,6 +2031,9 @@ function grupos(list) {
 function emptyHTML() {
   return `<div class="section empty"><h2>${esc(VAZIOS[vistaAtual()])}</h2><p>Registe a sua primeira posição. Depois, cada atualização (valor e fees) fica registada com data e hora e forma o histórico de ROI e APR.</p>
     <div class="bb"><button class="btn primary" data-act="new">${K().nova}</button>${FILE.supported ? '<button class="btn" data-act="open-file">Abrir ficheiro de dados…</button>' : '<button class="btn" data-act="import">Importar backup…</button>'}</div></div>`;
+}
+function footerHTML() {
+  return `<div class="rodape"><span>powered by:</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFkAAAAsCAYAAAAO5BTdAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAATi0lEQVR42q1be5hdVXX/rX3OvXNnMplXyGvC5AUEDA8fAQmBAoJFW1BBkQIt2kolBSl8Be1DQQjQFkqtWqt8VUQqCB/Jp6iAUBRankkgEAKGhDwhZDLJDJnMZF733nPO/vWPWXvYbM6dQJPzfee7Z87Zz7XX/q21fmuPYJyLZCQimT6fDOBCAKcAmAEgBjAAYA2AewH8TESqJGMRSUlOA3AHgIMBJAAE+74EQBXA3QDOBDAdQPoe6goAwtoCjDm786xPn9Hcu/cHvcPDmTEmAt9RKr81AhRQrOWE+vptyeGHLpl695138pprjSxZYrEfV7wvAZM8GMCNAM4HUAqK1QP4Q70/R/ISEdmh32YDOFXLvJ9rAMA0AKcBKLyfitZaa4zpTrbtnBv19wNplfkSFYiMzXP0jQgEEAugSju7NDzyw10X/9UmWbLkaV533X4JOq4hYKMC/hCA+wDMA2ABZIH2ON2wqnn3kTxLRPpV20uqxZGWtVoe+boEA6BHy8aqxeY91yW3ABipK8aHV42BFAq5amtJSxACoYgYjs6ZAGAEMsIondDfXzCbt5wL4GksWSL7o8kmR8Cifc4C8GsVcNUbbaS38QQTA6gAOAnAVVpunrcQTlCRls27C/p9N4CJ/5+6plDYsvmuu9rqIbOSNAEJAxL+bUk2iDFtccG0xnEUA1IEpC2OTWsUmXoTCUihEbJSKY9O5fM40HBhVGu+BaBDtamoAo0ArAewGcBcAB/wUC7W5zNJ3qx1w2sPgG5tJ7wyfb8SQHvO911aP2/Mboy/xU9/2pwk1Tkpx3abp0DWNpnYDE+fcnfc0vqrpFgv3LLpWmstqofMvV6QxZWunrMndO8635pI2DbptTEZLztAQvZw+A8AfMqbuFXh3wrgRhEZINkE4HYdQuZpXIfeB3uwkmpf3wRwG4AGffdu4zXa34veO4eFlwP4hdbN3jWTlSsLsuiEva+fc+Hp5s3uiRmYGYEZAxiSJopNXKrvzY45+kcNnTs/tW1exy86dnat6RWzOk7SaZXWZlYbBlc2F+ouGIwNMGPy6zgAl8mZKAB8VjXDepDwhIj8LYBBkkUR2QvgewEuQrduk2o6vC0PAFu0XDXnrojICIBJ3gK5Me4FsE3/zq2LhQuHmFHigb5ZhTSFFRmFXYAE04nGCFtbHtxz8omnjvS81d87MPCkeXlT1jdj2verM2c8Uh4pbxjs3LkpXnTiQ4OTJ91YV1cs7x4c3AwAWDafBwQuSIq6XhMAfDSADgPgbsXrCECmz0mwOAAwqNo2MxDUTgCviYhV/EYNe3CIeiT+xHYCeFnrVnPrnnJKLNGT7D6xOt9kGSACIRGLSMVaU1eIsbtQeDx6ac0Xp/b2/fUgbU89pN4CLArjlBiaLDKx+uIL/2rIaikqvLH6jGP7cNddAJbwQGGy267TAMwPtLACYLUzzqMej5BkS6DFTiDNarz8BSCAs0gOeEbT9yo6ReRhkvO8ftwOqANwPskQy63unJeNyAoYA1ZGPpBYCxgjcRwPgdxbjIqNFXJCoX36TrNh46dNtVIkMD0DzJjrTNtQjAuFvcV4MK6UT4uLpe0X/dkVA7zoSiNvQ9YBETIAzALQ4mGhAHgDQJcK1tfaPAP1BoDJngBd+ekAvjPOWH4K4GEAR+SMaQ6An4xT9xsEVjDLGjoXLJxXqiaY2NoyMLTw+C+Xdvb2jsxoa25b/cq3+xsbC81p2hFZoiQw9C0wR33yalNLp0m3H9EnyaMwhj8cldEBD0YOzdHObQC6FVKsp1FzcjC508NUG3gStoZnUADwgv59eK1YYxyv4hUA6PnJT2ZgpNw+3Dih2jCz/d509qzOhu63Lu6fMe072NXzsMw5eJ3d+vrG4XK5OwUE1jYmxgwBkgkYxcW6/sJBrQPNRpp3lUrrQeKSU07h4ieeOOAu3LwcwW1XvHYBAscRyHYAH6whJAkWz/eDN5M0GsSEgQZz6lIXZwhJsgMA0qeWt0+xbNg+fdo3yx3tDxSfWXHc7ub65aU1v1+ws6lphXnl1cN7D5m9NMkohf49vSPHHLmypXPnojRjkxUbJ1bWc8PGohGUCu1TNwIApkzh/noXcY5A5+WUe4cro9ocAzgyEJZVTf5MjkE0Oe/8MWwEMEW9i7C81KgLAD3YvbsXALjljXkFCLK2tg2lZ1fdPr2cLOiDRWwMYAkYwFqiROKtyPSZqe2X1K9ctdRUqmgSQWfjhBXJpLYfWYJ1C47bjJ/fB8yff2CFrHg7K2dCOwMPwGH3zEAQPQB6AUzNCTQu1wWIA6PnvJRNAE5QIfvauwfAFerGRUHd0QjxkUe6AIAjI0cP0LLUMXMwXr++ZVdlpFoxQvH2gTXGNhGxKZWeG+nqElupZv1JMmTElKSl+YVoYPiwPmZJ+z9cvRVf/ypw/fXEkiX7L2TFWpKcCKA1x/D0Kw4LgIKybYvUVfMNZKe6WB3B1u4BcIeIVPfB+s1UT8Jn3jYCuEfdt9zrOsCgWICx9iiCnSYZaWqynBvFBbEiAYgTE8Wgt621Ox4ePKxNTCTGNDUW6rC3ubVz0siu+f2Q10QkWQqMsZAHEpOjGhAyQyNBEZFEtfkvdEtnXtnHVBNL+l48j0MUc/O2fCwilRpQtUnrFmpZeRHJNlS6mkofPvOQoTh6c/DcC1Y2vrrxn/cmFWsAWNHdN7o/MhvHpfoTjv9l1ttf6k+yfxlKkkp9sYjKqSf/Ru6593PFluYX95+xqC3kQQB96iv7vvNXSK4B8BzJuQC+CuBjnvfgBHongLMCQ2cAbBSRimP3cjTYQdXcwFBGADbrAiO37nXXGQDgZdfOQLnSaOPo0NJN11/W3dc3GBeLsPad62IMMJBUhotPPnVuBINKtbI3iiLTuXcgjZYuvTytlD/I9uk/HuUsPg8sW3ZghKxQYdSDeFGJn8zDzzkAHlQ4aNXbBQtVdaOWichaktfkYPqGIIJEjiEtabQXGrtN4xg94NVXBQDiNWsPStJqUzRQiVsGh66OYCAYyq8mgCUV1AUEIWJQ3dOHcqkO5dbGtQAOiNGrFYzcrgS9eAQRFSvneoZMAj/1KpL1nu/su1wbx8FhEREqvs8JhJwCePO9TCSdMrVidvfZhOV0N1kFk3E5YCEEBKgUkgA2sjZCFI0MpPEbALC/Bu9dBJFuyUhE/hfADR5vnKj2pfqcBDzyEwDOEpHtGk7P0LKZlisrJqMG6e6EMUUjxUTrW/VqusYJRiDLlmUEjNy/dI2ZOePBafWluIlsaBVTP97dYkypJTIl9/dEMROmRKZUVyy+taNjct84493/YERzdDeQ7APw9Rx3zA86bgdwq4gMK6Z2BAwaVMh9avSMJiD8jIoT8ody0k1VADu0LnPIJKcknGdMZdWjj37p4Fu+/TL3DixMKmU7llsCQBNFJuAcbWYppMWocbSAiTB58so9N988wk9+MsappzKQstVdBzcfbx7+DhQta7GvBCXJ2ZrtOFo1zW3flwA8IyK7XYitO+EwAGd7WhwD2AHg3loumJd4PUk57D1KSMUAtojIz8dL8I69W7o0kvPOe/tdFI1aOWf4six/D5nINw6AzUYDl3HgDcA7DLiLHdwC+OMEYMXL6VmSXwBwnGfMhjQIMKplVAHsBrAVwAsi0uuR/W0ALgl46kgJJ5+N2604/pSI9Ln+dSx/DOAjHqdxEIBnReQ+HTR1rC3q4SxSvmUCgEFU041IKo+jsfG3Alhet7SIJecl2dDQYonio4wgtdYKjIlMkjyExsZHcMl/xnjtHuLCC0UWL07SNL0siqIjPH89UShcKSJ36DiPAnCy7sB2T147NOnwhIhsGlsFvetIPsP3d60iebq3cme8z/ovkvy01i3qOJ7NKXeD03r9PZ/kC+M1nGXZA5qnBMmYWbYuLJOm6Zc56oPHru00Ta+p0eQrJOeR7CB5J8nd+5hbJ8lvkCyOqTrJdpLrSKYkqyQTvavenQQ3SfaT/Ii2canWLwflxqtf8QTdrIJP9X1Fn8/yFOF73kT89hMt67f9nLY5ieTrXruJjvFYt8D6+7Wg3bL+/TTJBpJHktwc9F9LPpmWuc/hBkgeRXJQP9jxlMR7Lo81NNrGfzglGae+/62iv6+RbCQ5l2RX0E9G8hht/3ZvcmlOP5k3fje2m0h+gORAUGYPyalqwEDycm98VoXmFmp6MLaKtpPVmJ+b11aSn/W9ixmKa5nHAVuNAt1zKTjg4nB6QU7E5nsXZS+t3+h9K2p/8wAcC2BY3TjfgPQCWEfyQgAXe/bC0T7D6uY1aGLAzzVaNabrcg7mvA6gT/H9Es1XZl7AVACwHMA5IrKL5L0aCSf6Tby8ZZ+OaZKOIVKbc4GIrPVx7vJAS0jyf0geT/KjJI8jeTrJx7wVcyu5mWQTyZc9bbH6+1WSHyG5kOQikrd4311/luSXSJ7jvXNtP0VymmKiDfpdSfIU3QWzSP4s0Eaq9t3v1XFzu1/n/QVPK30NXklyupY52tNeN69BlVkzSUMyIjmb5M0kHyDZrnULPlz4W9119H3/VJFndBhs19W6pcKtXlYrHLpBT3htOCH/Jckr9X3Vw9Vvk/xYIDyrhmd+YBDb9f2I3mWSQyT3BotKkleQPNNTKuvNZznJyZ5j8Dc5c75Nv9eRLLgxBOMxLhixOWS92wq/9/kFffx4zpmIFRqETAq2+iCAHmXQXPQYBy6ez0UfkxOSbwJwYsBNxwAeEZFX1WglOqEuPS7W6NU3AP5J4cg/R3ISgGs8GTh++nkAnxWRHpJ1SmzlsYONKpdKjm9M3y2NlRwq1jgnsYDkYuUtMgALAfyJh4eu3HcBLFCsSr3360Vklz47QVyq7VgvYhrQPOLROQRRt8fs+cHTCrUDLgqjt+D+pCcoXobtfj4n2fskgPMUg2PvAE5D4PcTwAUKJy8pAbZJOZouDa5MGFa3e+GzP5CL9UaNvJsB8Hcisp7kF3MGPYXktzw6dD6ATwZhc1EPQW3KEbILhuYFfEsFwFpVkLwoy2f8DgZwWLBI4oX0PhH2rAq4oLx57C20v5DOiJ+ut79znyZ5m4j82iO/AJKnedjoX9bDoTTAxEStMhT47wkwr9ZlPdwlyW2K50fkuGKvkvyE5/i79z0kO4J0GPKErcaaNdytsL/XdSyic3J26KQAk20gmyyQnSV5mZON8bLO4fkCBrDgkx+Ol/iQ0pt1Qb7PT9lX9Df1KFKXad6q27NLw1PgnUdkd+ghmeYA67uVOHovR1oPq8Go2QC3M81bfka1z1ENRkSeBnC9x0xKsON9O+JC8VtJzhYR64Q8N2cgTrgmePYHdSmAL6rA5uacr4t1AdwR18jbpj8GcKqIOGzNO+/xpud3+kLZqgSN+KSM0z6P8TM1ji34ByRD4V+kipN5x4hFRJboGcEHlcRyc42CzHqs7Tdg9CD7GCYfEqywAfBfAH6umJkqC/c11QzrafrHATyjmM4Ab9doZ0fmTPQuEdlGsl5ERpTBC68NePsIro/1neGucQdvwsMwOe06L+IONbhXBl7HIr0f10W0Ch+RiNxP8lc61zmq+XMAnIHRf/MI/1niIACISTYERs8J6lci8kCAc4kel/KNRkk7M4Er9Iqm+GcDeNaL5Fz7X1HCPw1OLvnC2wzgEzlC7vPwcszLcTgdRKSH5xyefAjAYk2zXayRrr+LLhORxzwPQZRlrAOQKrx16bygxn2lHuqxgSGE0VBxemDVrTvQopGM0/g8An+Xh8cMTh1lGnauxrv/LeYkkh1qxScFC+0ftW3IwfoJqrWRuqGZUqyr1IVbpfczusj+4g0DuFpEUoweaF/ueRjOpTxdgyirGmxJTheRissgaQBSVD684p1wpbegW52QpwYHB93/baQa9UwGMEmZsis8TXUrtjY4JuuuLZ4L89ug/UwX9488uGrNyYpsDKDJCeEzJI8Vkaou0jkA/lGDoan6O0nH1hfshF4AnSq8BMA9gYJlamgvEhGqUK8FsJzk1S4wEZFEz5E0k7wJwIeDk6hvqXYDJP80hx2rktxO8g11sbZ5rpnvvgyT/CDJ//ZcIdfO5R7MzPeYKd/Ne0C/n+1xAs6d2qrfbqzhGvYpt/K816f1yq1SbiEJQuanfNdPuYftXn3X/xaSc0h+N+h3F8mXSP5O6YGtgevmXNObx0JrpQL3RU/6wrWewH6gW2d7UCbRDIeDG6N8gE8eWaUfW0kuziGnHvUo2HIggKzG+BLv9wSSf5/T7h2eJ+J86VtyFtKSXO/1l40jI/fdyWUNyck6dzHqLdBLCLo7C27r+blFAI+qt3G4xvHWg5BB77yEi+Ef9Hxn5082qnfSFvRJxUuIyO/VRxUPasQrn3rjixUbLxOR5Z4hsl67r+UY+WUARrz2HUT5RpNBv5nn/zuYKKr9OVdEejRVRgTq/l6uLpK3kmxWLTgvp8ybeljFj7xOrKGBz5J8KOf91WNU4ejvVRrpjXc9TfI0Ld+qdGV4nevtMBfZFUk+XKPNXcrk7evaQfLfNc+JkLt4UyOr8S6rXsRyZb/W6uCcxX8eb/8fSAHAahEpOwLHM5D36s6pBg58o3OHVEOK2iY8RuvfSD4O4M9V+9u1breW/SWA3+jxBJf47dQx+6lqxyzSOzlVJfljTfgmHtcyQWOFxwBcpElml9wQNarrAPxO+17nJ6Zdh/8HbxSigg3EaDAAAAAASUVORK5CYII=" alt="OFFBRICKS" title="OFFBRICKS"></div>`;
 }
 function methodHTML() {
   return `<details class="section method"><summary>Como os indicadores são calculados</summary><ul>
@@ -2056,7 +2092,7 @@ function render() {
   PSERIES = portfolioSeries(list);
   app.innerHTML = headerHTML() + `<div id="banner">${bannerHTML()}</div>` + kindTabsHTML(counts) +
     (all.length ? cardsHTML(aggregate(list.map(x => x.r.cur))) + networkSummaryHTML(statusList) + insightsHTML(list) + portfolioHTML() + poolsHTML(list, all.length, nAt, nFe) + tokensHTML() : emptyHTML()) +
-    methodHTML() + (all.length ? practicesHTML() : '');
+    methodHTML() + (all.length ? practicesHTML() : '') + footerHTML();
   drawCharts();
 }
 
@@ -2131,6 +2167,7 @@ function openForm(cfg) {
       const raw = form.elements[f.name].value;
       if (f.type === 'num') {
         const n = parseNum(raw, f.money !== false);
+        if (temSoma(raw) && !Number.isNaN(n)) (vals.__expr = vals.__expr || {})[f.name] = raw.trim().replace(/\s+/g, '');
         if (Number.isNaN(n)) return showErr(`Valor inválido em “${f.label}”.`);
         if (n === null && f.req) return showErr(`Preencha “${f.label}”.`);
         vals[f.name] = n;
@@ -2151,7 +2188,7 @@ function openForm(cfg) {
 }
 // Nas auto-farms não há referência #; em vez disso há um campo de notas no fim do formulário.
 const refField = P => kindOf(P) === 'farm' ? [] : [hashField()];
-const taxaField = e => ({ name: 'taxa', label: 'Taxas (USD)', type: 'num', half: 1, value: e ? e.taxa : null, hint: 'Opcional. Gás e outras taxas desta operação. Somadas no mosaico “Taxas”.' });
+const taxaField = e => ({ name: 'taxa', label: 'Taxas (USD)', type: 'num', half: 1, value: e ? e.taxa : null, hint: 'Opcional. Gás e outras taxas desta operação. Pode somar no campo: 0,034+0,06.' });
 const notaField = (P, e) => kindOf(P) === 'farm' ? [{ name: 'nota', label: 'Notas', type: 'textarea', ph: 'Opcional (ex.: o que o agente fez, o que observou…)', value: e ? (e.nota || '') : '' }] : [];
 const hashField = () => ({ name: 'hash', label: 'Referência #', ph: '0000', maxlen: 4, digits: 1, short: 1, hint: 'Opcional. 4 dígitos apenas para sua referência.' });
 const dtFields = () => { const [d, t] = splitDT(nowInput()); return [{ name: 'data', label: 'Data', type: 'date', half: 1, dt: 1, value: d, req: 1 }, { name: 'hora', label: 'Hora', type: 'time', half: 1, dt: 1, value: t, req: 1 }]; };
@@ -2199,6 +2236,7 @@ function poolForm(P, kind, sub) {
       ] : []),
       { name: 'data', label: 'Data de Criação', type: 'date', half: 1, value: d, req: 1 },
       { name: 'hora', label: 'Hora', type: 'time', half: 1, value: t, req: 1 },
+      { name: 'taxa', label: 'Taxas (USD)', type: 'num', half: 1, value: ab?.taxa, hint: 'Opcional. Gás e outras taxas da criação. Pode somar no campo: 0,034+0,06.' },
       ...(farm ? [] : [
         { name: 'rangeMin', label: 'Range Mínimo', type: 'num', money: false, ph: '3000', half: 1, value: P?.rangeMin, hint: 'Opcional' },
         { name: 'rangeMax', label: 'Range Máximo', type: 'num', money: false, ph: '4000', half: 1, value: P?.rangeMax, hint: 'Opcional' }
@@ -2223,9 +2261,10 @@ function poolForm(P, kind, sub) {
       if (P) {
         if (P.events.some(e => e.type !== 'abertura' && parseT(e.t) < parseT(tt))) return 'Existem lançamentos anteriores a essa data de criação. Ajuste a data ou elimine esses lançamentos.';
         Object.assign(P, data); ab.valor = v.valor; ab.t = tt;
+        ab.taxa = ok(v.taxa) ? v.taxa : null; if (v.__expr && v.__expr.taxa) ab.expr = Object.assign({}, ab.expr, { taxa: v.__expr.taxa }); else if (ab.expr) delete ab.expr.taxa;
       } else {
         const id = uid();
-        DB.pools.push(Object.assign({ id }, data, { events: [{ id: uid(), type: 'abertura', t: tt, valor: v.valor, fees: null, seq: nextSeq() }] }));
+        DB.pools.push(Object.assign({ id }, data, { events: [{ id: uid(), type: 'abertura', t: tt, valor: v.valor, fees: null, taxa: ok(v.taxa) ? v.taxa : null, expr: v.__expr && v.__expr.taxa ? { taxa: v.__expr.taxa } : null, seq: nextSeq() }] }));
         UI.open[id] = true;
       }
       save();
@@ -2262,8 +2301,8 @@ function updateForm(P) {
       if (ok(v.rev)) extra.rev = v.rev;
       if (ok(v.apr)) extra.pApr = v.apr / 100;
       if (ok(v.pnl)) extra.pPnl = v.pnl;
-      P.events.push(Object.assign({ id: uid(), type: 'atualizacao', t: tt, valor: v.valor, fees: v.colhidas ? 0 : v.fees, hash: v.hash || null, nota: v.nota || null, taxa: ok(v.taxa) ? v.taxa : null, seq: nextSeq() }, extra));
-      if (v.colhidas && v.fees > 0) P.events.push({ id: uid(), type: 'coleta', t: tt, valor: v.fees, fees: null, hash: v.hash || null, nota: v.nota || null, taxa: ok(v.taxa) ? v.taxa : null, seq: nextSeq() });
+      P.events.push(Object.assign({ id: uid(), type: 'atualizacao', t: tt, valor: v.valor, fees: v.colhidas ? 0 : v.fees, hash: v.hash || null, nota: v.nota || null, taxa: ok(v.taxa) ? v.taxa : null, expr: v.__expr || null, seq: nextSeq() }, extra));
+      if (v.colhidas && v.fees > 0) P.events.push({ id: uid(), type: 'coleta', t: tt, valor: v.fees, fees: null, hash: v.hash || null, nota: v.nota || null, taxa: ok(v.taxa) ? v.taxa : null, expr: v.__expr || null, seq: nextSeq() });
       save();
     }
   });
@@ -2338,7 +2377,7 @@ function rebalanceForm(P) {
       const prevMin = P.rangeMin, prevMax = P.rangeMax;
       P.rangeMin = v.rangeMin;
       P.rangeMax = v.rangeMax;
-      P.events.push({ id: uid(), type: 'rebalance', t: tt, valor: v.valor, fees: v.fees, rangeMin: v.rangeMin, rangeMax: v.rangeMax, prevMin, prevMax, hash: v.hash || null, nota: v.nota || null, taxa: ok(v.taxa) ? v.taxa : null, seq: nextSeq() });
+      P.events.push({ id: uid(), type: 'rebalance', t: tt, valor: v.valor, fees: v.fees, rangeMin: v.rangeMin, rangeMax: v.rangeMax, prevMin, prevMax, hash: v.hash || null, nota: v.nota || null, taxa: ok(v.taxa) ? v.taxa : null, expr: v.__expr || null, seq: nextSeq() });
       save();
     }
   });
@@ -2351,7 +2390,7 @@ function collectForm(P) {
     onSubmit: v => {
       const tt = v.data + 'T' + v.hora, er = checkDate(P, tt); if (er) return er;
       if (!(v.valor > 0)) return 'Informe um valor maior que zero.';
-      P.events.push({ id: uid(), type: 'coleta', t: tt, valor: v.valor, fees: null, hash: v.hash || null, nota: v.nota || null, taxa: ok(v.taxa) ? v.taxa : null, seq: nextSeq() }); save();
+      P.events.push({ id: uid(), type: 'coleta', t: tt, valor: v.valor, fees: null, hash: v.hash || null, nota: v.nota || null, taxa: ok(v.taxa) ? v.taxa : null, expr: v.__expr || null, seq: nextSeq() }); save();
     }
   });
 }
@@ -2372,7 +2411,7 @@ function flowForm(P) {
       const tt = v.data + 'T' + v.hora, er = checkDate(P, tt); if (er) return er;
       if (!(v.valor > 0)) return 'Informe um valor maior que zero.';
       if (v.tipo === 'retirada' && v.valor >= c.valor) return `A retirada (${money(v.valor)}) não pode ser igual ou maior que o valor atual (${money(c.valor)}). Para retirar tudo, use “Fechar Pool”.`;
-      P.events.push({ id: uid(), type: v.tipo, t: tt, valor: v.valor, fees: null, hash: v.hash || null, nota: v.nota || null, taxa: ok(v.taxa) ? v.taxa : null, seq: nextSeq() }); save();
+      P.events.push({ id: uid(), type: v.tipo, t: tt, valor: v.valor, fees: null, hash: v.hash || null, nota: v.nota || null, taxa: ok(v.taxa) ? v.taxa : null, expr: v.__expr || null, seq: nextSeq() }); save();
     }
   });
 }
@@ -2393,7 +2432,7 @@ function closeForm(P) {
       const tt = v.data + 'T' + v.hora, er = checkDate(P, tt); if (er) return er;
       if (parseT(tt) < CACHE[P.id].r.st.last) return `O fecho não pode ser anterior ao último lançamento (${fmtDT(CACHE[P.id].r.st.last)}).`;
       if (v.valor < 0 || v.fees < 0) return 'Os valores não podem ser negativos.';
-      P.events.push({ id: uid(), type: 'fechamento', t: tt, valor: v.valor, fees: v.fees, hash: v.hash || null, nota: v.nota || null, taxa: ok(v.taxa) ? v.taxa : null, seq: nextSeq() }); save();
+      P.events.push({ id: uid(), type: 'fechamento', t: tt, valor: v.valor, fees: v.fees, hash: v.hash || null, nota: v.nota || null, taxa: ok(v.taxa) ? v.taxa : null, expr: v.__expr || null, seq: nextSeq() }); save();
     }
   });
 }
@@ -2481,6 +2520,12 @@ document.addEventListener('click', ev => {
     case 'unlink': unlinkFile(); break;
     case 'reconnect': reconnectFile(); break;
     case 'allev': UI.allev[id] = !UI.allev[id]; UI.open[id + ':ev'] = true; render(); break;
+    case 'nofile': askNotice('Este navegador não deixa a app gravar diretamente num ficheiro seu. É o caso do Safari, do Firefox e das apps instaladas no telemóvel.\n\nPara ter o ficheiro de dados, abra a app no Chrome ou no Edge, num computador.\n\nAqui, use Exportar backup com regularidade: é a forma de não perder nada.', 'Ficheiro de dados'); break;
+    case 'parc': {   // toque na célula: mostra as parcelas (no telemóvel não há rato)
+      const ps = parcelas(b.dataset.e), money2 = x => money(parseNum(x, true));
+      askNotice(ps.map(x => '• ' + x.replace('.', ',') + '  =  ' + money2(x)).join('\n') + `\n\nTotal: ${money(parseNum(b.dataset.e, true))}`, (b.dataset.l || 'Valor') + ': ' + ps.length + ' parcelas');
+      break;
+    }
     case 'nicks': nicksForm(); break;
     case 'wallet': walletForm(); break;
     case 'krystal': if (P) krystalForm(P); break;
